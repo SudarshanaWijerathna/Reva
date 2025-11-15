@@ -1,0 +1,5 @@
+newsapi-python
+pymongo
+python-dotenv
+protobuf
+regex

@@ -1,0 +1,34 @@
+from Analysis.data_collector.news_api import everything
+import re
+
+
+class TextCleaner:
+    def __init__(self):
+        # Precompiled regex patterns for performance
+        self.url_pattern = re.compile(r'https?://\S+|www\.\S+')
+        self.html_pattern = re.compile(r'<.*?>')
+        self.non_alpha_pattern = re.compile(r'[^a-zA-Z\s]')
+        self.multiple_spaces_pattern = re.compile(r'\s+')
+
+    def clean_text(self, article_json:dict)->str:    
+        """
+        takes news api json text and clean it
+        """
+        title = article_json.get('title', '')
+        desc = article_json.get('description', '')
+        content = article_json.get('content', '')
+
+        text = f"{title} {desc} {content}"
+        
+        text = text.lower()
+        text = self.url_pattern.sub('', text)
+        text = self.html_pattern.sub('', text)
+        text = self.non_alpha_pattern.sub(' ', text)
+        text = self.multiple_spaces_pattern.sub(' ', text).strip()
+
+        return text.strip()
+    
+clean = TextCleaner()
+for article in everything:
+    cleaned_text = clean.clean_text(article)
+    print(f"Cleaned Text: {cleaned_text}\n")

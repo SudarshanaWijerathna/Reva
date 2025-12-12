@@ -1,4 +1,4 @@
-from Analysis.data_collector.news_api import everything
+#from Analysis.data_collector.news_api import everything
 import re
 
 
@@ -28,7 +28,9 @@ class TextCleaner:
 
         return text.strip()
     
-clean = TextCleaner()
+'''clean = TextCleaner()
+list_of_cleaned_texts = []
 for article in everything:
     cleaned_text = clean.clean_text(article)
-    print(f"Cleaned Text: {cleaned_text}\n")
+    list_of_cleaned_texts.append(cleaned_text)
+    print(f"Cleaned Text: {cleaned_text}\n")'''

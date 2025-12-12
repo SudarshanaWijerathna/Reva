@@ -4,7 +4,7 @@ from Analysis.config import DB_LINK
 
 # Example connection
 client = MongoClient(DB_LINK)
-db = client.Trading_bot
-trades_collection = db.trades
+db = client.Reve
+Sentiment_collection = db.Sentiment
 
-print("Connected to MongoDB, database 'Trading_bot', collection 'trades'")
+print("Connected to MongoDB, database 'Reve', collection 'Sentiment_collection'")

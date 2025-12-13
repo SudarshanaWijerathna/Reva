@@ -5,3 +5,7 @@ protobuf
 regex
 transformers
 torch
+beautifulsoup4==4.14.3
+requests
+lxml
+pytrends

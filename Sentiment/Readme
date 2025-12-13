@@ -3,4 +3,4 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\venv\Scripts\Activate.ps1
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python -m Analysis.data_collector.news_api
+Root - Sentiment :python -m Analysis.ochestration.pipe

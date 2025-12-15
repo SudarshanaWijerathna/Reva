@@ -2,6 +2,7 @@ from Analysis.data_collector.news_api import APIData
 from Analysis.preprocessing.cleaner import TextCleaner
 from Analysis.sentiment_model.bert import SentimentModel
 from Analysis.storage.store import SentimentStorage
+from datetime import datetime
 
 
 #-------Instances
@@ -17,6 +18,7 @@ class SentimentPipeline:
         self.model = model
 
     def run_pipeline(self):
+        
         # get data from API
         raw_articles = self.api_data.get_everything(query="stock market headlines", language='en', sort_by='relevancy', page=1)
 
@@ -34,8 +36,8 @@ class SentimentPipeline:
                 'description': article.get('description'),
                 'content': article.get('content'),
                 'cleaned_text': cleaned_text,
-                'predictions': predictions
-                
+                'predictions': predictions,
+                'timestamp': datetime.utcnow()
             })
         print(f"Pipeline Results: {results[0]}\n")
         return results

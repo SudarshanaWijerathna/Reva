@@ -26,7 +26,6 @@ data/
 |   ├── house_features_v1.csv
 |   └── rental_features_v1.csv
 ├── schema/                     # Documentation & schemas
-data/schema/
 |   ├── land_schema.md
 |   ├── house_schema.md
 |   └── rental_schema.md

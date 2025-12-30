@@ -1,4 +1,4 @@
-# Data Directory – Reva 🗂️
+# Data Directory – Reva
 
 This directory contains all data-related assets used in the Reva project.
 The goal of this structure is to ensure **reproducibility, clarity, and safe collaboration**
@@ -9,7 +9,7 @@ from raw inputs into model-ready features.
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 data/

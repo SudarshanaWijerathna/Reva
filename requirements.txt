@@ -9,3 +9,6 @@ beautifulsoup4==4.14.3
 requests
 lxml
 pytrends
+chromadb
+sentence-transformers
+tqdm

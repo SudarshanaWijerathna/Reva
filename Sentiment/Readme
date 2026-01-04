@@ -4,3 +4,4 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Root - Sentiment :python -m Analysis.ochestration.pipe
+Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline

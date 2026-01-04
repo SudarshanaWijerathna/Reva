@@ -5,8 +5,8 @@ from Analysis.semantic_filter.filter_service import FilterService
 def run_pipeline():
     # Initialize repos
     sentiment_repo = SentimentStorage()
-    vector_repo = VectorRepo()
-    filter_service = FilterService(vector_repo)
+    #vector_repo = VectorRepo()
+    filter_service = FilterService() #-> (vector_repo)
 
     # Fetch documents
     docs = sentiment_repo.fetch_all_docs()

@@ -19,7 +19,7 @@ class SentimentPipeline:
 
     def run_pipeline(self):
         
-        # get data from API
+        # get data from API. Curently only inpmlemnt for the google News Search API(not news scraper)
         raw_articles = self.api_data.get_everything(query="stock market headlines", language='en', sort_by='relevancy', page=1)
 
         list_of_cleaned_texts = []

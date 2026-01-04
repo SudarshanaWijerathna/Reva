@@ -21,3 +21,13 @@ class SentimentStorage:
         # Insert into MongoDB
         self.db_collection.insert_many(docs)
         print(f"{len(docs)} documents inserted into MongoDB.")
+        
+    
+    def fetch_all_docs(self):
+        return list(self.db_collection.find({}))
+    
+    def update_doc_similarity(self, doc_id, similarity_score):
+        self.db_collection.update_one(
+            {"_id": doc_id},
+            {"$set": {"similarity": similarity_score}}
+        )

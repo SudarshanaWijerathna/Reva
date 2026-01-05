@@ -8,7 +8,7 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 
 class VectorRepo:
-    def __init__(self, collection_name="reference_vectors"):
+    def __init__(self, collection_name):
         self.persist_directory = "./chroma_store"
 
         if PersistentClient:

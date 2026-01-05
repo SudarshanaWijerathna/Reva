@@ -9,28 +9,44 @@ def cosine_similarity(a, b):
 
 class SimilarityEngine:
     def __init__(self):
-        self.vector_repo = VectorRepo()
+        self.vector_repo = VectorRepo("reference_vectors")
+        self.short_repo = VectorRepo("short_term_vectors")
+        self.medium_repo = VectorRepo("medium_term_vectors")
+        self.long_repo = VectorRepo("long_term_vectors")
+    
 
+        
     def compute_similarity(self, text_embedding):
-        raw_embeddings = self.vector_repo.get_all_embeddings()
-        count = self.vector_repo.count()
-        print(f"Retrieved {len(raw_embeddings)} reference embeddings for similarity computation.✅✅✅ AND THE CPUNT IS {count}")
+ 
+        results = {}
 
-        if raw_embeddings is None:
-            # No references yet, so we default to zero similarity.
-            print("No reference embeddings found. Returning zero similarity.✅✅✅")
-            return 0.0, 0.0
+        # Map of collection names to VectorRepo objects
+        collections = {
+            "ref": self.vector_repo,
+            "short": self.short_repo,
+            "medium": self.medium_repo,
+            "long": self.long_repo,
+        }
 
-        if len(raw_embeddings) == 0:
-            print("Reference embeddings list is empty. Returning zero similarity.✅✅✅")
-            return 0.0, 0.0
+        for name, repo in collections.items():
+            raw_embeddings = repo.get_all_embeddings()
 
-        all_embeddings = [np.array(e) for e in raw_embeddings]
-        print(f"Converted reference embeddings to numpy arrays. Total: {len(all_embeddings)}✅✅✅")
+            # Safe checks: None or empty
+            if raw_embeddings is None or len(raw_embeddings) == 0:  # covers None or empty list
+                results[name] = 0.0
+                continue
 
-        scores = [cosine_similarity(text_embedding, e) for e in all_embeddings]
-        if not scores:
-            print("No similarity scores computed. Returning zero similarity.✅✅✅")
-            return 0.0, 0.0
+            # Convert to numpy arrays
+            all_embeddings = [np.array(e) for e in raw_embeddings]
 
-        return max(scores), float(np.mean(scores))
+            # Compute cosine similarity safely
+            scores = [cosine_similarity(text_embedding, e) for e in all_embeddings]
+
+            if not scores:
+                print(f"No similarity scores computed for {name}. Returning zero.✅✅✅")
+                results[name] = 0.0
+            else:
+                results[name] = max(scores)
+
+        return results
+

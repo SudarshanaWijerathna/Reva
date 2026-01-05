@@ -9,12 +9,21 @@ class FilterService:
 
     def evaluate_document(self, doc):
         emb = self.embedder.embed(doc["cleaned_text"])
-        print("Embedding computed✅✅✅.", len(emb))
+        sim_scores = self.sim_engine.compute_similarity(emb)
 
-        max_sim, mean_sim = self.sim_engine.compute_similarity(emb)
-        print(f"Similarity computed✅✅✅. Max: {max_sim}, Mean: {mean_sim}")
+        # Noise / relevance logic based on reference repo
+        ref_max = sim_scores["ref"]
+        if ref_max < NOISE_THRESHOLD:
+            relevance = "noise"
+        elif ref_max >= RELEVANT_THRESHOLD:
+            relevance = "relevant"
+        else:
+            relevance = "uncertain"
 
-        doc["similarity"] = max_sim
-        doc["relevance"] = "relevant" if max_sim >= RELEVANT_THRESHOLD else "noise" if max_sim <= NOISE_THRESHOLD else "maybe"
-        print(f"Document evaluated✅✅✅. Relevance: DOC")
-        return doc
+        return {
+            "similarity_ref": sim_scores["ref"],
+            "similarity_short": sim_scores["short"],
+            "similarity_medium": sim_scores["medium"],
+            "similarity_long": sim_scores["long"],
+            "relevance": relevance
+        }

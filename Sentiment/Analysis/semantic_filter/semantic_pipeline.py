@@ -14,7 +14,7 @@ def run_pipeline():
 
     # Evaluate each document
     for doc in docs:
-        evaluated_doc = filter_service.evaluate_document(doc)
-        sentiment_repo.update_doc_similarity(doc["_id"], evaluated_doc["similarity"])
+        scores = filter_service.evaluate_document(doc)
+        sentiment_repo.update_doc_similarity(doc["_id"], scores)
 
 run_pipeline()

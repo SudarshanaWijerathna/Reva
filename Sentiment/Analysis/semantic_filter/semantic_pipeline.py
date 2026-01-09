@@ -1,25 +1,18 @@
 from Analysis.storage.store import SentimentStorage
-from Analysis.storage.vector import VectorRepo
 from Analysis.semantic_filter.filter_service import FilterService
 
-from Analysis.ochestration.pipe import pipeline, storage
 
-def run_semantic_pipeline():
+class SemanticPipeline:
+    def __init__(self, sentiment_repo: SentimentStorage | None = None, filter_service: FilterService | None = None) -> None:
+        self.sentiment_repo = sentiment_repo or SentimentStorage()
+        # vector_repo = VectorRepo() can be injected once needed by FilterService.
+        self.filter_service = filter_service or FilterService()
 
-
-    # Initialize repos
-    sentiment_repo = SentimentStorage()
-    #vector_repo = VectorRepo()
-    filter_service = FilterService() #-> (vector_repo)
-
-    # Fetch documents
-    docs = sentiment_repo.fetch_all_docs()
-    print(f"Fetched ✅✅✅{len(docs)} documents for evaluation.")
-
-    # Evaluate each document
-    for doc in docs:
-        scores = filter_service.evaluate_document(doc)
-        sentiment_repo.update_doc_similarity(doc["_id"], scores)
+    def run_semantic_pipeline(self) -> None:
+        docs = self.sentiment_repo.fetch_all_docs()
+        print(f"Fetched ✅✅✅{len(docs)} documents for evaluation.")
+        for doc in docs:
+            scores = self.filter_service.evaluate_document(doc)
+            self.sentiment_repo.update_doc_similarity(doc["_id"], scores)
 
 
-run_semantic_pipeline()

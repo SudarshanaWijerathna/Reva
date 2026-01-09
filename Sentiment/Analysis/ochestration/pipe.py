@@ -41,9 +41,9 @@ class SentimentPipeline:
             })
         print(f"Pipeline Results: {len(results)}\n")
         return results
-
+'''
 pipeline = SentimentPipeline(api_data, cleaner, sentiment_model)
 pipeline_results = pipeline.run_pipeline()
 print("Sentiment Pipeline Completed.✅✅✅")
 storage.store_sentiment_results(pipeline_results)
-
+'''

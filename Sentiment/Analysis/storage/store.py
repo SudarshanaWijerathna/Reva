@@ -26,8 +26,13 @@ class SentimentStorage:
     def fetch_all_docs(self):
         return list(self.db_collection.find({}))
     
+    def fetch_relevant_docs(self):
+        """Return documents marked as relevant."""
+        return list(self.db_collection.find({"relevance": "noise"}))
+    
     def update_doc_similarity(self, doc_id,scores_dict):
         self.db_collection.update_one(
             {"_id": doc_id},
             {"$set": scores_dict},
         )
+    

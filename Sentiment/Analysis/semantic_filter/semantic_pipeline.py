@@ -2,7 +2,11 @@ from Analysis.storage.store import SentimentStorage
 from Analysis.storage.vector import VectorRepo
 from Analysis.semantic_filter.filter_service import FilterService
 
-def run_pipeline():
+from Analysis.ochestration.pipe import pipeline, storage
+
+def run_semantic_pipeline():
+
+
     # Initialize repos
     sentiment_repo = SentimentStorage()
     #vector_repo = VectorRepo()
@@ -17,4 +21,5 @@ def run_pipeline():
         scores = filter_service.evaluate_document(doc)
         sentiment_repo.update_doc_similarity(doc["_id"], scores)
 
-run_pipeline()
+
+run_semantic_pipeline()

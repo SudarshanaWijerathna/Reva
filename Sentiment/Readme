@@ -1,0 +1,16 @@
+cd Sentiment
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Root - Sentiment :python -m Analysis.ochestration.pipe
+Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline
+Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
+
+Data extracking and sentiment setting pipeline (ochestration.pipe) and 
+similarity adding pipeline (semantic_filter) is working individually they are neither conbine
+nor connected to the aggregator, aggregator act alone to fetch the db individually and print output
+
+all you need to do is -> Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
+if you want to update the db, run Root - Sentiment :python -m Analysis.ochestration.pipe
+Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline in thread

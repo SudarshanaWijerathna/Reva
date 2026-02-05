@@ -24,7 +24,6 @@ build/
 .env
 .env.local
 .env.*.local
-venv/
 
 # Build outputs
 /dist
@@ -49,6 +48,3 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
-
-# dataset files for housing 
-dataset_house/

@@ -1,4 +1,4 @@
-from Analysis.database import Sentiment_collection
+from Sentiment.Analysis.database import Sentiment_collection
 from datetime import datetime
 
 class SentimentStorage:

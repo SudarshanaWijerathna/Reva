@@ -48,3 +48,6 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+chroma_store/
+Sentiment/chroma_store/

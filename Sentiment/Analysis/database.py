@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from datetime import datetime
-from Analysis.config import DB_LINK
+from Sentiment.Analysis.config import DB_LINK
 
 # Example connection
 client = MongoClient(DB_LINK)

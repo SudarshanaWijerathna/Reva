@@ -7,6 +7,8 @@ Root - Sentiment :python -m Analysis.ochestration.pipe
 Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline
 Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
 
+create.env and loand kb_initializer to create chroma store
+
 Data extracking and sentiment setting pipeline (ochestration.pipe) and 
 similarity adding pipeline (semantic_filter) is working individually they are neither conbine
 nor connected to the aggregator, aggregator act alone to fetch the db individually and print output
@@ -14,3 +16,5 @@ nor connected to the aggregator, aggregator act alone to fetch the db individual
 all you need to do is -> Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
 if you want to update the db, run Root - Sentiment :python -m Analysis.ochestration.pipe
 Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline in thread
+
+you can run them both in run_both.py inside Analysis

@@ -1,5 +1,5 @@
 import numpy as np
-from Analysis.storage.vector import VectorRepo
+from Sentiment.Analysis.storage.vector import VectorRepo
 
 def cosine_similarity(a, b):
     denom = np.linalg.norm(a) * np.linalg.norm(b)

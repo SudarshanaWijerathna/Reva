@@ -1,7 +1,7 @@
 import time
 from typing import Optional
-#from Analysis.sentiment_aggregate.state_cache import MarketStateCache
-from Analysis.sentiment_aggregate.aggregator import MarketSentimentAggregator
+from Sentiment.Analysis.sentiment_aggregate.state_cache import MarketStateCache
+from Sentiment.Analysis.sentiment_aggregate.aggregator import MarketSentimentAggregator
 
 class MarketStateCache:
     def __init__(self, ttl_seconds: int = 300):

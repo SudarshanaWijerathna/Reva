@@ -1,5 +1,5 @@
-from Analysis.sentiment_aggregate.sentiment_utils import SentimentUtils
-from Analysis.sentiment_aggregate.thresholds import SentimentThresholds
+from Sentiment.Analysis.sentiment_aggregate.sentiment_utils import SentimentUtils
+from Sentiment.Analysis.sentiment_aggregate.thresholds import SentimentThresholds
 
 
 class MarketSentimentAggregator:

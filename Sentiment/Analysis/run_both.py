@@ -3,18 +3,18 @@ Unified script to run both semantic and sentiment pipelines
 """
 
 # Import the semantic pipeline function
-from Analysis.semantic_filter.semantic_pipeline import SemanticPipeline
+from Sentiment.Analysis.semantic_filter.semantic_pipeline import SemanticPipeline
 
 # Import the SentimentPipeline class
-from Analysis.ochestration.pipe import SentimentPipeline
-from Analysis.storage.store import SentimentStorage
-from Analysis.semantic_filter.filter_service import FilterService
+from Sentiment.Analysis.ochestration.pipe import SentimentPipeline
+from Sentiment.Analysis.storage.store import SentimentStorage
+from Sentiment.Analysis.semantic_filter.filter_service import FilterService
 
 # Import other necessary dependencies
 
-from Analysis.data_collector.news_api import APIData
-from Analysis.preprocessing.cleaner import TextCleaner
-from Analysis.sentiment_model.bert import SentimentModel
+from Sentiment.Analysis.data_collector.news_api import APIData
+from Sentiment.Analysis.preprocessing.cleaner import TextCleaner
+from Sentiment.Analysis.sentiment_model.bert import SentimentModel
 
 def main():
     """

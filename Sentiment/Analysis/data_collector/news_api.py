@@ -1,5 +1,5 @@
 from newsapi import NewsApiClient
-from Analysis.config import NEWS_API
+from Sentiment.Analysis.config import NEWS_API
 
 from google.protobuf.json_format import MessageToDict, MessageToJson
 import json

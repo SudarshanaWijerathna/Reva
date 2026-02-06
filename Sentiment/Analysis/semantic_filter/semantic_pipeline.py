@@ -1,5 +1,5 @@
-from Analysis.storage.store import SentimentStorage
-from Analysis.semantic_filter.filter_service import FilterService
+from Sentiment.Analysis.storage.store import SentimentStorage
+from Sentiment.Analysis.semantic_filter.filter_service import FilterService
 
 
 class SemanticPipeline:

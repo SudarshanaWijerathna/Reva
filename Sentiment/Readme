@@ -1,11 +1,11 @@
-cd Sentiment
+cd Reva
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\venv\Scripts\Activate.ps1
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Root - Sentiment :python -m Analysis.ochestration.pipe
-Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline
-Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
+Root - Reva :python -m Sentiment.Analysis.ochestration.pipe
+Root - Reva :python -m Sentiment.Analysis.semantic_filter.semantic_pipeline
+Root - Reva :python -m Sentiment.Analysis.sentiment_aggregate.agg_pipe
 
 Data extracking and sentiment setting pipeline (ochestration.pipe) and 
 similarity adding pipeline (semantic_filter) is working individually they are neither conbine
@@ -14,3 +14,37 @@ nor connected to the aggregator, aggregator act alone to fetch the db individual
 all you need to do is -> Root - Sentiment :python -m Analysis.sentiment_aggregate.agg_pipe
 if you want to update the db, run Root - Sentiment :python -m Analysis.ochestration.pipe
 Root - Sentiment :python -m Analysis.semantic_filter.semantic_pipeline in thread
+
+Kb initializer
+workflow 
+==================
+cd Reva
+PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> venv\Scripts\Activate
+(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> python -m Sentiment.Analysis.run_both
+Connected to MongoDB, database 'Reve', collection 'Sentiment_collection'
+Device set to use cpu
+==================================================
+Starting Sentiment Pipeline...
+==================================================
+Device set to use cpu
+Pipeline Results: 99
+
+Sentiment Pipeline completed.✅✅✅
+99 documents inserted into MongoDB.
+Sentiment results stored in database.✅✅✅
+
+Sentiment Pipeline completed!
+==================================================
+Starting Semantic Pipeline...
+==================================================
+Fetched ✅✅✅99 documents for evaluation.
+==================================================
+
+Semantic Pipeline completed!
+
+Both pipelines completed successfully!
+(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> python -m Sentiment.Analysis.sentiment_aggregate.agg_pipe
+Connected to MongoDB, database 'Reve', collection 'Sentiment_collection'
+Fetched 43 relevant documents for aggregation.
+{'short_term': {'value': -0.4934, 'label': 'bearish'}, 'medium_term': {'value': -0.3576, 'label': 'bearish'}, 'long_term': {'value': -0.3063, 'label': 'bearish'}}
+(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva>

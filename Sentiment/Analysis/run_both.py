@@ -32,7 +32,12 @@ def main():
     
     # Create and run the sentiment pipeline
     pipeline = SentimentPipeline(api_data, cleaner, sentiment_model)
-    pipeline.run_pipeline()  # Adjust method name if different
+    pipeline_results=pipeline.run_pipeline()  # Adjust method name if different
+    print("Sentiment Pipeline completed.✅✅✅")
+
+    storage = SentimentStorage()  # or however you initialize this
+    storage.store_sentiment_results(pipeline_results)  # Adjust method name if different
+    print("Sentiment results stored in database.✅✅✅")
     
     print("\nSentiment Pipeline completed!")
     print("=" * 50)
@@ -41,7 +46,7 @@ def main():
     print("=" * 50)
     
     # Run the semantic pipeline
-    semantic_pipeline = SemanticPipeline(SentimentStorage(), FilterService())
+    semantic_pipeline = SemanticPipeline(storage, FilterService())
     semantic_pipeline.run_semantic_pipeline()
     
     print("=" * 50)

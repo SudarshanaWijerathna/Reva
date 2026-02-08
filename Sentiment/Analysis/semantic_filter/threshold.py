@@ -1,0 +1,3 @@
+# Example thresholds
+NOISE_THRESHOLD = 0.3
+RELEVANT_THRESHOLD = 0.6

@@ -9,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 
 class VectorRepo:
     def __init__(self, collection_name):
-        self.persist_directory = "./chroma_store"
+        self.persist_directory = "Sentiment/chroma_store"
 
         if PersistentClient:
             self.client = PersistentClient(path=self.persist_directory)

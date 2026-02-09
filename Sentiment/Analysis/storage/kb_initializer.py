@@ -1,5 +1,5 @@
-from Analysis.storage.vector import VectorRepo
-from Analysis.storage.knowledge_base import knowledge, ShortTerm, MediumTerm, LongTerm  # your predefined KB
+from Sentiment.Analysis.storage.vector import VectorRepo
+from Sentiment.Analysis.storage.knowledge_base import knowledge, ShortTerm, MediumTerm, LongTerm  # your predefined KB
 
 def initialize_kb():
     vector_repo_ref = VectorRepo(collection_name="reference_vectors")

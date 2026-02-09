@@ -1,5 +1,4 @@
 import re
-
 import requests  # requests is useful to 'copy' the website data.
 from bs4 import BeautifulSoup  # bs is helping as sorting the data and find the wanted data that we are locking for(also automatically)
 

@@ -1,6 +1,6 @@
-from Analysis.sentiment_aggregate.aggregator import MarketSentimentAggregator
-from Analysis.sentiment_aggregate.state_cache import AggregatorService
-from Analysis.storage.store import SentimentStorage
+from Sentiment.Analysis.sentiment_aggregate.aggregator import MarketSentimentAggregator
+from Sentiment.Analysis.sentiment_aggregate.state_cache import AggregatorService
+from Sentiment.Analysis.storage.store import SentimentStorage
 
 #Aggregator without Cache
 repo = SentimentStorage()

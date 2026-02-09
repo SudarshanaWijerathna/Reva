@@ -14,3 +14,9 @@ to predict land, house, and rental prices.
 - LightGBM / XGBoost
 - HTML, CSS, JavaScript
 - Git & GitHub for version control
+
+## Sentiment
+- Mongo db IP address configure
+- Run kb_initializer
+- Run run_both in threads
+- Run sentiment_aggregate.add_pipe

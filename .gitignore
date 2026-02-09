@@ -9,6 +9,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+dataset_house/
 
 # IDE and Editor files
 .vscode/
@@ -53,3 +54,7 @@ coverage/
 #backend
 # Ignore SQLite DB
 backend/database/test.db
+
+chroma_store/
+Sentiment/chroma_store/
+Sentiment/chroma_store

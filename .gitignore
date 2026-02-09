@@ -48,3 +48,8 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+
+#backend
+# Ignore SQLite DB
+backend/database/test.db

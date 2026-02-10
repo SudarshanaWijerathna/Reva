@@ -1,0 +1,2 @@
+POST /properties/housing
+→ DB stores purchase info

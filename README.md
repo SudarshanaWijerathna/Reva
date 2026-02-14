@@ -20,3 +20,46 @@ to predict land, house, and rental prices.
 - Run kb_initializer
 - Run run_both in threads
 - Run sentiment_aggregate.add_pipe
+
+## Backend
+
+# Auth
+routes
+- sign up 
+- log in
+Utilities
+- Autherize
+- create access token
+- validate user token
+- Hashing
+
+# Users
+routes
+- get user profle
+- create user profile
+- update user profile
+- update investmens preferances
+
+# properties
+routes
+- add housing
+- add rental 
+- add land
+Services
+- create/buy housing property
+- create/buy rental property
+- create/buy land property
+
+# portfolio
+routes
+- get summery
+- get properties
+- get insight 
+services
+- get properties and portfolio summery (growth, tot profit, property mix)
+
+# predictions
+utils
+- get insight
+- get market price
+

@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-
+#   Authentication models
+#==================================
 
 class User(BaseModel):
     username: str
@@ -10,17 +11,20 @@ class Token(BaseModel):
     access_token: str
     token_type: str 
 
-# database/schemas.py
+
 class UserOut(BaseModel):
     id: int
     username: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class PasswordReset(BaseModel):
     new_password: str
     confirm_password: str
+
+
+
+
 
 
 

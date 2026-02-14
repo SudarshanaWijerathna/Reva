@@ -4,8 +4,8 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-from backend.ml.land.feature_engineering import derive_features
-from backend.ml.land.time_calibration import adjust_price
+from ml.land.feature_engineering import derive_features
+from ml.land.time_calibration import adjust_price
 
 # ✅ FastAPI router (NOT Flask Blueprint)
 land_bp = APIRouter(prefix="/predict", tags=["Land Prediction"])

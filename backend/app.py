@@ -1,49 +1,43 @@
 from fastapi import FastAPI, HTTPException
-from grpc import Status
 from backend.database.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
-#	Routes
+# Routes
 from backend.auth.routes import router as auth_router
 from backend.auth.authentication import router as authentication_router
 from backend.properties.routes import router as property_router
 from backend.portfolio.routes import router as portfolio_router
 from backend.users.routes import router as users_router
 
-
 from backend.auth.authentication import user_dependency
-
-from predictions.land_api import land_bp
-
-# import your land API router (you must convert it to FastAPI router)
-#from backend.predictions.land_api import land_bp
+from backend.predictions.land_api import land_bp   # ✅ FIXED IMPORT
 
 app = FastAPI()
 
-
+# CORS settings
 origins = [
-    "http://localhost:3000",  # Adjust the port if your frontend runs on a different one
+    "http://localhost:3000",
     "https://yourfrontenddomain.com",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allows all origins from the list
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
+# Include routers
 app.include_router(authentication_router)
 app.include_router(auth_router)
 app.include_router(property_router)
 app.include_router(portfolio_router)
 app.include_router(users_router)
-
-
-
+app.include_router(land_bp)   # ✅ ADDED
 
 @app.get("/")
 async def user(user: user_dependency):

@@ -19,12 +19,13 @@ origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://reva-front.vercel.app",
+    "https://reva-front-nmsdcw7w8-sudarshana-wijerathnas-projects.vercel.app",
 ]
 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],   # TEMP — easiest fix
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

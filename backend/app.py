@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from grpc import Status
 from database.database import engine
 from database.database import Base
+from fastapi.middleware.cors import CORSMiddleware
 
 #	Routes
 from auth.routes import router as auth_router
@@ -16,6 +17,19 @@ from auth.authentication import user_dependency
 
 app = FastAPI()
 
+
+origins = [
+    "http://localhost:3000",  # Adjust the port if your frontend runs on a different one
+    "https://yourfrontenddomain.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allows all origins from the list
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 Base.metadata.create_all(bind=engine)
 

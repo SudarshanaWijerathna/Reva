@@ -26,7 +26,7 @@ bcrypt_content = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 #---------------Sign Up------------------
-@router.post("/", response_model=UserOut)
+@router.post("/register", response_model=UserOut)
 def sign_up(user: User,  db:Session=Depends(get_db)):
     signed_user = db.query(UserModel).filter(UserModel.username==user.username).first()  
     if signed_user:

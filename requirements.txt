@@ -31,3 +31,4 @@ numpy
 joblib
 lightgbm
 scikit-learn
+geopy

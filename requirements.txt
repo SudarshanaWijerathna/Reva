@@ -9,9 +9,13 @@ beautifulsoup4==4.14.3
 requests
 lxml
 pytrends
+
+# ===== AI / Vector DB =====
 chromadb
 sentence-transformers
 tqdm
+
+# ===== FastAPI Backend =====
 fastapi>=0.95.0
 uvicorn[standard]>=0.18.3
 SQLAlchemy>=1.4
@@ -20,3 +24,10 @@ passlib[bcrypt]>=1.7.4
 argon2-cffi>=21.3.0
 python-multipart>=0.0.6
 typing-extensions>=4.0.0
+
+# ===== Land Price ML =====
+pandas
+numpy
+joblib
+lightgbm
+scikit-learn

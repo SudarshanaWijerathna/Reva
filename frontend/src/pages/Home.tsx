@@ -152,7 +152,7 @@ const Home: React.FC = () => {
                 <div className="reviews-list">
                     <div className="review-card">
                         <div className="review-avatar">
-                            <img src="https://i.pravatar.cc/150?img=68" alt="User Avatar" />
+                            <img src="https://drive.google.com/thumbnail?id=1HO6Mzh75vQAniWF_gf2hPBdJVNvWM1kN" alt="User Avatar" />
                         </div>
                         <div className="review-content">
                             <h4>Sarah Perera</h4>
@@ -169,7 +169,7 @@ const Home: React.FC = () => {
 
                     <div className="review-card">
                         <div className="review-avatar">
-                            <img src="https://i.pravatar.cc/150?img=12" alt="User Avatar" />
+                            <img src="https://drive.google.com/thumbnail?id=1sJAGitQjG3eueC-69RQfx7inj_Dzv0FT" alt="User Avatar" />
                         </div>
                         <div className="review-content">
                             <h4>Kamal De Silva</h4>
@@ -186,7 +186,7 @@ const Home: React.FC = () => {
 
                     <div className="review-card">
                         <div className="review-avatar">
-                            <img src="https://i.pravatar.cc/150?img=33" alt="User Avatar" />
+                            <img src="https://drive.google.com/thumbnail?id=12CRJMkVjEKqu1mVX9RlV8H1T8mu80EiN" alt="User Avatar" />
                         </div>
                         <div className="review-content">
                             <h4>Nimali Fernando</h4>

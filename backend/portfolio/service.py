@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from database.schemas import Property
-from predictions.utils import get_current_market_price
-from sentiment.sentiment_api import get_property_sentiment
+from backend.database.schemas import Property
+from backend.predictions.utils import get_current_market_price
+from backend.sentiment.sentiment_api import get_property_sentiment
 
 def calculate_portfolio(db: Session, user_id: int):
     properties = db.query(Property).filter(Property.user_id == user_id).all()

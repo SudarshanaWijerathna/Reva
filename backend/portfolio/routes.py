@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database.database import get_db
-from auth.routes import user_dependency, Database
-from portfolio.service import calculate_portfolio
-from predictions.utils import generate_insight
+from backend.database.database import get_db
+from backend.auth.routes import user_dependency, Database
+from backend.portfolio.service import calculate_portfolio
+from backend.predictions.utils import generate_insight
 
 
 

@@ -1,22 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from grpc import Status
-from database.database import engine
-from database.database import Base
+from backend.database.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 #	Routes
-from auth.routes import router as auth_router
-from auth.authentication import router as authentication_router
-from properties.routes import router as property_router
-from portfolio.routes import router as portfolio_router
-from users.routes import router as users_router
+from backend.auth.routes import router as auth_router
+from backend.auth.authentication import router as authentication_router
+from backend.properties.routes import router as property_router
+from backend.portfolio.routes import router as portfolio_router
+from backend.users.routes import router as users_router
 
 
-from auth.authentication import user_dependency
+from backend.auth.authentication import user_dependency
 
 
 # import your land API router (you must convert it to FastAPI router)
-from backend.predictions.land_api import land_bp
+#from backend.predictions.land_api import land_bp
 
 app = FastAPI()
 

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database.schemas import Property, HousingProperty, RentalProperty, LandProperty
+from backend.database.schemas import Property, HousingProperty, RentalProperty, LandProperty
 
 def create_housing_property(db: Session, user_id: int, data):
     prop = Property(

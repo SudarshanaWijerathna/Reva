@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database.schemas import UserProfile, InvestmentPreferences
+from backend.database.schemas import UserProfile, InvestmentPreferences
 
 def get_user_profile(db: Session, user_id: int):
     return db.query(UserProfile).filter(UserProfile.user_id == user_id).first()

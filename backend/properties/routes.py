@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database.database import get_db
-from auth.routes import user_dependency, Database
-from properties.models import HousingCreate, RentalCreate, LandCreate
-from properties.service import (
+from backend.database.database import get_db
+from backend.auth.routes import user_dependency, Database
+from backend.properties.models import HousingCreate, RentalCreate, LandCreate
+from backend.properties.service import (
     create_housing_property,
     create_rental_property,
     create_land_property

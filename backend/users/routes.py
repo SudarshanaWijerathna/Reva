@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database.database import get_db
-from auth.routes import user_dependency, Database
-from users.models import (
+from backend.database.database import get_db
+from backend.auth.routes import user_dependency, Database
+from backend.users.models import (
     ProfileCreate,
     ProfileOut,
     PreferencesCreate,
     PreferencesOut
 )
-from users.service import (
+from backend.users.service import (
     get_user_profile,
     create_profile,
     update_profile,

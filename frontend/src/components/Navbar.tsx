@@ -10,13 +10,9 @@ const Navbar: React.FC = () => {
 
     const handleScroll = () => {
       if (scrollTimeout) return;
-      
+
       scrollTimeout = setTimeout(() => {
-        if (window.scrollY > 300) {
-          setIsSticky(true);
-        } else {
-          setIsSticky(false);
-        }
+        setIsSticky(window.scrollY > 300);
         scrollTimeout = null;
       }, 10);
     };
@@ -25,7 +21,9 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isActive = (path: string): string => location.pathname === path ? 'selected' : '';
+  const isActive = (path: string): string =>
+    location.pathname === path ? 'selected' : '';
+
   const isPrediction = location.pathname.includes('price');
 
   return (
@@ -40,15 +38,17 @@ const Navbar: React.FC = () => {
           </svg>
           <span className="nav-title">rēva</span>
         </div>
+
         <ul className="nav-links">
           <li className={isActive('/')}><Link to="/">Home</Link></li>
           <li className={isActive('/dashboard')}><Link to="/dashboard">Dashboard</Link></li>
           <li className={isPrediction ? 'selected' : ''}><Link to="/land-price">Predictions</Link></li>
           <li className={isActive('/contact')}><Link to="/contact">Contact</Link></li>
         </ul>
+
         <div className="nav-actions">
-          <a href="#" className="btn-outline">Sign In</a>
-          <a href="#" className="btn-primary">Login</a>
+          <Link to="/login" className="btn-outline">Sign Up</Link>
+          <Link to="/login" className="btn-primary">Login</Link>
         </div>
       </div>
     </nav>

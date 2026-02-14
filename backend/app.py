@@ -17,8 +17,10 @@ app = FastAPI()
 # CORS settings
 origins = [
     "http://localhost:3000",
-    "https://yourfrontenddomain.com",
+    "http://localhost:5173",
+    "https://reva-front.vercel.app",
 ]
+
 
 app.add_middleware(
     CORSMiddleware,

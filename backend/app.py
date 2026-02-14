@@ -8,6 +8,8 @@ from auth.routes import router as auth_router
 from auth.authentication import router as authentication_router
 from properties.routes import router as property_router
 from portfolio.routes import router as portfolio_router
+from users.routes import router as users_router
+
 
 from auth.authentication import user_dependency
 
@@ -21,6 +23,9 @@ app.include_router(authentication_router)
 app.include_router(auth_router)
 app.include_router(property_router)
 app.include_router(portfolio_router)
+app.include_router(users_router)
+
+
 
 
 @app.get("/")

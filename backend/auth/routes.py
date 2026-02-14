@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from database.schemas import UserModel
-from database.database import get_db
-from auth.authentication import get_current_user
+from backend.database.schemas import UserModel
+from backend.database.database import get_db
+from backend.auth.authentication import get_current_user
 from typing import Annotated
-from auth.hashing import  hashing,verify_password
-from database.models import  PasswordReset
+from backend.auth.hashing import  hashing,verify_password
+from backend.database.models import  PasswordReset
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 Database = Annotated[Session, Depends(get_db)]

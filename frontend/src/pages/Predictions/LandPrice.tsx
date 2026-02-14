@@ -50,7 +50,7 @@ const LandPrice: React.FC = () => {
     };
 
     try {
-      fetch('https://reva-olaf.onrender.com/predict/land', {
+      const res = await fetch('https://reva-olaf.onrender.com/predict/land', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -64,6 +64,7 @@ const LandPrice: React.FC = () => {
       setLoading(false);
     }
   };
+
 
   /* -------------------- FIXED MOCK BAR DATA -------------------- */
   // Helper to ensure we have a valid number

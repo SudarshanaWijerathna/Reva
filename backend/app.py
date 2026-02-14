@@ -15,6 +15,9 @@ from users.routes import router as users_router
 from auth.authentication import user_dependency
 
 
+# import your land API router (you must convert it to FastAPI router)
+from backend.predictions.land_api import land_bp
+
 app = FastAPI()
 
 
@@ -44,9 +47,7 @@ app.include_router(users_router)
 
 @app.get("/")
 async def user(user: user_dependency):
-	if user:
-		return {"message": f"Hello, {user['username']}!"}
-	else:
-		raise HTTPException(status_code=401, detail="Unauthorized")
-	
-
+    if user:
+        return {"message": f"Hello, {user['username']}!"}
+    else:
+        raise HTTPException(status_code=401, detail="Unauthorized")

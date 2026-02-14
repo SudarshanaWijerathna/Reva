@@ -7,10 +7,10 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 
-from database.database import get_db
-from database.models import  Token, User, UserOut
-from database.schemas import UserModel
-from auth.hashing import  hashing,verify_password
+from backend.database.database import get_db
+from backend.database.models import Token, User, UserOut
+from backend.database.schemas import UserModel
+from backend.auth.hashing import hashing, verify_password
 
 
 router = APIRouter(

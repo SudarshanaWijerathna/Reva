@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from database.database import Base
+from sqlalchemy import Column, Integer, String
+from backend.database.database import Base
 
 # ==============================
 # Authentication schemas

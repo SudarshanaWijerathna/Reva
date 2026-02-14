@@ -13,6 +13,7 @@ from backend.users.routes import router as users_router
 
 from backend.auth.authentication import user_dependency
 
+from predictions.land_api import land_bp
 
 # import your land API router (you must convert it to FastAPI router)
 #from backend.predictions.land_api import land_bp

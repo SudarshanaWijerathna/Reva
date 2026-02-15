@@ -10,7 +10,7 @@ from backend.portfolio.routes import router as portfolio_router
 from backend.users.routes import router as users_router
 
 from backend.auth.authentication import user_dependency
-from backend.predictions.land_api import land_bp   # ✅ FIXED IMPORT
+#from backend.predictions.land_api import land_bp   # ✅ FIXED IMPORT
 
 app = FastAPI()
 
@@ -40,11 +40,11 @@ app.include_router(auth_router)
 app.include_router(property_router)
 app.include_router(portfolio_router)
 app.include_router(users_router)
-app.include_router(land_bp)   # ✅ ADDED
+#app.include_router(land_bp)   # ✅ ADDED
 
 @app.get("/")
 async def user(user: user_dependency):
     if user:
-        return {"message": f"Hello, {user['username']}!"}
+        return {"message": f"Hello, {user['email']}!"}
     else:
         raise HTTPException(status_code=401, detail="Unauthorized")

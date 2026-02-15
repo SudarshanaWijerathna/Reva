@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 #   Authentication models
 #==================================
 
 class User(BaseModel):
-    username: str
+    email: EmailStr
     password: str
 
 class Token(BaseModel):
@@ -14,17 +14,10 @@ class Token(BaseModel):
 
 class UserOut(BaseModel):
     id: int
-    username: str
+    email: str
 
     model_config = ConfigDict(from_attributes=True)
 
 class PasswordReset(BaseModel):
     new_password: str
     confirm_password: str
-
-
-
-
-
-
-

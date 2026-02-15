@@ -63,3 +63,6 @@ utils
 - get insight
 - get market price
 
+# Deploy
+- frontend | Root - frontend | npm run dev
+- Backend   | Root- Reva |  uvicorn backend.app:app --reload 

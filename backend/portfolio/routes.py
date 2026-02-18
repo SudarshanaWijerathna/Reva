@@ -18,6 +18,12 @@ def portfolio_summary(
     db: Database
 ):
     data = calculate_portfolio(db, user["id"])
+    if not data:
+        return {
+            "message": "No properties data found",
+            "data": []
+        }
+
     return data["summary"]
 
 @router.get("/properties")
@@ -26,6 +32,11 @@ def portfolio_properties(
     db: Database
 ):
     data = calculate_portfolio(db, user["id"])
+    if not data:
+        return {
+            "message": "No properties data found",
+            "data": []
+        }
     return data["properties"]
 
 @router.get("/insights")
@@ -34,6 +45,11 @@ def portfolio_insights(
     db: Database
 ):
     data = calculate_portfolio(db, user["id"])
+    if not data:
+        return {
+            "message": "No properties data found",
+            "data": []
+        }
     return {
         "insight": generate_insight(data["summary"])
     }

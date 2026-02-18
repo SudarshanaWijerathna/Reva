@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from backend.database.schemas import Property
 from backend.predictions.utils import get_current_market_price
 from backend.sentiment.sentiment_api import get_property_sentiment
+sentiment = get_property_sentiment()
 
 def calculate_portfolio(db: Session, user_id: int):
     properties = db.query(Property).filter(Property.user_id == user_id).all()
@@ -22,11 +23,13 @@ def calculate_portfolio(db: Session, user_id: int):
 
         detailed.append({
             "property_id": prop.id,
+            "created_at": prop.created_at,
             "type": prop.property_type,
+            "location": prop.location,
             "purchase_price": prop.purchase_price,
             "current_value": current_price,
             "profit": profit,
-            "sentiment": get_property_sentiment(prop),
+            "sentiment": sentiment,
             "status": prop.status
         })
 
@@ -39,7 +42,8 @@ def calculate_portfolio(db: Session, user_id: int):
         "summary": {
             "growth_percentage": round(growth, 2),
             "total_profit": total_current_value - total_investment,
-            "property_mix": mix
+            "property_mix": mix,
+            "sentiment": sentiment  
         },
         "properties": detailed
     }

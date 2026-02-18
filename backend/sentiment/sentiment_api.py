@@ -1,2 +1,2 @@
-def get_property_sentiment(property):
-    return "Good"
+def get_property_sentiment():
+    return "good"

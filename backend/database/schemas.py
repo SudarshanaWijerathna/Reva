@@ -1,7 +1,8 @@
+import datetime
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String
 from backend.database.database import Base
+
 
 # ==============================
 # Authentication schemas
@@ -37,6 +38,7 @@ class Property(Base):
     purchase_price = Column(Float)
     purchase_date = Column(Date)
     status = Column(String, default="Active")
+    created_at = Column(Date, default=datetime.date.today)
 
     owner = relationship("UserModel", back_populates="properties")
 

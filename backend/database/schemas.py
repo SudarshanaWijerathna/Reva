@@ -55,10 +55,11 @@ class HousingProperty(Base):
     id = Column(Integer, primary_key=True)
     property_id = Column(Integer, ForeignKey("properties.id", ondelete="CASCADE"), index=True)
 
-    floor_area = Column(Float)
-    bedrooms = Column(Integer)
-    bathrooms = Column(Integer)
-    ownership_status = Column(String)
+    land_size_perches = Column(Float)
+    house_size_sqft = Column(Float)
+    floors = Column(Integer)
+    built_year = Column(Integer)
+    property_condition = Column(String)
 
     property = relationship("Property", back_populates="housing")
 
@@ -72,8 +73,9 @@ class RentalProperty(Base):
 
     monthly_rent = Column(Float)
     occupancy_status = Column(String)
-    operating_costs = Column(Float)
-    tenant_start_date = Column(Date)
+    lease_start_date = Column(Date)
+    lease_end_date = Column(Date)
+    tenant_type = Column(String)
 
     property = relationship("Property", back_populates="rental")
 
@@ -87,7 +89,7 @@ class LandProperty(Base):
 
     land_size = Column(Float)
     zoning_type = Column(String)
-    infrastructure_score = Column(Float)
+    road_access = Column(String)
 
     property = relationship("Property", back_populates="land")
 

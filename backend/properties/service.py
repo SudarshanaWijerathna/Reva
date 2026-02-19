@@ -14,10 +14,11 @@ def create_housing_property(db: Session, user_id: int, data):
 
     housing = HousingProperty(
         property_id=prop.id,
-        floor_area=data.floor_area,
-        bedrooms=data.bedrooms,
-        bathrooms=data.bathrooms,
-        ownership_status=data.ownership_status
+        land_size_perches=data.land_size_perches,
+        house_size_sqft=data.house_size_sqft,
+        floors=data.floors,
+        built_year=data.built_year,
+        property_condition=data.property_condition
     )
 
     db.add(housing)
@@ -39,8 +40,9 @@ def create_rental_property(db: Session, user_id: int, data):
         property_id=prop.id,
         monthly_rent=data.monthly_rent,
         occupancy_status=data.occupancy_status,
-        operating_costs=data.operating_costs,
-        tenant_start_date=data.tenant_start_date
+        lease_start_date=data.lease_start_date,
+        lease_end_date=data.lease_end_date,
+        tenant_type=data.tenant_type
     )
 
     db.add(rental)
@@ -62,7 +64,7 @@ def create_land_property(db: Session, user_id: int, data):
         property_id=prop.id,
         land_size=data.land_size,
         zoning_type=data.zoning_type,
-        infrastructure_score=data.infrastructure_score
+        road_access=data.road_access
     )
 
     db.add(land)

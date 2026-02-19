@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Footer from '../components/Footer';
+import AddPropertyModal from '../components/AddPropertyModal';
 import { portfolioService, type PortfolioSummary, type PropertyData } from '../services/portfolioService';
 
 const Dashboard: React.FC = () => {
@@ -12,6 +13,7 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "housing" | "rental" | "land">("all");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPortfolioData = async () => {
@@ -52,6 +54,21 @@ const Dashboard: React.FC = () => {
 
     fetchPortfolioData();
   }, [navigate]);
+
+  // Handle property added callback
+  const handlePropertyAdded = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const [summaryData, propertiesData] = await Promise.all([
+        portfolioService.getSummary(),
+        portfolioService.getProperties(),
+      ]);
+      setSummary(summaryData);
+      setProperties(propertiesData);
+    } catch (err) {
+      console.error("Failed to refresh portfolio data:", err);
+    }
+  };
 
   // Filter properties based on selected type
   const filteredProperties = properties.filter(
@@ -108,9 +125,13 @@ const Dashboard: React.FC = () => {
                 <h1>My Property Portfolio</h1>
                 <p>Track your real estate assets and monitor market value changes.</p>
             </div>
-            <a href="#" className="btn-primary" title="Add a new property to track and analyze">
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="btn-primary" 
+              title="Add a new property to track and analyze"
+            >
                 <i className="fa-solid fa-plus"></i> New Property
-            </a>
+            </button>
         </div>
 
         {/* ERROR MESSAGE */}
@@ -284,6 +305,13 @@ const Dashboard: React.FC = () => {
             <Footer />
         </div>
       </div>
+
+      {/* Add Property Modal */}
+      <AddPropertyModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onPropertyAdded={handlePropertyAdded}
+      />
     </Layout>
   );
 };

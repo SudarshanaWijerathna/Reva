@@ -105,4 +105,59 @@ export const portfolioService = {
   async getInsights(): Promise<PortfolioInsight> {
     return fetchWithAuth("/portfolio/insights");
   },
+
+  /**
+   * Add a new housing property
+   */
+  async createHousingProperty(data: {
+    location: string;
+    purchase_price: number;
+    purchase_date: string;
+    land_size_perches: number;
+    house_size_sqft: number;
+    floors: number;
+    built_year: number;
+    property_condition: string;
+  }): Promise<any> {
+    return fetchWithAuth("/properties/housing", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Add a new rental property
+   */
+  async createRentalProperty(data: {
+    location: string;
+    purchase_price: number;
+    purchase_date: string;
+    monthly_rent: number;
+    occupancy_status: string;
+    lease_start_date: string;
+    lease_end_date: string;
+    tenant_type: string;
+  }): Promise<any> {
+    return fetchWithAuth("/properties/rental", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Add a new land property
+   */
+  async createLandProperty(data: {
+    location: string;
+    purchase_price: number;
+    purchase_date: string;
+    land_size: number;
+    zoning_type: string;
+    road_access: string;
+  }): Promise<any> {
+    return fetchWithAuth("/properties/land", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
 };

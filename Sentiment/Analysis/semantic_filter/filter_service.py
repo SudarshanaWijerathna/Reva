@@ -1,6 +1,6 @@
-from Analysis.semantic_filter.embedder import Embedder
-from Analysis.semantic_filter.similarity_engine import SimilarityEngine
-from Analysis.semantic_filter.threshold import NOISE_THRESHOLD, RELEVANT_THRESHOLD
+from Sentiment.Analysis.semantic_filter.embedder import Embedder
+from Sentiment.Analysis.semantic_filter.similarity_engine import SimilarityEngine
+from Sentiment.Analysis.semantic_filter.threshold import NOISE_THRESHOLD, RELEVANT_THRESHOLD
 
 class FilterService:
     def __init__(self): #(self, vector_repo):

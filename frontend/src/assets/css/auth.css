@@ -1,0 +1,348 @@
+/* =========================================
+   REVA AUTH PAGE STYLES
+========================================= */
+
+:root{
+  --primary-dark: #000020;
+  --primary-bg: #f1f3ff;
+  --blue-darkest: #050372;
+  --blue-medium: #4445ff;
+  --blue-lighter: #aab2ff;
+  --blue-lightest: #d0d7ff;
+  --text-gray: #4a4a68;
+  --text-dark: #1a202c;
+  --border-color: #e2e8f0;
+}
+
+/* ======================
+   GLOBAL RESET
+====================== */
+
+*{
+  box-sizing: border-box;
+}
+
+body{
+  margin:0;
+  padding:0;
+  min-height:100vh;
+  background:var(--primary-bg);
+  color:var(--primary-dark);
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+/* ======================
+   MAIN CONTAINER
+====================== */
+
+.login-container{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  width:100%;
+  max-width:1200px;
+  min-height:85vh;
+  margin:40px auto;
+  background:white;
+  border-radius:30px;
+  box-shadow:0 20px 60px rgba(0,0,32,0.1);
+  overflow:hidden;
+}
+
+/* ======================
+   HERO SIDE
+====================== */
+
+.login-hero{
+  background:linear-gradient(135deg,var(--blue-lightest) 0%,#ffffff 100%);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:60px;
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+}
+
+.hero-back-btn{
+  position:absolute;
+  top:40px;
+  left:40px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:var(--primary-dark);
+  font-weight:600;
+  font-size:16px;
+  transition:all .2s ease;
+}
+
+.hero-back-btn:hover{
+  color:var(--blue-medium);
+  transform:translateX(-5px);
+}
+
+.hero-content{
+  position:relative;
+  z-index:1;
+  max-width:500px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.main-logo-large img{
+  width:100%;
+  max-width:450px;
+  margin-bottom:20px;
+}
+
+.login-hero h1{
+  font-size:36px;
+  margin-bottom:16px;
+}
+
+.login-hero p{
+  font-size:18px;
+  color:var(--text-gray);
+}
+
+/* floating icons */
+
+.hero-shape{
+  position:absolute;
+  opacity:.1;
+  color:var(--blue-medium);
+  animation:float 6s ease-in-out infinite;
+}
+
+.shape-1{top:15%;left:10%;font-size:40px;}
+.shape-2{bottom:20%;right:15%;font-size:60px;animation-delay:1s;}
+.shape-3{top:60%;left:20%;font-size:30px;animation-delay:2s;}
+
+/* ======================
+   FORM SIDE
+====================== */
+
+.login-form-wrapper{
+  background:white;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:60px 80px;
+}
+
+.nav-brand-small{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:30px;
+}
+
+.nav-brand-small svg{
+  fill:var(--blue-medium);
+  width:32px;
+  height:32px;
+}
+
+.nav-title{
+  color:var(--blue-medium);
+  font-size:20px;
+  font-weight:800;
+}
+
+/* ======================
+   FORM HEADER
+====================== */
+
+.form-header{
+  margin-bottom:30px;
+}
+
+.form-header h2{
+  font-size:32px;
+  margin-bottom:10px;
+}
+
+.form-header p{
+  font-size:16px;
+  color:var(--text-gray);
+}
+
+/* ======================
+   GOOGLE BUTTON
+====================== */
+
+.btn-google{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid var(--border-color);
+  border-radius:8px;
+  background:white;
+  font-size:15px;
+  cursor:pointer;
+  margin-bottom:24px;
+}
+
+.btn-google:hover{
+  background:#f8fafc;
+}
+
+/* ======================
+   DIVIDER
+====================== */
+
+.divider{
+  display:flex;
+  align-items:center;
+  text-align:center;
+  color:#94a3b8;
+  font-size:13px;
+  margin-bottom:24px;
+}
+
+.divider::before,
+.divider::after{
+  content:'';
+  flex:1;
+  border-bottom:1px solid var(--border-color);
+}
+
+.divider:not(:empty)::before{margin-right:1em;}
+.divider:not(:empty)::after{margin-left:1em;}
+
+/* ======================
+   INPUTS
+====================== */
+
+.input-group{
+  margin-bottom:18px;
+}
+
+.input-group label{
+  display:block;
+  margin-bottom:8px;
+  font-size:14px;
+  font-weight:600;
+}
+
+.reva-input{
+  width:100%;
+  padding:12px 16px;
+  border:2px solid var(--border-color);
+  border-radius:8px;
+  font-size:15px;
+  outline:none;
+  transition:border-color .3s;
+}
+
+.reva-input:focus{
+  border-color:var(--blue-medium);
+}
+
+/* ======================
+   ACTIONS
+====================== */
+
+.form-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:24px;
+  font-size:14px;
+}
+
+.check-group{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--text-gray);
+}
+
+.forgot-link{
+  color:var(--blue-medium);
+  text-decoration:none;
+  font-weight:600;
+}
+
+/* ======================
+   PRIMARY BUTTON
+====================== */
+
+.btn-login{
+  width:100%;
+  padding:14px;
+  background:var(--blue-medium);
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn-login:hover{
+  opacity:.9;
+}
+
+/* ======================
+   FOOTER
+====================== */
+
+.form-footer{
+  text-align:center;
+  margin-top:20px;
+  font-size:15px;
+  color:var(--text-gray);
+}
+
+.form-footer a{
+  color:var(--blue-medium);
+  font-weight:600;
+  cursor:pointer;
+}
+
+/* ======================
+   ANIMATION
+====================== */
+
+.fade-in{
+  animation:fadeIn .4s ease-in-out;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+@keyframes float{
+  0%{transform:translateY(0) rotate(0deg);}
+  50%{transform:translateY(-20px) rotate(10deg);}
+  100%{transform:translateY(0) rotate(0deg);}
+}
+
+/* ======================
+   RESPONSIVE
+====================== */
+
+@media (max-width:992px){
+  .login-container{
+    grid-template-columns:1fr;
+    margin:0;
+    min-height:auto;
+    border-radius:0;
+  }
+
+  .login-hero{
+    display:none;
+  }
+
+  .login-form-wrapper{
+    padding:40px 20px;
+  }
+}

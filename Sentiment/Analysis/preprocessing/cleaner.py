@@ -1,4 +1,4 @@
-#from Analysis.data_collector.news_api import everything
+#from Sentiment.Analysis.data_collector.news_api import everything
 import re
 
 

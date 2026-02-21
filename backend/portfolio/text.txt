@@ -1,0 +1,5 @@
+GET /portfolio/summary -> growth prercentage, total proit, property mix
+GET /portfolio/properties -> Property activity details
+GET /portfolio/insights -> Insights
+→ Calculated live
+→ No DB writes

@@ -3,18 +3,18 @@ Unified script to run both semantic and sentiment pipelines
 """
 
 # Import the semantic pipeline function
-from Analysis.semantic_filter.semantic_pipeline import SemanticPipeline
+from Sentiment.Analysis.semantic_filter.semantic_pipeline import SemanticPipeline
 
 # Import the SentimentPipeline class
-from Analysis.ochestration.pipe import SentimentPipeline
-from Analysis.storage.store import SentimentStorage
-from Analysis.semantic_filter.filter_service import FilterService
+from Sentiment.Analysis.ochestration.pipe import SentimentPipeline
+from Sentiment.Analysis.storage.store import SentimentStorage
+from Sentiment.Analysis.semantic_filter.filter_service import FilterService
 
 # Import other necessary dependencies
 
-from Analysis.data_collector.news_api import APIData
-from Analysis.preprocessing.cleaner import TextCleaner
-from Analysis.sentiment_model.bert import SentimentModel
+from Sentiment.Analysis.data_collector.news_api import APIData
+from Sentiment.Analysis.preprocessing.cleaner import TextCleaner
+from Sentiment.Analysis.sentiment_model.bert import SentimentModel
 
 def main():
     """
@@ -32,7 +32,12 @@ def main():
     
     # Create and run the sentiment pipeline
     pipeline = SentimentPipeline(api_data, cleaner, sentiment_model)
-    pipeline.run_pipeline()  # Adjust method name if different
+    pipeline_results=pipeline.run_pipeline()  # Adjust method name if different
+    print("Sentiment Pipeline completed.✅✅✅")
+
+    storage = SentimentStorage()  # or however you initialize this
+    storage.store_sentiment_results(pipeline_results)  # Adjust method name if different
+    print("Sentiment results stored in database.✅✅✅")
     
     print("\nSentiment Pipeline completed!")
     print("=" * 50)
@@ -41,7 +46,7 @@ def main():
     print("=" * 50)
     
     # Run the semantic pipeline
-    semantic_pipeline = SemanticPipeline(SentimentStorage(), FilterService())
+    semantic_pipeline = SemanticPipeline(storage, FilterService())
     semantic_pipeline.run_semantic_pipeline()
     
     print("=" * 50)

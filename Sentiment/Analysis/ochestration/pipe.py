@@ -1,7 +1,7 @@
-from Analysis.data_collector.news_api import APIData
-from Analysis.preprocessing.cleaner import TextCleaner
-from Analysis.sentiment_model.bert import SentimentModel
-from Analysis.storage.store import SentimentStorage
+from Sentiment.Analysis.data_collector.news_api import APIData
+from Sentiment.Analysis.preprocessing.cleaner import TextCleaner
+from Sentiment.Analysis.sentiment_model.bert import SentimentModel
+from Sentiment.Analysis.storage.store import SentimentStorage
 from datetime import datetime
 
 

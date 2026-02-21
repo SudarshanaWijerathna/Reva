@@ -50,3 +50,12 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+
+#backend
+# Ignore SQLite DB
+backend/database/test.db
+
+chroma_store/
+Sentiment/chroma_store/
+Sentiment/chroma_store

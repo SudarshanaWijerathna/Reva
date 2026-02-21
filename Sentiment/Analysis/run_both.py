@@ -9,6 +9,7 @@ from Sentiment.Analysis.semantic_filter.semantic_pipeline import SemanticPipelin
 from Sentiment.Analysis.ochestration.pipe import SentimentPipeline
 from Sentiment.Analysis.storage.store import SentimentStorage
 from Sentiment.Analysis.semantic_filter.filter_service import FilterService
+from Sentiment.Analysis.storage.vector import VectorRepo
 
 # Import other necessary dependencies
 
@@ -46,7 +47,7 @@ def main():
     print("=" * 50)
     
     # Run the semantic pipeline
-    semantic_pipeline = SemanticPipeline(storage, FilterService())
+    semantic_pipeline = SemanticPipeline(storage)
     semantic_pipeline.run_semantic_pipeline()
     
     print("=" * 50)

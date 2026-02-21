@@ -64,5 +64,5 @@ utils
 - get market price
 
 # Deploy
-- frontend | Root - frontend | npm run dev
-- Backend   | Root- Reva |  uvicorn backend.app:app --reload 
+- frontend | Root - frontend |npm install ->  npm run dev
+- Backend   | Root- Reva |  uvicorn backend.app:app --reload    

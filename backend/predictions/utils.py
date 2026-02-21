@@ -1,4 +1,4 @@
-def get_current_market_price(property):
+def get_current_market_price(prop):
     # Placeholder for ML model
     #return property.purchase_price * 1.2
     return 100.0

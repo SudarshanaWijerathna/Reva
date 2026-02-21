@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [isSticky, setIsSticky] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -21,10 +24,46 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+      if (token) {
+        setIsLoggedIn(true);
+        
+        // Try to fetch admin stats to check if user is admin
+        try {
+          const response = await fetch('http://localhost:8000/api/admin/stats', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            setIsAdmin(true);
+          }
+        } catch (err) {
+          console.log('User is not admin');
+        }
+      }
+    };
+    
+    checkAuth();
+  }, [location]);
+
   const isActive = (path: string): string =>
     location.pathname === path ? 'selected' : '';
 
   const isPrediction = location.pathname.includes('price');
+  
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    sessionStorage.removeItem("access_token");
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    navigate("/login");
+  };
 
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
@@ -44,11 +83,29 @@ const Navbar: React.FC = () => {
           <li className={isActive('/dashboard')}><Link to="/dashboard">Dashboard</Link></li>
           <li className={isPrediction ? 'selected' : ''}><Link to="/land-price">Predictions</Link></li>
           <li className={isActive('/contact')}><Link to="/contact">Contact</Link></li>
+          {isAdmin && (
+            <li className={isActive('/admin')}><Link to="/admin">Admin</Link></li>
+          )}
         </ul>
 
         <div className="nav-actions">
-          <Link to="/login" className="btn-outline">Sign Up</Link>
-          <Link to="/login" className="btn-primary">Login</Link>
+          {isLoggedIn ? (
+            <>
+              {isAdmin && (
+                <Link to="/admin" className="btn-outline admin-badge">
+                  👤 Admin Panel
+                </Link>
+              )}
+              <button onClick={handleLogout} className="btn-primary logout-btn">
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn-outline">Sign Up</Link>
+              <Link to="/login" className="btn-primary">Login</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

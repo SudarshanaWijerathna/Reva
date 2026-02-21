@@ -7,19 +7,21 @@ class PropertyBase(BaseModel):
     purchase_date: date
 
 class HousingCreate(PropertyBase):
-    floor_area: float
-    bedrooms: int
-    bathrooms: int
-    ownership_status: str
+    land_size_perches: float
+    house_size_sqft: float
+    floors: int
+    built_year: int
+    property_condition: str
 
 class RentalCreate(PropertyBase):
     monthly_rent: float
     occupancy_status: str
-    operating_costs: float
-    tenant_start_date: date
+    lease_start_date: date
+    lease_end_date: date
+    tenant_type: str
 
 class LandCreate(PropertyBase):
     land_size: float
     zoning_type: str
-    infrastructure_score: float
+    road_access: str
 

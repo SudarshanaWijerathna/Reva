@@ -23,6 +23,8 @@ FEATURES = bundle["features"]
 CAT_COLS = bundle["cat_cols"]
 CAT_MAPS = bundle["cat_maps"]
 
+
+'''
 # ---------------------------
 # Request Schema
 # ---------------------------
@@ -39,16 +41,14 @@ class LandRequest(BaseModel):
     distance_to_town_m: float = 0
     period: str = "2025 H2"
 
+'''
+
+#================= Kavishka ===============
 
 
-# ---------------------------
-# Prediction Endpoint
-# ---------------------------
-@land_bp.post("/land")
-async def predict_land_price(data: LandRequest):
+def predict_land_price(payload: dict):
 
-    payload = data.dict()
-
+    print(f"Received payload: {payload}")
     # 1. Feature engineering
     features = derive_features(payload)
     X = pd.DataFrame([features])[FEATURES]

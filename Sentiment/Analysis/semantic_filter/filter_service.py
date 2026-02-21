@@ -3,12 +3,14 @@ from Sentiment.Analysis.semantic_filter.similarity_engine import SimilarityEngin
 from Sentiment.Analysis.semantic_filter.threshold import NOISE_THRESHOLD, RELEVANT_THRESHOLD
 
 class FilterService:
-    def __init__(self): #(self, vector_repo):
+    def __init__(self, vector_repo=None):
         self.embedder = Embedder()
-        self.sim_engine = SimilarityEngine() #(vector_repo)
+        # SimilarityEngine now manages its own VectorRepo instances
+        self.sim_engine = SimilarityEngine()
 
     def evaluate_document(self, doc):
         emb = self.embedder.embed(doc["cleaned_text"])
+        print("clened text is fetched for document id: ", doc["_id"], "✅✅✅ -> next step is to compute similarity scores.")
         sim_scores = self.sim_engine.compute_similarity(emb)
 
         # Noise / relevance logic based on reference repo

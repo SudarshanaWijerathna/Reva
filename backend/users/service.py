@@ -21,6 +21,8 @@ def create_profile(db: Session, user_id: int, data):
 
 def update_profile(db: Session, user_id: int, data):
     profile = get_user_profile(db, user_id)
+    if not profile:
+        return None
 
     profile.full_name = data.full_name
     profile.email = data.email
@@ -40,9 +42,8 @@ def get_preferences(db: Session, user_id: int):
 
 def update_preferences(db: Session, user_id: int, data):
     prefs = get_preferences(db, user_id)
-
     if not prefs:
-        prefs = InvestmentPreferences(user_id=user_id)
+        return None
 
     prefs.risk_level = data.risk_level
     prefs.preferred_property_type = data.preferred_property_type

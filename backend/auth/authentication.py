@@ -28,31 +28,33 @@ oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 #---------------Sign Up------------------
 @router.post("/register", response_model=UserOut)
 def sign_up(user: User,  db:Session=Depends(get_db)):
-    signed_user = db.query(UserModel).filter(UserModel.username==user.username).first()  
+    signed_user = db.query(UserModel).filter(UserModel.email==user.email).first()  
     if signed_user:
-        raise HTTPException(status_code=400, detail="Already signed up")
+        raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed = hashing(user.password)
-    new_user = UserModel(username=user.username, hashed_password=hashed)
+    new_user = UserModel(email=user.email, hashed_password=hashed)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
+
 #---------------Log In--------------------
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm, Depends()], db:Session=Depends(get_db)):
-    user =  authenticate_user(form_data.username, form_data.password, db)
+    # OAuth2PasswordRequestForm uses 'username' field, but we treat it as email
+    user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=401, detail="Validation Unsuccessful")
-    token = create_access_token(user.username, user.id, timedelta(minutes=20))
+    token = create_access_token(user.email, user.id, timedelta(minutes=20))
     return{'access_token': token, 'token_type': 'bearer'}
 
 
 
 #--------------Utility Functions---------------
 
-def authenticate_user(username:str, password:str, db):
-    user = db.query(UserModel).filter(UserModel.username==username).first()  
+def authenticate_user(email:str, password:str, db):
+    user = db.query(UserModel).filter(UserModel.email==email).first()  
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -60,8 +62,8 @@ def authenticate_user(username:str, password:str, db):
     return user
 
     
-def create_access_token(username:str, user_id: int, expires_delta: timedelta):
-    encode = {'sub': username, 'id': user_id}
+def create_access_token(email:str, user_id: int, expires_delta: timedelta):
+    encode = {'sub': email, 'id': user_id}
     expires = datetime.utcnow() + expires_delta
     encode.update({'exp': expires})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -71,11 +73,11 @@ def create_access_token(username:str, user_id: int, expires_delta: timedelta):
 def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try: 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        email: str = payload.get("sub")
         user_id: int = payload.get("id")
-        if username is None or user_id is None:
+        if email is None or user_id is None:
             raise HTTPException(status_code=401, detail="Could not validate user")
-        return {"username": username, "id": user_id}
+        return {"email": email, "id": user_id}
     except JWTError:
         raise HTTPException(status_code=401, detail="Could not validate user") 
     

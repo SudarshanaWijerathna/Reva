@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database.database import get_db
 from backend.auth.routes import user_dependency, Database
@@ -26,7 +26,10 @@ def get_profile(
     user: user_dependency,
     db: Database
 ):
-    return get_user_profile(db, user["id"])
+    profile = get_user_profile(db, user["id"])
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
 
 @router.post("/profile", response_model=ProfileOut)
 def create_user_profile(
@@ -42,7 +45,10 @@ def update_user_profile(
     user: user_dependency,
     db: Database
 ):
-    return update_profile(db, user["id"], data)
+    updated_profile = update_profile(db, user["id"], data)
+    if not updated_profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    return updated_profile
 
 @router.put("/preferences", response_model=PreferencesOut)
 def update_user_preferences(
@@ -50,4 +56,7 @@ def update_user_preferences(
     user: user_dependency,
     db: Database
 ):
-    return update_preferences(db, user["id"], data)
+    updated_preferences = update_preferences(db, user["id"], data)
+    if not updated_preferences:
+        raise HTTPException(status_code=404, detail="User preferences not found")
+    return updated_preferences

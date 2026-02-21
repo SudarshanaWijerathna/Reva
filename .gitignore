@@ -10,6 +10,7 @@ __pycache__/
 dist/
 build/
 dataset_house/
+catboost_info/
 
 # IDE and Editor files
 .vscode/

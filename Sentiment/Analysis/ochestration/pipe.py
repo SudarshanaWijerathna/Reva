@@ -1,6 +1,6 @@
 from Sentiment.Analysis.data_collector.news_api import APIData
-from Sentiment.Analysis.preprocessing.cleaner import TextCleaner
-from Sentiment.Analysis.sentiment_model.bert import SentimentModel
+from Sentiment.Analysis.ochestration.cleaner import TextCleaner
+from Sentiment.Analysis.ochestration.bert import SentimentModel
 from Sentiment.Analysis.storage.store import SentimentStorage
 from datetime import datetime
 

@@ -7,6 +7,7 @@ Root - Reva :python -m Sentiment.Analysis.storage.kb_initializer
 Root - Reva :python -m Sentiment.Analysis.ochestration.pipe
 Root - Reva :python -m Sentiment.Analysis.semantic_filter.semantic_pipeline
 Root - Reva :python -m Sentiment.Analysis.sentiment_aggregate.agg_pipe
+Root - Reva :python -m Sentiment.Analysis.run_both
 
 
 workflow 

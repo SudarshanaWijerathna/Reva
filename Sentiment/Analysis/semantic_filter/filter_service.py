@@ -26,5 +26,8 @@ class FilterService:
             "similarity_short": sim_scores["short"],
             "similarity_medium": sim_scores["medium"],
             "similarity_long": sim_scores["long"],
+            "similarity_rental": sim_scores["rental"],
+            "similarity_house": sim_scores["house"],
+            "similarity_land": sim_scores["land"],
             "relevance": relevance
         }

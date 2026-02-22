@@ -23,38 +23,39 @@ def main():
     """
     Main function to run both pipelines sequentially
     """
-    print("=" * 50)
-    print("Starting Sentiment Pipeline...")
-    print("=" * 50)
+    
     
     # Initialize components for sentiment pipeline
     # Adjust these initializations based on your actual code structure
     api_data = APIData()  # or however you initialize this
     cleaner = TextCleaner()  # or however you initialize this
     sentiment_model = SentimentModel()  # or however you initialize this
-    
+    storage = SentimentStorage()
+    semantic_pipeline = SemanticPipeline(storage)
+
     # Create and run the sentiment pipeline
+    print("=" * 50)
+    print("Starting Sentiment Pipeline...")
+    print("=" * 50)
+
     pipeline = SentimentPipeline(api_data, cleaner, sentiment_model, news_scraper, web_scraper)
     pipeline_results=pipeline.run_pipeline()  # Adjust method name if different
-    print("Sentiment Pipeline completed.✅✅✅")
 
-    storage = SentimentStorage()  # or however you initialize this
-    storage.store_sentiment_results(pipeline_results)  # Adjust method name if different
-    print("Sentiment results stored in database.✅✅✅")
-    
-    print("\nSentiment Pipeline completed!")
-    print("=" * 50)
-    
+    print("Sentiment Pipeline completed.✅✅✅")
     print("Starting Semantic Pipeline...")
     print("=" * 50)
     
-    # Run the semantic pipeline
-    semantic_pipeline = SemanticPipeline(storage)
-    semantic_pipeline.run_semantic_pipeline()
-    
+    semantic_results=semantic_pipeline.run_semantic_pipeline(pipeline_results)
+
     print("=" * 50)
     print("\nSemantic Pipeline completed!")
-    
+
+    print("=" * 50)
+    print("Storing results in database...")
+    print("=" * 50)
+  
+    storage.store_sentiment_results(semantic_results)  
+    print("Sentiment results stored in database.✅✅✅")
     
 
 

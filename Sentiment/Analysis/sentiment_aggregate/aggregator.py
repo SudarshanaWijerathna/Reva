@@ -3,6 +3,13 @@ from Sentiment.Analysis.sentiment_aggregate.thresholds import SentimentThreshold
 
 
 class MarketSentimentAggregator:
+    # Document type weights
+    TYPE_WEIGHTS = {
+        "news_scraper": 0.5,
+        "web_scraper": 0.3,
+        "api_article": 0.2,
+    }
+
     def __init__(self, documents: list[dict]):
         """
         documents: list of MongoDB documents
@@ -10,9 +17,13 @@ class MarketSentimentAggregator:
         """
         self.documents = documents
 
-    def _compute_horizon_score(self, horizon_key: str) -> float:
+    def _get_weight_for_type(self, doc_type: str) -> float:
+        """Get weight based on document type"""
+        return self.TYPE_WEIGHTS.get(doc_type, 0.0)
+
+    def _compute_horizon_score(self) -> float:
         """
-        horizon_key: similarity_short | similarity_medium | similarity_long
+        Compute sentiment score based on document type weights
         """
         if not self.documents:
             return 0.0
@@ -30,9 +41,10 @@ class MarketSentimentAggregator:
             
 
             sign = SentimentUtils.label_to_sign(sentiment_label)
-            similarity = doc.get(horizon_key, 0.0)
+            doc_type = doc.get("type", "")
+            weight = self._get_weight_for_type(doc_type)
 
-            impact = similarity * sentiment_score * sign * 10
+            impact = weight * sentiment_score * sign * 10
             total += impact
             count += 1
 
@@ -42,21 +54,19 @@ class MarketSentimentAggregator:
         return total / count
 
     def aggregate(self) -> dict:
-        short_value = self._compute_horizon_score("similarity_short")
-        medium_value = self._compute_horizon_score("similarity_medium")
-        long_value = self._compute_horizon_score("similarity_long")
+        sentiment_value = self._compute_horizon_score()
 
         return {
             "short_term": {
-                "value": round(short_value, 4),
-                "label": SentimentThresholds.classify(short_value),
+                "value": round(sentiment_value, 4),
+                "label": SentimentThresholds.classify(sentiment_value),
             },
             "medium_term": {
-                "value": round(medium_value, 4),
-                "label": SentimentThresholds.classify(medium_value),
+                "value": round(sentiment_value, 4),
+                "label": SentimentThresholds.classify(sentiment_value),
             },
             "long_term": {
-                "value": round(long_value, 4),
-                "label": SentimentThresholds.classify(long_value),
+                "value": round(sentiment_value, 4),
+                "label": SentimentThresholds.classify(sentiment_value),
             },
         }

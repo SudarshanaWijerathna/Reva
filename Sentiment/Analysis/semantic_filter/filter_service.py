@@ -10,7 +10,6 @@ class FilterService:
 
     def evaluate_document(self, doc):
         emb = self.embedder.embed(doc["cleaned_text"])
-        print("clened text is fetched for document id: ", doc["_id"], "✅✅✅ -> next step is to compute similarity scores.")
         sim_scores = self.sim_engine.compute_similarity(emb)
 
         # Noise / relevance logic based on reference repo

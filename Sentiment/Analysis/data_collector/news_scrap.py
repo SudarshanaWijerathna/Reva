@@ -90,17 +90,10 @@ def news_scraper():
             headings, content = categorize_headings_with_content(soup)
             paragraphs = extract_paragraphs(soup)
 
-            print("headings============")
-            for h in headings:
-                print(h)
+            print("headings============, lengths", len(headings))
+            print("content============, lengths", len(content))
+            print("paragraphs============, lengths", len(paragraphs))
 
-            print("content============")
-            for c in content:
-                print(c)
-
-            print("paragraphs============")
-            for p in paragraphs:
-                print(p)
             return {
                 "headings": headings,
                 "content": content,
@@ -113,6 +106,4 @@ def news_scraper():
             print(f"Request error for {site}: {e}")
         except Exception as e:
             print(f"Unexpected error processing {site}: {e}")
-
-news_scraper()
 

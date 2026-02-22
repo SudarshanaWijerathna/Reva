@@ -34,7 +34,7 @@ def main():
     sentiment_model = SentimentModel()  # or however you initialize this
     
     # Create and run the sentiment pipeline
-    pipeline = SentimentPipeline(api_data, cleaner, sentiment_model)
+    pipeline = SentimentPipeline(api_data, cleaner, sentiment_model, news_scraper, web_scraper)
     pipeline_results=pipeline.run_pipeline()  # Adjust method name if different
     print("Sentiment Pipeline completed.✅✅✅")
 

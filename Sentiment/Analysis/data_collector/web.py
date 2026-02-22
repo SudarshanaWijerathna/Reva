@@ -88,17 +88,10 @@ def web_scraper():
             headings, content = categorize_headings_with_content(soup)
             paragraphs = extract_paragraphs(soup)
 
-            print("headngs============")
-            for h in headings:
-                print(h)
-
-            print("content============")
-            for c in content:
-                print(c)
-
-            print("paragraphs============")
-            for p in paragraphs:
-                print(p)
+            print("headings============, lengths", len(headings))
+            print("content============, lengths", len(content))
+            print("paragraphs============, lengths", len(paragraphs))
+            
             return {
                 "headings": headings,
                 "content": content,
@@ -111,5 +104,3 @@ def web_scraper():
             print(f"Request error for {site}: {e}")
         except Exception as e:
             print(f"Unexpected error processing {site}: {e}")
-
-web_scraper()

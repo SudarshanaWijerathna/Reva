@@ -14,6 +14,8 @@ from Sentiment.Analysis.storage.vector import VectorRepo
 # Import other necessary dependencies
 
 from Sentiment.Analysis.data_collector.news_api import APIData
+from Sentiment.Analysis.data_collector.news_scrap import news_scraper
+from Sentiment.Analysis.data_collector.web import web_scraper
 from Sentiment.Analysis.preprocessing.cleaner import TextCleaner
 from Sentiment.Analysis.sentiment_model.bert import SentimentModel
 

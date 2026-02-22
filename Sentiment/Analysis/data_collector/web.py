@@ -1,6 +1,11 @@
+
 import re
 import requests  # requests is useful to 'copy' the website data.
 from bs4 import BeautifulSoup  # bs is helping as sorting the data and find the wanted data that we are locking for(also automatically)
+
+# ============= Possible Sites to test =============
+# https://www.dailymirror.lk/
+# https://www.dailymirror.lk/latest-news/108
 
 
 # ---------- URL NORMALIZER ----------
@@ -27,47 +32,84 @@ def get_url(url: str, session: requests.Session) -> str:
 
 # ---------- TEXT CLEANER ----------
 def _clean_text(value: str) -> str:
-    cleaned = re.sub(r"\s+", " ", value).strip()
+    # Remove time stamps like "3 hours ago", "4 days ago", etc.
+    cleaned = re.sub(r"\d+\s+(?:hours?|days?|minutes?|seconds?|weeks?|months?|years?)\s+ago\s*[-–]?\s*", "", value)
+    # Remove dates like "20 Feb 2026", "15 January 2025", etc.
+    cleaned = re.sub(r"\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\s*[-–]?\s*", "", cleaned)
+    # Remove extra whitespace
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
     return cleaned
 
 
 # ---------- HEADING + PARAGRAPH EXTRACTION ----------
 def categorize_headings_with_content(soup: BeautifulSoup):
-    categories = {f"h{i}": [] for i in range(1, 5)}
-    current = None
+    headings =[]
+    content = []
 
     for node in soup.find_all(["h1", "h2", "h3", "h4", "p"]):
         if node.name.startswith("h"):
             text = _clean_text(node.get_text())
             if text:
-                current = {"title": text, "paragraphs": []}
-                categories[node.name].append(current)
+                headings.append(text)
 
         elif node.name == "p":
             text = _clean_text(node.get_text())
-            if text and current is not None:
-                current["paragraphs"].append(text)
+            if text:
+                content.append(text)
 
-    return categories
+    return headings, content
 
+# -----------Paragraph extractor -----------
+def extract_paragraphs(soup: BeautifulSoup):
+    paragraphs = []
+    for p in soup.find_all("p"):
+        text = _clean_text(p.get_text())
+        if text:
+            paragraphs.append(text)
+    return paragraphs
 
 # ---------- MAIN ----------
-if __name__ == "__main__":
-    session = requests.Session()
-    
+#if __name__ == "__main__":
+def web_scraper():
 
-    website = input("enter a website: ")
-    html = get_url(website, session)
+    sites = [
+        "https://www.dailymirror.lk/",
+        "https://www.dailymirror.lk/latest-news/108",
+    ]
+    for site in sites:
+        print(f"Scraping {site}...=======================================")
 
-    soup = BeautifulSoup(html, "html.parser")
-    categorized = categorize_headings_with_content(soup)
+        try:
+            session = requests.Session()
+            website = site
+            html = get_url(website, session)
 
-    print("\nHeadings and related content:\n")
-    for level in sorted(categorized):
-        if not categorized[level]:
-            continue
-        print(level)
-        for entry in categorized[level]:
-            #print(f"  {entry['title']}")
-            for para in entry["paragraphs"]:
-                print(f"title : {entry['title']}    - {para}")
+            soup = BeautifulSoup(html, "html.parser")
+            headings, content = categorize_headings_with_content(soup)
+            paragraphs = extract_paragraphs(soup)
+
+            print("headngs============")
+            for h in headings:
+                print(h)
+
+            print("content============")
+            for c in content:
+                print(c)
+
+            print("paragraphs============")
+            for p in paragraphs:
+                print(p)
+            return {
+                "headings": headings,
+                "content": content,
+                "paragraphs": paragraphs
+            }
+        
+        except ValueError as e:
+            print(f"Error fetching {site}: {e}")
+        except requests.RequestException as e:
+            print(f"Request error for {site}: {e}")
+        except Exception as e:
+            print(f"Unexpected error processing {site}: {e}")
+
+web_scraper()

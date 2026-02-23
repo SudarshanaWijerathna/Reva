@@ -8,8 +8,6 @@ from Sentiment.Analysis.semantic_filter.semantic_pipeline import SemanticPipelin
 # Import the SentimentPipeline class
 from Sentiment.Analysis.ochestration.pipe import SentimentPipeline
 from Sentiment.Analysis.storage.store import SentimentStorage
-from Sentiment.Analysis.semantic_filter.filter_service import FilterService
-from Sentiment.Analysis.storage.vector import VectorRepo
 
 # Import other necessary dependencies
 

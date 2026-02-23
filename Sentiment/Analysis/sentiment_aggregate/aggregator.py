@@ -21,10 +21,15 @@ class MarketSentimentAggregator:
         """Get weight based on document type"""
         return self.TYPE_WEIGHTS.get(doc_type, 0.0)
 
-    def _compute_horizon_score(self) -> float:
+    def _compute_sentiment_for_property_and_horizon(self, property_type: str, time_horizon: str) -> float:
         """
-        Compute sentiment score based on document type weights
+        Compute sentiment score for a specific property type and time horizon
+        Only includes documents where the property type has the highest similarity score
+        property_type: 'land', 'house', 'rental'
+        time_horizon: 'short', 'medium', 'long'
         """
+        time_similarity_key = f"similarity_{time_horizon}"
+        
         if not self.documents:
             return 0.0
 
@@ -32,6 +37,24 @@ class MarketSentimentAggregator:
         count = 0
 
         for doc in self.documents:
+            # Determine dominant property type based on highest similarity
+            land_similarity = doc.get("similarity_land", 0.0)
+            house_similarity = doc.get("similarity_house", 0.0)
+            rental_similarity = doc.get("similarity_rental", 0.0)
+            
+            property_similarities = {
+                "land": land_similarity,
+                "house": house_similarity,
+                "rental": rental_similarity
+            }
+            
+            # Find the property type with highest similarity
+            dominant_property = max(property_similarities, key=property_similarities.get)
+            
+            # Only process this document if it matches the target property type
+            if dominant_property != property_type:
+                continue
+            
             predictions = doc.get("predictions", [])
             if not predictions:
                 continue
@@ -39,12 +62,14 @@ class MarketSentimentAggregator:
             sentiment_label = predictions[0].get("label", "neutral")
             sentiment_score = predictions[0].get("score", 0.0)
             
-
             sign = SentimentUtils.label_to_sign(sentiment_label)
             doc_type = doc.get("type", "")
             weight = self._get_weight_for_type(doc_type)
-
-            impact = weight * sentiment_score * sign * 10
+            
+            # Get time horizon relevance score
+            time_relevance = doc.get(time_similarity_key, 0.0)
+            
+            impact = weight * sentiment_score * sign * time_relevance * 100
             total += impact
             count += 1
 
@@ -54,19 +79,22 @@ class MarketSentimentAggregator:
         return total / count
 
     def aggregate(self) -> dict:
-        sentiment_value = self._compute_horizon_score()
-
-        return {
-            "short_term": {
-                "value": round(sentiment_value, 4),
-                "label": SentimentThresholds.classify(sentiment_value),
-            },
-            "medium_term": {
-                "value": round(sentiment_value, 4),
-                "label": SentimentThresholds.classify(sentiment_value),
-            },
-            "long_term": {
-                "value": round(sentiment_value, 4),
-                "label": SentimentThresholds.classify(sentiment_value),
-            },
+        property_types = {
+            "land": "land",
+            "house": "housing",
+            "rental": "rental"
         }
+        time_horizons = ["short", "medium", "long"]
+        
+        result = {}
+        
+        for similarity_key, output_key in property_types.items():
+            result[output_key] = {}
+            for horizon in time_horizons:
+                sentiment_value = self._compute_sentiment_for_property_and_horizon(similarity_key, horizon)
+                result[output_key][f"{horizon}_term"] = {
+                    "value": round(sentiment_value, 4),
+                    "label": SentimentThresholds.classify(sentiment_value),
+                }
+        
+        return result

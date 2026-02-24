@@ -1,9 +1,6 @@
 from functools import lru_cache, cache
 from Sentiment.Analysis.sentiment_aggregate.agg_pipe import get_market_sentiment
 
-
-
-
 def get_overall_sentiment(data: dict):
     properties = ["land", "housing", "rental"]
     result = 0

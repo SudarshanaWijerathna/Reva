@@ -26,9 +26,21 @@ class SentimentStorage:
     def fetch_all_docs(self):
         return list(self.db_collection.find({}))
     
-    def fetch_relevant_docs(self):
-        """Return documents marked as relevant."""
-        return list(self.db_collection.find({"relevance": "noise"}))
+
+    def fetch_relevant_docs(self, cutoff_date: datetime = None):
+        """
+        Return documents marked as relevant.
+        If cutoff_date is provided, only return documents newer than that.
+        """
+
+        query = {
+            "relevance": "noise"
+        }
+
+        if cutoff_date is not None:
+            query["timestamp"] = {"$gte": cutoff_date}
+
+        return list(self.db_collection.find(query))
     
     def update_doc_similarity(self, doc_id,scores_dict):
         self.db_collection.update_one(

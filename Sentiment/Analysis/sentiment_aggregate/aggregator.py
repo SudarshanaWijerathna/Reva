@@ -1,6 +1,7 @@
 from Sentiment.Analysis.sentiment_aggregate.sentiment_utils import SentimentUtils
 from Sentiment.Analysis.sentiment_aggregate.thresholds import SentimentThresholds
-
+from datetime import datetime
+import math
 
 class MarketSentimentAggregator:
     # Document type weights
@@ -10,12 +11,44 @@ class MarketSentimentAggregator:
         "api_article": 0.2,
     }
 
+    # Decay rates per time horizon
+    DECAY_RATES = {
+        "short": 0.15,
+        "medium": 0.03,
+        "long": 0.005
+    }
+
+    # Hard window limits (days)
+    WINDOW_LIMITS = {
+        "short": 30,
+        "medium": 365,
+        "long": 365 * 5
+    }
+
     def __init__(self, documents: list[dict]):
         """
         documents: list of MongoDB documents
         (already filtered by relevance == 'relevant')
         """
         self.documents = documents
+
+    def _compute_time_decay(self, doc_timestamp, horizon: str) -> float:
+        """
+        Compute exponential decay weight based on document age.
+        """
+        if not doc_timestamp:
+            return 0.0
+
+        now = datetime.utcnow()
+        age_days = (now - doc_timestamp).days
+
+        # Hard window cutoff
+        if age_days > self.WINDOW_LIMITS[horizon]:
+            return 0.0
+
+        lambda_value = self.DECAY_RATES[horizon]
+        return math.exp(-lambda_value * age_days)
+    
 
     def _get_weight_for_type(self, doc_type: str) -> float:
         """Get weight based on document type"""
@@ -65,11 +98,13 @@ class MarketSentimentAggregator:
             sign = SentimentUtils.label_to_sign(sentiment_label)
             doc_type = doc.get("type", "")
             weight = self._get_weight_for_type(doc_type)
+            doc_timestamp = doc.get("timestamp")
+            time_decay = self._compute_time_decay(doc_timestamp, time_horizon)
             
             # Get time horizon relevance score
             time_relevance = doc.get(time_similarity_key, 0.0)
             
-            impact = weight * sentiment_score * sign * time_relevance * 100
+            impact = weight * sentiment_score * sign * time_relevance * time_decay * 100
             total += impact
             count += 1
 

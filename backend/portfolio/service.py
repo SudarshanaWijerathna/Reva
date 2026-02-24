@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from backend.database.schemas import Property
 from backend.predictions.utils import get_current_market_price
 from backend.sentiment.sentiment_api import  get_sentiment, get_overall_sentiment
+from backend.core.cache_service import get_cached_sentiment
 
 def calculate_portfolio(db: Session, user_id: int):
     try:
@@ -12,9 +13,14 @@ def calculate_portfolio(db: Session, user_id: int):
         mix = {"housing": 0, "rental": 0, "land": 0}
 
         detailed = []
-        overall_sentiment = get_overall_sentiment()  # Get overall market sentiment once for the portfolio
+        try:
+            sentiment_dict = get_cached_sentiment()
+            overall_sentiment = get_overall_sentiment(sentiment_dict)
+        except Exception as e:
+            print(f"Error fetching overall market sentiment: {str(e)}")
+            overall_sentiment = "unknown"
+        #overall_sentiment = "unknown"
     
-        
 
         for prop in properties:
             try:
@@ -24,7 +30,14 @@ def calculate_portfolio(db: Session, user_id: int):
                 total_investment += prop.purchase_price
                 total_current_value += current_price
                 mix[prop.property_type] += 1
-                sentiment = get_sentiment(prop.property_type,"medium_term" ) # You can customize this to get sentiment specific to the property
+
+                try:
+                    sentiment = get_sentiment(sentiment_dict, prop.property_type, "medium_term") 
+                except Exception as e:
+                    print(f"Error fetching sentiment for property {prop.id}: {str(e)}")
+                    sentiment = "unknown"
+                #sentiment = "unknown"
+                
 
 
                 detailed.append({
@@ -35,7 +48,7 @@ def calculate_portfolio(db: Session, user_id: int):
                     "purchase_price": prop.purchase_price,
                     "current_value": current_price,
                     "profit": profit,
-                    "sentiment": sentiment,
+                    "sentiment": sentiment["label"],
                     "status": prop.status
                 })
             except Exception as e:
@@ -68,8 +81,7 @@ def calculate_portfolio(db: Session, user_id: int):
                 "growth_percentage": 0,
                 "total_profit": 0,
                 "property_mix": {"housing": 0, "rental": 0, "land": 0},
-                "sentiment": overall_sentiment if 'overall_sentiment' in locals() else "unknown"
+                "sentiment": overall_sentiment
             },
             "properties": []
         }
-

@@ -1,11 +1,12 @@
 from Sentiment.Analysis.storage.store import SentimentStorage
 from Sentiment.Analysis.semantic_filter.filter_service import FilterService
+from Sentiment.Analysis.storage.vector import VectorRepo
 
 
 class SemanticPipeline:
-    def __init__(self, sentiment_repo: SentimentStorage | None = None, filter_service: FilterService | None = None) -> None:
+    def __init__(self, sentiment_repo: SentimentStorage | None = None, filter_service: FilterService | None = None, vector_repo: VectorRepo | None = None) -> None:
         self.sentiment_repo = sentiment_repo or SentimentStorage()
-        # vector_repo = VectorRepo() can be injected once needed by FilterService.
+        # FilterService manages its own VectorRepo instances internally
         self.filter_service = filter_service or FilterService()
 
     def run_semantic_pipeline(self) -> None:

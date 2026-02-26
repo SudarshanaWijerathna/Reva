@@ -9,6 +9,7 @@ def cosine_similarity(a, b):
 
 class SimilarityEngine:
     def __init__(self):
+        # Instantiate separate VectorRepo for each collection type
         self.vector_repo = VectorRepo("reference_vectors")
         self.short_repo = VectorRepo("short_term_vectors")
         self.medium_repo = VectorRepo("medium_term_vectors")

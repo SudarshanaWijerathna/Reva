@@ -6,6 +6,7 @@ import LandPrice from './pages/Predictions/LandPrice';
 import HousePrice from './pages/Predictions/HousePrice';
 import RentalPrice from './pages/Predictions/RentalPrice';
 import LoginPage from './pages/LoginPage';
+import Chatbot from './pages/Chatbot';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/chatbot" element={<Chatbot />} />
         
         {/* Prediction Routes */}
         <Route path="/land-price" element={<LandPrice />} />

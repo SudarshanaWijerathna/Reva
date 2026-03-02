@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from backend.core.scheduler import start_scheduler
 from backend.database.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -50,9 +51,6 @@ app.include_router(predictions_router) # predictions add
 app.include_router(admin_router) # admin panel
 app.include_router(land_bp)   # ✅ ADDED
 
-@app.get("/")
-async def user(user: user_dependency):
-    if user:
-        return {"message": f"Hello, {user['email']}!"}
-    else:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+@app.on_event("startup")
+def startup_event():
+    start_scheduler()

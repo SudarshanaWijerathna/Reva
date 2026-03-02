@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Navbar from './Navbar';
+import { Link } from "react-router-dom";
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,9 +15,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <i className="fa-solid fa-city bg-float-icon shape-3"></i>
       </div>
 
-      <a href="chatbot.html" className="chatbot-toggler">
+      <Link to="/chatbot" className="chatbot-toggler">
         <i className="fa-solid fa-robot"></i>
-      </a>
+    </Link>
 
       <Navbar />
 

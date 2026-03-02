@@ -14,6 +14,9 @@ class SimilarityEngine:
         self.short_repo = VectorRepo("short_term_vectors")
         self.medium_repo = VectorRepo("medium_term_vectors")
         self.long_repo = VectorRepo("long_term_vectors")
+        self.rental_repo = VectorRepo("rental_market_vectors")
+        self.house_repo = VectorRepo("house_market_vectors")
+        self.land_repo = VectorRepo("land_market_vectors")
     
 
         
@@ -27,6 +30,9 @@ class SimilarityEngine:
             "short": self.short_repo,
             "medium": self.medium_repo,
             "long": self.long_repo,
+            "rental": self.rental_repo,
+            "house": self.house_repo,
+            "land": self.land_repo
         }
 
         for name, repo in collections.items():

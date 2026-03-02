@@ -79,3 +79,55 @@ class AdminDashboardStats(BaseModel):
     total_users: int
     total_features: int
     total_predictions: int
+
+
+# ============ Model Registry Schemas ============
+
+class AdminModelCreate(BaseModel):
+    """Schema for registering a new deployable model."""
+    name: str
+    model_type: str  # land, house, rental
+    version: str = "v1"
+    deployed_endpoint: str
+    artifact_url: Optional[str] = None
+    performance_notes: Optional[str] = None
+    mae: Optional[float] = None
+    rmse: Optional[float] = None
+    r2_score: Optional[float] = None
+    mape: Optional[float] = None
+    is_active: bool = False
+
+
+class AdminModelUpdate(BaseModel):
+    """Schema for updating an existing model registry record."""
+    name: Optional[str] = None
+    version: Optional[str] = None
+    deployed_endpoint: Optional[str] = None
+    artifact_url: Optional[str] = None
+    performance_notes: Optional[str] = None
+    mae: Optional[float] = None
+    rmse: Optional[float] = None
+    r2_score: Optional[float] = None
+    mape: Optional[float] = None
+    is_active: Optional[bool] = None
+
+
+class AdminModelOut(BaseModel):
+    """Schema for model registry response."""
+    id: int
+    name: str
+    model_type: str
+    version: str
+    deployed_endpoint: str
+    artifact_url: Optional[str] = None
+    performance_notes: Optional[str] = None
+    mae: Optional[float] = None
+    rmse: Optional[float] = None
+    r2_score: Optional[float] = None
+    mape: Optional[float] = None
+    is_active: bool
+    uploaded_by_email: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)

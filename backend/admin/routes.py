@@ -14,7 +14,10 @@ from backend.admin.schemas import (
     AdminFeatureUpdate,
     AdminFeatureOut,
     AdminUserListOut,
-    AdminDashboardStats
+    AdminDashboardStats,
+    AdminModelCreate,
+    AdminModelUpdate,
+    AdminModelOut
 )
 from backend.admin.services import (
     get_all_features_admin,
@@ -24,7 +27,13 @@ from backend.admin.services import (
     update_feature_admin,
     delete_feature_admin,
     get_all_users_admin,
-    get_dashboard_stats
+    get_dashboard_stats,
+    get_all_models_admin,
+    get_model_by_id_admin,
+    create_model_admin,
+    update_model_admin,
+    delete_model_admin,
+    activate_model_admin
 )
 
 
@@ -174,3 +183,119 @@ def list_all_users(
     """Get list of all users."""
     users = get_all_users_admin(db)
     return users
+
+
+# ============ Admin Model Registry Router ============
+
+@admin_router.get("/models", response_model=List[AdminModelOut])
+def list_all_models(
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)],
+    model_type: str = None,
+    active_only: bool = False
+):
+    """List all registered models with optional filters."""
+    try:
+        return get_all_models_admin(db, model_type=model_type, active_only=active_only)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@admin_router.get("/models/{model_id}", response_model=AdminModelOut)
+def get_model_details(
+    model_id: int,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Get one registered model with full metric details."""
+    db_model = get_model_by_id_admin(db, model_id)
+    if not db_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Model not found"
+        )
+    return db_model
+
+
+@admin_router.post("/models", response_model=AdminModelOut)
+def create_new_model(
+    model_data: AdminModelCreate,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Register a new model for a model type."""
+    try:
+        return create_model_admin(
+            db,
+            model_data=model_data.dict(),
+            uploaded_by_email=current_user.get("email")
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@admin_router.put("/models/{model_id}", response_model=AdminModelOut)
+def update_model(
+    model_id: int,
+    model_data: AdminModelUpdate,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Update model metadata and metric values."""
+    try:
+        updated_model = update_model_admin(db, model_id, model_data.dict(exclude_unset=True))
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    if not updated_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Model not found"
+        )
+    return updated_model
+
+
+@admin_router.post("/models/{model_id}/activate", response_model=AdminModelOut)
+def activate_model(
+    model_id: int,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Activate a model and deactivate other models in the same model type."""
+    activated_model = activate_model_admin(db, model_id)
+    if not activated_model:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Model not found"
+        )
+    return activated_model
+
+
+@admin_router.delete("/models/{model_id}")
+def delete_model(
+    model_id: int,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Delete a registered model."""
+    success = delete_model_admin(db, model_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Model not found"
+        )
+    return {"message": "Model deleted successfully"}

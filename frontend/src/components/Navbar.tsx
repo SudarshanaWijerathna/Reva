@@ -82,7 +82,8 @@ const Navbar: React.FC = () => {
           <li className={isActive('/')}><Link to="/">Home</Link></li>
           <li className={isActive('/dashboard')}><Link to="/dashboard">Dashboard</Link></li>
           <li className={isPrediction ? 'selected' : ''}><Link to="/land-price">Predictions</Link></li>
-          <li className={isActive('/contact')}><Link to="/contact">Contact</Link></li>
+          <li className={isActive('/contact')}><Link to="/contact">Ask Reva</Link></li>
+          <li className={isActive('/contact')}><Link to="/contact">Support</Link></li>
           {isAdmin && (
             <li className={isActive('/admin')}><Link to="/admin">Admin</Link></li>
           )}

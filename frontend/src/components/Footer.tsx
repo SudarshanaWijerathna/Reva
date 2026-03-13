@@ -14,8 +14,8 @@ const Footer: React.FC = () => {
   useEffect(() => {
     if (!isMobile) return;
 
-    // We target the main wrapper or fallback to root
-    const mainWrapper = document.querySelector('.main-wrapper') || document.getElementById('root')?.firstElementChild as HTMLElement;
+    // FIX: Wrapped the selector in parentheses and cast it as HTMLElement | null for Vercel
+    const mainWrapper = (document.querySelector('.main-wrapper') || document.getElementById('root')?.firstElementChild) as HTMLElement | null;
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     const snapBackFooter = () => {
@@ -57,7 +57,6 @@ const Footer: React.FC = () => {
       <footer className="reva-footer m-footer">
         <div className="m-footer-grid">
           <div className="m-footer-logo-side">
-            {/* Removed the inline style so CSS controls the size */}
             <img src="/img/university-logo.png" alt="University Logo" />
           </div>
           <div className="m-footer-content-side">

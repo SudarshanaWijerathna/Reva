@@ -1,11 +1,12 @@
-import React, { ReactNode, useState, useEffect } from "react";
-import DesktopNavbar from './navigation/DesktopNavbar'; // Keep your existing desktop nav
+import React, { useState, useEffect } from "react";
+import DesktopNavbar from './navigation/DesktopNavbar';
 import MobileBottomNav from './navigation/MobileBottomNav';
 import Footer from './Footer';
 import { Link } from "react-router-dom";
 
+// FIX: Used React.ReactNode directly to avoid the verbatimModuleSyntax import error
 interface LayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -18,12 +19,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Scroll & Snap-back logic (Exactly matching index.html)
   useEffect(() => {
     if (!isMobile) return;
 
-    const mainWrapper = document.getElementById('mainWrapper');
-    const mainHeader = document.getElementById('mainHeader');
+    // FIX: Added 'as HTMLElement' to satisfy TypeScript's offsetHeight requirement
+    const mainWrapper = document.getElementById('mainWrapper') as HTMLElement | null;
+    const mainHeader = document.getElementById('mainHeader') as HTMLElement | null;
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     const snapBackFooter = () => {
@@ -40,14 +41,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
 
     const handleScroll = () => {
-      // 1. Fixed Header Logic
       if (mainHeader && window.scrollY > (mainHeader.offsetHeight + 10)) {
         setIsFixedHeaderVisible(true);
       } else {
         setIsFixedHeaderVisible(false);
       }
 
-      // 2. Rubber Band Snap-back Logic
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         snapBackFooter();
@@ -74,7 +73,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <i className="fa-solid fa-city bg-float-icon shape-3"></i>
       </div>
 
-      {/* --- OUTSIDE WRAPPER: DESKTOP NAV OR MOBILE FIXED HEADER --- */}
       {!isMobile ? (
         <DesktopNavbar />
       ) : (
@@ -89,10 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </header>
       )}
 
-      {/* --- MAIN WRAPPER (This slides up to reveal the footer) --- */}
       <div className="main-wrapper" id="mainWrapper">
-        
-        {/* Mobile Main Static Header */}
         {isMobile && (
           <header className="top-header" id="mainHeader">
             <Link to="/">
@@ -105,16 +100,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </header>
         )}
 
-        {/* Page Content */}
         <main>
             {children}
         </main>
         
-        {/* Bottom Nav MUST be inside main-wrapper for the sticky bottom effect to work properly */}
         {isMobile && <MobileBottomNav />}
       </div>
       
-      {/* --- FOOTER: Sits underneath main-wrapper --- */}
       <Footer />
     </>
   );

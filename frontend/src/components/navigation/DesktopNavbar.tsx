@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const DesktopNavbar: React.FC = () => {
   const [isSticky, setIsSticky] = useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -23,44 +20,15 @@ const DesktopNavbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-      if (token) {
-        setIsLoggedIn(true);
-        try {
-          const response = await fetch('http://localhost:8000/api/admin/stats', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          if (response.ok) setIsAdmin(true);
-        } catch (err) {
-          console.log('User is not admin');
-        }
-      }
-    };
-    checkAuth();
-  }, [location]);
-
   const isActive = (path: string): string => location.pathname === path ? 'selected' : '';
   const isPrediction = location.pathname.includes('price');
-  
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    sessionStorage.removeItem("access_token");
-    setIsLoggedIn(false);
-    setIsAdmin(false);
-    navigate("/login");
-  };
 
   return (
-    <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="desktopNavbar">
+    <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
       <div className="nav-container">
         <div className="nav-brand">
           <Link to="/">
-             <img src="/src/assets/logo.png" alt="Reva Logo" className="header-logo" style={{ height: '35px' }} />
+             <img src="/img/logo.png" alt="Reva Logo" className="header-logo" style={{ height: '35px' }} />
           </Link>
         </div>
 
@@ -77,7 +45,6 @@ const DesktopNavbar: React.FC = () => {
           </li>
           <li className={isActive('/contact')}><Link to="/contact">Ask Reva</Link></li>
           <li className={isActive('/support')}><Link to="/support">Support</Link></li>
-          {isAdmin && <li className={isActive('/admin')}><Link to="/admin">Admin</Link></li>}
         </ul>
 
         <div className="nav-actions header-profile">

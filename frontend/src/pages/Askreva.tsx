@@ -35,7 +35,7 @@ const PredictionFormCard: React.FC<{ data: ExtraData, onSubmit: (prompt: string)
     district: ex.district || '',
     area: ex.area || '',
     size: ex.size || '',
-    hasRoad: ex.road && ex.road !== 'None' && ex.road !== '',
+    hasRoad: Boolean(ex.road && ex.road !== 'None'), 
     roadValue: ex.road && ex.road !== 'None' ? ex.road : '',
     utilities: ex.utilities || ''
   });
@@ -162,15 +162,6 @@ const Askreva: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
-
-  const formatText = (text: string) => {
-    return text.split('\n').map((line, i) => (
-      <React.Fragment key={i}>
-        {line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
-        <br />
-      </React.Fragment>
-    ));
-  };
 
  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;

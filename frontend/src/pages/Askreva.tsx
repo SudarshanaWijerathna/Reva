@@ -176,7 +176,7 @@ const Askreva: React.FC = () => {
 
     try {
       // Point directly to the FastAPI server on port 8000
-      const response = await fetch('http://127.0.0.1:8000/ask', {
+      const response = await fetch('http://51.20.44.11:8000/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })

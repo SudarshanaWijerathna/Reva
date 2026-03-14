@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
@@ -54,13 +54,6 @@ const Home: React.FC = () => {
     }, 3000);
     return () => clearInterval(interval);
   }, [isMobile, mobileReviews.length]);
-
-  const handleRoadmapScroll = () => {
-    if (roadmapRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = roadmapRef.current;
-      setIsRoadmapAtBottom(Math.ceil(scrollTop + clientHeight) >= scrollHeight - 2);
-    }
-  };
 
   return (
     <Layout>

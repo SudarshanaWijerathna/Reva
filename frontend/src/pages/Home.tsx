@@ -6,9 +6,16 @@ const Home: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Mobile Roadmap Scroll
-  const roadmapRef = useRef<HTMLDivElement>(null);
-  const [isRoadmapAtBottom, setIsRoadmapAtBottom] = useState<boolean>(false);
+  // New State for Mobile Horizontal Roadmap
+  const [activeRoadmapStep, setActiveRoadmapStep] = useState<number>(0);
+
+  // Roadmap Data Array
+  const roadmapSteps = [
+    { icon: "/img/icons/keyboard.svg", alt: "Keyboard", title: "You Provide Details", text: "Enter property information such as location, type, and size. Rēva uses this context as the foundation for analysis." },
+    { icon: "/img/icons/location.svg", alt: "Location", title: "Location Intelligence", text: "Rēva evaluates accessibility, nearby cities, and urban influence to understand the real value of the location." },
+    { icon: "/img/icons/aipowered.svg", alt: "AI Powered", title: "AI-Powered Analysis", text: "Machine learning models analyze market trends and historical patterns to estimate realistic price ranges." },
+    { icon: "/img/icons/insights.svg", alt: "Insights", title: "Clear Insights", text: "Rēva presents understandable predictions and insights, helping you make confident real estate decisions." } 
+  ];
 
   // Mobile Review Carousel
   const [activeReviewIdx, setActiveReviewIdx] = useState<number>(0);
@@ -91,7 +98,7 @@ const Home: React.FC = () => {
                         <h1>Intelligent Real Estate <br/>Virtual Assistant</h1>
                     </div>
                     <div className="reva-hero-image">
-                        <img src="/img/banner-hero-image.gif" alt="Reva Assistant" className="overhang-image" />
+                        <img src="/img/banner-hero-image.gif" alt="Rēva Assistant" className="overhang-image" />
                     </div>
                 </section>
             </div>
@@ -119,75 +126,74 @@ const Home: React.FC = () => {
                     </div>
                 </Link>
             </div>
-                    
-            <section className="section-card bg-light how-works-section">
+            
+            {/* UPDATED: Mobile How Rēva Works Section */}
+            <section className="section-card bg-img how-works-section">
                 <div className="section-header">
-                    <h2>How Reva Works</h2>
-                    <p>Reva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
+                    <h2>How Rēva Works</h2>
+                    <p>Rēva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
                 </div>
-                <div className="how-reva-wrapper">
-                    <div className="how-reva-steps" id="roadmapScrollBox" ref={roadmapRef} onScroll={handleRoadmapScroll}>
-                        <div className="steps-inner">
-                            <div className="roadmap-line"></div>
-                            <div className="how-step">
-                                <div className="step-icon"><img src="/img/icons/keyboard.svg" alt="Keyboard" /></div>
-                                <div className="step-content">
-                                    <h3>You Provide Details</h3>
-                                    <p>Enter property information such as location, type, and size. Reva uses this context as the foundation for analysis.</p>
+                
+                <div className="m-roadmap-wrapper">
+                    <div className="m-roadmap-nav">
+                        <div className="m-roadmap-line"></div>
+                        {roadmapSteps.map((step, idx) => (
+                            <div 
+                                key={idx} 
+                                className={`m-roadmap-step ${activeRoadmapStep === idx ? 'active' : ''}`}
+                                onClick={() => setActiveRoadmapStep(idx)}
+                            >
+                                <div className="m-roadmap-icon">
+                                    <img src={step.icon} alt={step.alt} />
                                 </div>
                             </div>
-                            <div className="how-step">
-                                <div className="step-icon"><img src="/img/icons/location.svg" alt="Location" /></div>
-                                <div className="step-content">
-                                    <h3>Location Intelligence</h3>
-                                    <p>Reva evaluates accessibility, nearby cities, and urban influence to understand the real value of the location.</p>
-                                </div>
-                            </div>
-                            <div className="how-step">
-                                <div className="step-icon"><img src="/img/icons/aipowered.svg" alt="AI Powered" /></div>
-                                <div className="step-content">
-                                    <h3>AI-Powered Analysis</h3>
-                                    <p>Machine learning models analyze market trends and historical patterns to estimate realistic price ranges.</p>
-                                </div>
-                            </div>
-                            <div className="how-step">
-                                <div className="step-icon"><img src="/img/icons/keyboard.svg" alt="Insights" /></div>
-                                <div className="step-content">
-                                    <h3>Clear Insights</h3>
-                                    <p>Reva presents understandable predictions and insights, helping you make confident real estate decisions.</p>
-                                </div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-                    <div className={`scroll-fade ${isRoadmapAtBottom ? 'hide-scroll-hint' : ''}`}></div>
-                    <i className={`fa-solid fa-angles-down scroll-hint-arrow ${isRoadmapAtBottom ? 'hide-scroll-hint' : ''}`}></i>
+                    
+                    <div className="m-roadmap-content">
+                        {/* The arrow indicator moves dynamically based on the active step */}
+                        <div 
+                            className="m-roadmap-arrow" 
+                            style={{ left: `calc(14.5% + ${activeRoadmapStep * 23.5}%)` }}
+                        ></div>
+                        <h3>{roadmapSteps[activeRoadmapStep].title}</h3>
+                        <p>{roadmapSteps[activeRoadmapStep].text}</p>
+                    </div>
                 </div>
             </section>
 
             <div className="intro-points">
-                <p><i className="fa-solid fa-circle-check"></i> Reva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
+                <p><i className="fa-solid fa-circle-check"></i> Rēva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
                 <p><i className="fa-solid fa-circle-check"></i> Unlock the power of AI to navigate the real estate market with confidence and make smarter decisions for your future.</p>
             </div>
             
+            {/* UPDATED: Mobile Privacy Section with Custom SVGs */}
             <section className="section-card bg-white">
               <div className="m-split-layout">
-                <div className="split-text">
-                  <h2>Your Data Stays With You</h2>
-                  <p>Reva is designed with privacy at its core. Your inputs are used only for analysis, never for tracking.</p>
-                  <ul className="m-trust-points">
-                    <li><i className="fa-solid fa-user-shield"></i> No personal data shared</li>
-                    <li><i className="fa-solid fa-lock"></i> Secure processing</li>
-                    <li><i className="fa-solid fa-eye-slash"></i> No hidden tracking</li>
-                  </ul>
+                <h2>Your Data Stays With You</h2>
+                <p>Rēva is designed with privacy at its core. Your inputs are used only for analysis, never for tracking.</p>
+                
+                <div className="m-trust-box">
+                  <div className="m-trust-item">
+                    <img src="/img/icons/personal.svg" alt="Personal Data" className="m-trust-icon" />
+                    <span>No personal<br/>data shared</span>
+                  </div>
+                  <div className="m-trust-item">
+                    <img src="/img/icons/secure.svg" alt="Secure Processing" className="m-trust-icon" />
+                    <span>Secure<br/>processing</span>
+                  </div>
+                  <div className="m-trust-item">
+                    <img src="/img/icons/tracking.svg" alt="No Tracking" className="m-trust-icon" />
+                    <span>No hidden<br/>tracking</span>
+                  </div>
                 </div>
-                <img src="/img/privacy.png" alt="Privacy" className="m-trust-main-img" />
               </div>
             </section>
 
             <section className="section-card bg-light">
               <div className="section-header">
                 <h2>Community Feedback</h2>
-                <p>See what others are saying about Reva.</p>
+                <p>See what others are saying about Rēva.</p>
               </div>
 
               <div className="m-feedback-grid">
@@ -236,7 +242,7 @@ const Home: React.FC = () => {
                 <section className="reva-hero-content">
                     <div className="leftside-hero">
                         <h1>Rēva, <span> Intelligent Real Estate Virtual Assistant</span></h1>
-                        <p>Reva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
+                        <p>Rēva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
                         <div className="reva-hero-features"></div>
                     </div>
                     <div className="rightside-hero">
@@ -277,19 +283,19 @@ const Home: React.FC = () => {
 
             <section className="section-card bg-light">
                 <div className="section-header">
-                    <h2>How Reva Works</h2>
-                    <p>Reva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
+                    <h2>How Rēva Works</h2>
+                    <p>Rēva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
                 </div>
                 <div className="how-reva-steps-desktop">
                     <div className="how-step-d">
                         <div className="step-icon-d"><i className="fa-solid fa-keyboard"></i></div>
                         <h3>You Provide Details</h3>
-                        <p>Enter property information such as location, type, and size. Reva uses this context as the foundation for analysis.</p>
+                        <p>Enter property information such as location, type, and size. Rēva uses this context as the foundation for analysis.</p>
                     </div>
                     <div className="how-step-d">
                         <div className="step-icon-d"><i className="fa-solid fa-map-location-dot"></i></div>
                         <h3>Location Intelligence</h3>
-                        <p>Reva evaluates accessibility, nearby cities, and urban influence to understand the real value of the location.</p>
+                        <p>Rēva evaluates accessibility, nearby cities, and urban influence to understand the real value of the location.</p>
                     </div>
                     <div className="how-step-d">
                         <div className="step-icon-d"><i className="fa-solid fa-brain"></i></div>
@@ -299,7 +305,7 @@ const Home: React.FC = () => {
                     <div className="how-step-d">
                         <div className="step-icon-d"><i className="fa-solid fa-chart-simple"></i></div>
                         <h3>Clear Insights</h3>
-                        <p>Reva presents understandable predictions and insights, helping you make confident real estate decisions.</p>
+                        <p>Rēva presents understandable predictions and insights, helping you make confident real estate decisions.</p>
                     </div>
                 </div>
             </section>
@@ -308,7 +314,7 @@ const Home: React.FC = () => {
                 <div className="split-layout-d">
                     <div className="split-text-d">
                         <h2>Your Data Stays With You</h2>
-                        <p>Reva is designed with privacy at its core. Any information you provide is used only to generate predictions and insights — never for tracking, selling, or profiling.</p>
+                        <p>Rēva is designed with privacy at its core. Any information you provide is used only to generate predictions and insights — never for tracking, selling, or profiling.</p>
                         <ul className="trust-points-d">
                             <li><i className="fa-solid fa-user"></i> No personal data shared with third parties</li>
                             <li><i className="fa-solid fa-lock"></i> Inputs are processed securely</li>
@@ -327,7 +333,7 @@ const Home: React.FC = () => {
             <section className="section-card bg-light">
                 <div className="section-header">
                     <h2>Community Feedback</h2>
-                    <p>Help us improve Reva by sharing your experience, or see what others are saying.</p>
+                    <p>Help us improve Rēva by sharing your experience, or see what others are saying.</p>
                 </div>
                 <div className="feedback-grid-d">
                     <div className="feedback-form-card-d">
@@ -343,7 +349,7 @@ const Home: React.FC = () => {
                             </div>
                             <div className="form-group-d">
                                 <label>Your Comment</label>
-                                <textarea className="reva-input-d" placeholder="Tell us about your experience with Reva..."></textarea>
+                                <textarea className="reva-input-d" placeholder="Tell us about your experience with Rēva..."></textarea>
                             </div>
                             <button type="submit" className="btn-primary" style={{width: '100%'}}>Submit Review</button>
                         </form>

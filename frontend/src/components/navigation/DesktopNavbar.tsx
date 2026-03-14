@@ -43,8 +43,8 @@ const DesktopNavbar: React.FC = () => {
                  <Link to="/land-price">Land price prediction</Link>
              </div>
           </li>
-          <li className={isActive('/contact')}><Link to="/contact">Ask Reva</Link></li>
           <li className={isActive('/support')}><Link to="/support">Support</Link></li>
+          <li className={isActive('/contact')}><Link to="/contact">Ask Reva</Link></li>
         </ul>
 
         <div className="nav-actions header-profile">

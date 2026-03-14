@@ -2,7 +2,7 @@ import React from 'react';
 import Layout from '../components/Layout';
 import Footer from '../components/Footer';
 
-const Contact: React.FC = () => {
+const Support: React.FC = () => {
   return (
     <Layout>
       <div className="contact-wrapper">
@@ -84,4 +84,4 @@ const Contact: React.FC = () => {
   );
 };
 
-export default Contact;
+export default Support;

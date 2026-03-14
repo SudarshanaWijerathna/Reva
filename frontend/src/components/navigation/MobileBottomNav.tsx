@@ -63,7 +63,7 @@ const MobileBottomNav: React.FC = () => {
       </Link>
       <Link to="/contact" className={`nav-item ${isActive('/contact')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />
-        <span className="nav-text">Ask Reva</span>
+        <span className="nav-text">Ask Rēva</span>
       </Link>
     </nav>
   );

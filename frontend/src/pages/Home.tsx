@@ -88,7 +88,7 @@ const Home: React.FC = () => {
                 <section className="reva-hero-content">
                     <div className="reva-hero-text">
                         <h1>Rēva</h1>
-                        <h1>Intelligent Real Estate <br/>Virtual Assistant</h1>
+                        <h1>Intelligent Real Estate Virtual Assistant</h1>
                     </div>
                     <div className="reva-hero-image">
                         <img src="/img/banner-hero-image.gif" alt="Rēva Assistant" className="overhang-image" />

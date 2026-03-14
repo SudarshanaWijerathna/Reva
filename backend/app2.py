@@ -1,10 +1,7 @@
 import os
-from dotenv import load_dotenv
-
-# 1. Load environment variables FIRST
-load_dotenv()
-
+import google.generativeai as genai
 from pydantic import BaseModel
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
 # --- FRIEND's ORIGINAL IMPORTS & CODE START ---
@@ -28,12 +25,11 @@ from backend.auth.authentication import user_dependency
 from backend.predictions.land_api import land_bp   # ✅ FIXED IMPORT
 # --- FRIEND's ORIGINAL IMPORTS END ---
 
-# 2. Use the NEW SDK imports
-from google import genai
-from google.genai import types
 
-# Initialize the new client. It will automatically look for GEMINI_API_KEY in your .env
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+# --- ASK REVA CONFIGURATION START ---
+load_dotenv()
+# Make sure to add GEMINI_API_KEY to your .env file in the backend folder!
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 SYSTEM_PROMPT = """
 You are Rēva, an Intelligent Real Estate Virtual Assistant for the Sri Lankan market.
@@ -61,24 +57,19 @@ STRICT AGENTIC RULES:
 4. For any other real estate question, reply normally and professionally. If they ask about unrelated topics, politely decline.
 """
 
-# Configure the system instruction using the new types
-config = types.GenerateContentConfig(
-    system_instruction=SYSTEM_PROMPT,
+model = genai.GenerativeModel(
+    model_name="gemini-2.5-flash", 
+    system_instruction=SYSTEM_PROMPT
 )
 
-# Start the chat session
-chat_session = client.chats.create(
-    model="gemini-2.5-flash", 
-    config=config
-)
+chat_session = model.start_chat(history=[])
 
 # We use a Pydantic model for FastAPI to automatically parse the JSON body
 class ChatMessage(BaseModel):
     message: str
 # --- ASK REVA CONFIGURATION END ---
-# --- ASK REVA CONFIGURATION END ---
 
-# 👇 ADD THIS CRUCIAL LINE BACK IN 👇
+
 app = FastAPI()
 
 # --- FRIEND's ORIGINAL SETUP START ---
@@ -144,6 +135,7 @@ async def ask_reva_endpoint(chat_request: ChatMessage):
             else:
                 intro_msg = "I have extracted all the details! Please review the form below and click estimate."
 
+            # FastAPI automatically converts Python dictionaries to JSON
             return {
                 "reply": intro_msg,
                 "type": "prediction_form",

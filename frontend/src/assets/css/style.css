@@ -189,7 +189,7 @@ body {
     .mobile-welcome-banner { background-image: url('/img/banner-bg.jpg'); background-size: cover; background-position: center; position: relative; padding: 20px 34px 25px 34px; overflow: visible; border-radius: 20px; margin: 20px 20px; /*box-shadow: 0 4px 12px rgba(0,0,0,0.08);*/ font-family: fontRegular, sans-serif; }
     .reva-hero-text { width: 60%; color: #000000; position: relative; z-index: 2; text-align: left; }
     .reva-hero-text h1:first-child { font-size: 24px; color: #000000; font-family: fontExtraBold; margin-bottom: 5px; }
-    .reva-hero-text h1:last-of-type { font-size: 12px; color: #000000; font-family: fontRegular; margin-bottom: 14px; line-height: 1.5; }
+    .reva-hero-text h1:last-of-type { font-size: clamp(0.1rem, 2.7vw, 2.5rem); color: #000000; font-family: fontRegular; margin-bottom: 14px; line-height: 1.5; }
     .reva-hero-text p { font-size: 8px; color: var(--text-gray); margin-bottom: 10px; }
     .reva-hero-text p:last-child { margin-bottom: 0; }
     .reva-hero-image { position: static; width: 40%; }
@@ -302,7 +302,7 @@ body {
     }
     /* COMMUNITY FEEDBACK (From index.html) */
     .m-feedback-grid { display: flex; flex-direction: column; gap: 20px; }
-    .m-feedback-form-card { background: #f9f9f9; padding: 0 20px 20px 20px; border-radius: 20px; }
+    .m-feedback-form-card { background: #f1f1f1; padding: 0 20px 20px 20px; border-radius: 20px; }
     .m-reva-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-top: 0px; font-family: inherit; resize: vertical; min-height: 80px; }
     .m-form-bottom-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
     .m-star-rating { display: flex; flex-direction: row-reverse; gap: 5px; margin: 0; }

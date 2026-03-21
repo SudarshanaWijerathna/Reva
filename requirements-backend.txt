@@ -11,6 +11,7 @@ typing-extensions>=4.0.0
 python-dotenv
 requests
 email-validator
+google-genai
 
 # ===== Backend integrations used by current routes =====
 pymongo

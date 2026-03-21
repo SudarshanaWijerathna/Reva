@@ -15,6 +15,7 @@ pytrends
 chromadb
 sentence-transformers
 tqdm
+google-genai
 
 # ===== FastAPI Backend =====
 fastapi>=0.95.0

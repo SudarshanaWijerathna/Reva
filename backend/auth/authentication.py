@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +19,7 @@ router = APIRouter(
     tags=['authentication']
 )
 
-SECRET_KEY = "mysecretkey123"
+SECRET_KEY = os.getenv("SECRET_KEY", "mysecretkey123")
 ALGORITHM = "HS256"
 password_with_salt = ""
  

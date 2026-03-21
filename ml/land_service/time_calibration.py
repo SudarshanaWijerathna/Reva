@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 # Get project root directory
-BASE_DIR = Path(__file__).resolve().parents[3]
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 # Correct CSV path
 LVI_PATH = BASE_DIR / "data" / "land" / "land_valuation_indicator_values.csv"
@@ -23,6 +23,10 @@ PERIOD_COLUMNS = [
 REFERENCE_PERIOD = "2022 H1"
 
 
+def _normalize_district(value: str) -> str:
+    return (value or "").strip().lower()
+
+
 def adjust_price(
     predicted_price: float,
     district: str,
@@ -37,7 +41,9 @@ def adjust_price(
         raise ValueError(f"Invalid valuation period: {target_period}")
 
     # Find district row
-    row = lvi_df[lvi_df["District"] == district]
+    normalized_district = _normalize_district(district)
+    district_series = lvi_df["District"].astype(str).str.strip().str.lower()
+    row = lvi_df[district_series == normalized_district]
 
     if row.empty:
         raise ValueError(f"LVI not found for district: {district}")

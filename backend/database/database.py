@@ -1,22 +1,63 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+import os
 from pathlib import Path
 
-# ✅ build absolute path safely
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "test.db"
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+def _build_database_url() -> str:
+    """
+    Resolve database URL from environment for cloud deployments.
+    Falls back to local SQLite for development.
+    """
+    env_url = os.getenv("DATABASE_URL")
+    if env_url:
+        env_url = env_url.strip()
+
+        placeholder_tokens = (
+            "<your-server>",
+            "<host>",
+            "<username>",
+            "<password>",
+            "<database>",
+        )
+        if any(token in env_url for token in placeholder_tokens):
+            raise ValueError(
+                "DATABASE_URL contains placeholder values. "
+                "Replace template values like <your-server>/<username>/<password>/<database>."
+            )
+
+        # Common hosted platforms return postgres:// URLs.
+        if env_url.startswith("postgres://"):
+            env_url = env_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        if env_url.startswith("postgresql://") and "+psycopg2" not in env_url:
+            env_url = env_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+        # Azure PostgreSQL typically requires SSL.
+        if "postgres.database.azure.com" in env_url and "sslmode=" not in env_url:
+            separator = "&" if "?" in env_url else "?"
+            env_url = f"{env_url}{separator}sslmode=require"
+
+        return env_url
+
+    base_dir = Path(__file__).resolve().parent
+    db_path = base_dir / "test.db"
+    return f"sqlite:///{db_path}"
+
+
+SQLALCHEMY_DATABASE_URL = _build_database_url()
+
+engine_kwargs = {"pool_pre_ping": True}
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Assuming you use react-router
 import '../assets/css/askreva.css'; // Make sure this path matches your setup
+import { API_BASE_URL } from '../config/api';
 
 // --- Interfaces ---
 interface ExtraData {
@@ -175,8 +176,7 @@ const Askreva: React.FC = () => {
     setIsTyping(true);
 
     try {
-      // Point directly to the FastAPI server on port 8000
-      const response = await fetch('/api/ask', {
+      const response = await fetch(`${API_BASE_URL}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })

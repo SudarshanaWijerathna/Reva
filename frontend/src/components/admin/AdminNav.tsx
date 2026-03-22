@@ -1,14 +1,15 @@
 import React from 'react';
 
 interface AdminNavProps {
-  currentTab: 'dashboard' | 'features' | 'users';
-  onTabChange: (tab: 'dashboard' | 'features' | 'users') => void;
+  currentTab: 'dashboard' | 'features' | 'models' | 'users';
+  onTabChange: (tab: 'dashboard' | 'features' | 'models' | 'users') => void;
 }
 
 const AdminNav: React.FC<AdminNavProps> = ({ currentTab, onTabChange }) => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'features', label: 'Features', icon: '⚙️' },
+    { id: 'models', label: 'Models', icon: '🧠' },
     { id: 'users', label: 'Users', icon: '👥' }
   ];
 

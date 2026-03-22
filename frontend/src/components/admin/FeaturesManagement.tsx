@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../../config/api';
 
 interface Feature {
   id: number;
@@ -58,8 +59,8 @@ const FeaturesManagement: React.FC = () => {
       const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
       
       const url = selectedModelType === 'all' 
-        ? 'http://localhost:8000/api/admin/features'
-        : `http://localhost:8000/api/admin/features?model_type=${selectedModelType}`;
+        ? `${API_BASE_URL}/api/admin/features`
+        : `${API_BASE_URL}/api/admin/features?model_type=${selectedModelType}`;
 
       const response = await fetch(url, {
         headers: {
@@ -90,8 +91,8 @@ const FeaturesManagement: React.FC = () => {
       
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId 
-        ? `http://localhost:8000/api/admin/features/${editingId}`
-        : 'http://localhost:8000/api/admin/features';
+        ? `${API_BASE_URL}/api/admin/features/${editingId}`
+        : `${API_BASE_URL}/api/admin/features`;
       
       const response = await fetch(url, {
         method,
@@ -145,7 +146,7 @@ const FeaturesManagement: React.FC = () => {
     try {
       const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
       
-      const response = await fetch(`http://localhost:8000/api/admin/features/${featureId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/features/${featureId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

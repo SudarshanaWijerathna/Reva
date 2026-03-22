@@ -5,6 +5,7 @@ from backend.sentiment.sentiment_api import  get_sentiment, get_overall_sentimen
 from backend.core.cache_service import get_cached_sentiment
 
 def calculate_portfolio(db: Session, user_id: int):
+    overall_sentiment = "unknown"
     try:
         properties = db.query(Property).filter(Property.user_id == user_id).all()
 

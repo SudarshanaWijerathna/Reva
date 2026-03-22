@@ -125,6 +125,15 @@ def get_model_by_id_admin(db: Session, model_id: int) -> ModelRegistry:
     return db.query(ModelRegistry).filter(ModelRegistry.id == model_id).first()
 
 
+def get_active_model_by_type(db: Session, model_type: str) -> ModelRegistry:
+    """Get the currently active model for a given model type."""
+    normalized_model_type = _normalize_model_type(model_type)
+    return db.query(ModelRegistry).filter(
+        ModelRegistry.model_type == normalized_model_type,
+        ModelRegistry.is_active.is_(True)
+    ).first()
+
+
 def _deactivate_models_for_type(db: Session, model_type: str) -> None:
     """Ensure only one model remains active per model type."""
     db.query(ModelRegistry).filter(

@@ -6,7 +6,7 @@ from backend.dynamic.repositories import (
     create_prediction_record
 )
 from backend.dynamic.schemas import FeatureDefinition, PredictionRecord
-from backend.predictions.land_api import predict_land_price
+from backend.predictions.model_runtime import predict_with_active_model
 
 # ============ Feature Validation Services ============
 
@@ -64,6 +64,8 @@ def make_prediction(
     """Make a prediction for the specified model type."""
     
     try:
+        model_type = (model_type or "").strip().lower()
+
         # Get active features and validate
         feature_defs = get_active_features(db, model_type)
         if not feature_defs:
@@ -71,21 +73,24 @@ def make_prediction(
         
         validate_features(feature_defs, input_features)
 
-        if model_type == "land":
-            results = predict_land_price(input_features)
-            predicted_value = results["adjusted_price_per_perch"]
-            return predicted_value
-        
-        elif model_type == "house":
-            # Placeholder for house price prediction logic
-            return 0.0
-        
-        elif model_type == "rental":
-            # Placeholder for rental price prediction logic
-            return 0.0
-
-        else:
+        if model_type not in {"land", "house", "rental"}:
             raise ValueError(f"Unknown model type: {model_type}")
+
+        results = predict_with_active_model(
+            db=db,
+            model_type=model_type,
+            payload=input_features,
+        )
+        predicted_value = float(results["predicted_value"])
+
+        prediction_record = PredictionRecord(
+            user_id=user_id,
+            model_type=model_type,
+            features=input_features,
+            predicted_value=str(predicted_value),
+        )
+        create_prediction_record(db, prediction_record)
+        return predicted_value
     
     except ValueError as e:
         raise ValueError(f"Prediction validation error: {str(e)}")

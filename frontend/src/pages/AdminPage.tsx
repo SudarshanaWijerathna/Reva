@@ -5,9 +5,11 @@ import AdminNav from '../components/admin/AdminNav';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import FeaturesManagement from '../components/admin/FeaturesManagement';
 import UsersManagement from '../components/admin/UsersManagement.tsx';
+import ModelsManagement from '../components/admin/ModelsManagement';
 import '../assets/css/admin.css';
+import { API_BASE_URL } from '../config/api';
 
-type AdminTab = 'dashboard' | 'features' | 'users';
+type AdminTab = 'dashboard' | 'features' | 'models' | 'users';
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +30,7 @@ const AdminPage: React.FC = () => {
         }
 
         // Try to fetch admin stats to verify admin access
-        const response = await fetch('http://localhost:8000/api/admin/stats', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -94,6 +96,7 @@ const AdminPage: React.FC = () => {
         <div className="admin-content">
           {currentTab === 'dashboard' && <AdminDashboard />}
           {currentTab === 'features' && <FeaturesManagement />}
+          {currentTab === 'models' && <ModelsManagement />}
           {currentTab === 'users' && <UsersManagement />}
         </div>
       </div>

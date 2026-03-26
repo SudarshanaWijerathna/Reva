@@ -362,10 +362,6 @@ const LandPrice: React.FC = () => {
           </section>
 
         </main>
-<<<<<<< HEAD
-=======
-
->>>>>>> c0cb3267c3b5c398f99ca9f34eea813283e963ed
       </div>
     </Layout>
   );

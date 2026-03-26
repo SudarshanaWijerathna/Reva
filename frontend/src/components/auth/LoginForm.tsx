@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
+import { checkAdminAccess, persistAuthSession } from "../../services/authService";
 import GoogleButton from "./GoogleButton";
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
@@ -34,11 +35,17 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       }
 
       const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("access_token", data.access_token);
-      storage.setItem("token_type", data.token_type);
-      storage.setItem("user_email", email.trim());
+      const normalizedEmail = email.trim().toLowerCase();
+      const isAdmin = await checkAdminAccess(data.access_token);
 
-      navigate("/dashboard");
+      persistAuthSession(storage, {
+        accessToken: data.access_token,
+        tokenType: data.token_type,
+        email: normalizedEmail,
+        isAdmin,
+      });
+
+      navigate(isAdmin ? "/admin" : "/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

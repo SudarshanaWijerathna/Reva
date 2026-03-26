@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { isStoredAdmin } from '../../services/authService';
 
 const DesktopNavbar: React.FC = () => {
   const [isSticky, setIsSticky] = useState<boolean>(false);
   const location = useLocation();
+  const isAdmin = isStoredAdmin();
 
   useEffect(() => {
     let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -24,6 +26,7 @@ const DesktopNavbar: React.FC = () => {
   const isPrediction = location.pathname.includes('price');
   const isSupport = location.pathname === '/support' || location.pathname === '/contact';
   const isAskReva = location.pathname === '/askreva';
+  const isAdminPage = location.pathname === '/admin';
 
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
@@ -47,6 +50,7 @@ const DesktopNavbar: React.FC = () => {
           </li>
           <li className={isSupport ? 'selected' : ''}><Link to="/support">Support</Link></li>
           <li className={isAskReva ? 'selected' : ''}><Link to="/askreva">Ask Reva</Link></li>
+          {isAdmin && <li className={isAdminPage ? 'selected' : ''}><Link to="/admin">Admin</Link></li>}
         </ul>
 
         <div className="nav-actions header-profile">

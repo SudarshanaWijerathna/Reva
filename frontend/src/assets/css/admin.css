@@ -464,7 +464,7 @@
    STATUS STYLES
 ====================== */
 
-status-badge {
+.status-badge {
   display: inline-block;
   padding: 6px 12px;
   border-radius: 6px;
@@ -473,17 +473,17 @@ status-badge {
   text-transform: uppercase;
 }
 
-status-badge.active {
+.status-badge.active {
   background: var(--success-bg);
   color: var(--success-green);
 }
 
-status-badge.inactive {
+.status-badge.inactive {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger-red);
 }
 
-badge {
+.badge {
   display: inline-block;
   padding: 4px 10px;
   background: var(--blue-lightest);
@@ -586,6 +586,73 @@ badge {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.table-subtext {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-gray);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.model-details-card {
+  border-left-color: var(--blue-darkest);
+}
+
+.model-details-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.model-details-header h3 {
+  margin: 0 0 6px 0;
+  color: var(--primary-dark);
+  font-size: 22px;
+}
+
+.model-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.model-meta-item,
+.metric-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.model-meta-item label,
+.metric-card label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.model-meta-item span {
+  display: block;
+  color: var(--text-dark);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.model-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card strong {
+  font-size: 24px;
+  color: var(--blue-medium);
 }
 
 /* =====================
@@ -693,6 +760,11 @@ badge {
     grid-template-columns: 1fr;
   }
 
+  .model-meta-grid,
+  .model-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .admin-content {
     padding: 25px;
   }
@@ -778,6 +850,11 @@ badge {
   .models-table td,
   .users-table td {
     padding: 10px 6px;
+  }
+
+  .model-meta-grid,
+  .model-metrics-grid {
+    grid-template-columns: 1fr;
   }
 
   .form-group {

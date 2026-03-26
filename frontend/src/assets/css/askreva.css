@@ -10,10 +10,10 @@
 --blue-lighter: #aab2ff;
 }
 
-@font-face { font-family: fontExtraBold; src: url('/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-ExtraBold.ttf'); }
-@font-face { font-family: fontRegular; src: url('/static/fonts/Plus_Jakarta_Sans/PlusJakartaSans-Regular.ttf'); }
+@font-face { font-family: fontExtraBold; src: url('../fonts/Plus_Jakarta_Sans/PlusJakartaSans-ExtraBold.ttf'); }
+@font-face { font-family: fontRegular; src: url('../fonts/Plus_Jakarta_Sans/PlusJakartaSans-Regular.ttf'); }
 
-body { font-family: fontRegular, sans-serif; background-color: var(--primary-bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.askreva-page { font-family: fontRegular, sans-serif; background-color: var(--primary-bg); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 /* --- SIDEBAR & HEADER --- */
 .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1050; opacity: 0; visibility: hidden; transition: 0.3s ease; }

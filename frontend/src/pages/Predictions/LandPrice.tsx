@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import Footer from '../../components/Footer';
 import MapExplorer from '../../components/MapExplorer';
 import type { Feature } from '../../services/predictionsService';
 import { getFeatures, makePrediction } from '../../services/predictionsService';
@@ -267,9 +266,9 @@ const LandPrice: React.FC = () => {
               <div className="hero-image">
                 <img src="/img/lands.png" alt="Lands" />
               </div>
-              <h3 className="hero-title">Rēva Lands</h3>
+              <h3 className="hero-title">Reva Lands</h3>
               <p className="hero-desc">
-                Ask Rēva to estimate land prices using real-time location intelligence.
+                Ask Reva to estimate land prices using real-time location intelligence.
               </p>
               <button className="cta-btn" onClick={handleSubmit} disabled={loading || featuresLoading}>
                 {loading ? 'Estimating...' : 'Estimate Price'}
@@ -363,9 +362,14 @@ const LandPrice: React.FC = () => {
           </section>
 
         </main>
+<<<<<<< HEAD
+=======
+
+>>>>>>> c0cb3267c3b5c398f99ca9f34eea813283e963ed
       </div>
     </Layout>
   );
 };
 
 export default LandPrice;
+

@@ -86,6 +86,8 @@ const DesktopNavbar: React.FC = () => {
 
   const isActive = (path: string): string => location.pathname === path ? 'selected' : '';
   const isPrediction = location.pathname.includes('price');
+  const isSupport = location.pathname === '/support' || location.pathname === '/contact';
+  const isAskReva = location.pathname === '/askreva';
 
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
@@ -110,6 +112,7 @@ const DesktopNavbar: React.FC = () => {
           </li>
           <li className={isActive('/askreva')}><Link to="/askreva" state={{ from: location.pathname }}>Ask Reva</Link></li>
           <li className={isActive('/support')}><Link to="/support">Support</Link></li>
+
         </ul>
 
         <div className="nav-actions">

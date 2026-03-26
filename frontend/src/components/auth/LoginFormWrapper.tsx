@@ -1,9 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 
 export default function LoginFormWrapper() {
-  const [isSignup, setIsSignup] = useState(false);
+  const location = useLocation();
+
+  // 1. Set initial state based on what the Navbar passed to us
+  const [isSignup, setIsSignup] = useState(
+    location.state?.mode === 'signup'
+  );
+
+  // 2. Listen for changes! If the user is already on the auth page and 
+  // clicks the "Sign Up" or "Login" buttons in the header again, switch the view.
+  useEffect(() => {
+    if (location.state?.mode === 'signup') {
+      setIsSignup(true);
+    } else if (location.state?.mode === 'login') {
+      setIsSignup(false);
+    }
+  }, [location.state]);
 
   return (
     <div className="login-form-wrapper">

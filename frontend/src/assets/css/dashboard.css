@@ -1,0 +1,318 @@
+/* =========================================
+   DASHBOARD STYLES
+   ========================================= */
+
+.dashboard-wrapper {
+    max-width: 1300px;
+    margin: 0 auto;
+    width: 92%;
+    position: relative;
+    padding-top: 150px;
+    min-height: 80vh;
+}
+
+.dash-header { 
+    margin-bottom: 30px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-end; 
+}
+
+.dash-header h1 { 
+    font-size: 36px; 
+    margin: 0 0 5px; 
+    color: var(--primary-dark); 
+}
+
+.dash-header p { 
+    color: var(--text-gray); 
+    margin: 0; 
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* --- Financial 4-Column Grid --- */
+.financial-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 24px;
+    align-items: stretch;
+}
+
+.fin-card {
+    background: white; 
+    padding: 24px; 
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.6);
+    min-height: 160px;
+}
+
+.fin-label { 
+    font-size: 14px; 
+    color: var(--text-gray); 
+    margin-bottom: 8px; 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+}
+
+.fin-value { 
+    font-size: 28px; 
+    font-family: fontExtraBold; 
+    color: var(--primary-dark); 
+}
+
+.fin-sub { 
+    font-size: 13px; 
+    margin-top: 6px; 
+    font-weight: 600; 
+}
+
+/* Property Mix Card */
+.prop-mix-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+}
+
+.prop-mix-item { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 13px; 
+    color: var(--text-dark); 
+}
+
+.prop-mix-item span:first-child { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    color: var(--text-gray); 
+}
+
+.prop-mix-item strong { 
+    font-weight: 700; 
+}
+
+/* Insight Card Row */
+.insight-row { 
+    width: 100%; 
+    margin-bottom: 10px; 
+}
+
+.insight-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f4f6ff 100%);
+    border: 2px solid var(--blue-lightest);
+    padding: 24px;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    width: 100%;
+}
+
+.insight-card::before {
+    content: ''; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 4px; 
+    height: 100%;
+    background: var(--blue-medium);
+}
+
+.insight-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    margin-bottom: 10px; 
+}
+
+.insight-header i { color: var(--blue-medium); }
+
+.insight-header h4 { 
+    margin: 0; 
+    font-size: 14px; 
+    color: var(--blue-darkest); 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+
+.insight-text { 
+    font-size: 15px; 
+    line-height: 1.6; 
+    color: var(--text-dark); 
+    font-style: italic; 
+}
+
+/* Properties Table Card */
+.history-card {
+    background: white; 
+    padding: 32px; 
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+.card-title { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 24px; 
+}
+
+.card-title-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}
+
+.card-title h3 { 
+    margin: 0; 
+    font-size: 22px; 
+    color: var(--primary-dark); 
+}
+
+.card-subtitle { 
+    font-size: 13px; 
+    color: var(--text-gray); 
+}
+
+.dashboard-filter {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 2px solid #e2e8f0;
+    background: #fcfcfc;
+    color: var(--text-dark);
+    font-family: fontRegular;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.dashboard-filter:focus { border-color: var(--blue-medium); }
+
+.table-responsive { overflow-x: auto; }
+
+.reva-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    min-width: 900px; 
+}
+
+.reva-table th { 
+    text-align: left; 
+    padding: 16px; 
+    color: var(--text-gray); 
+    font-size: 12px; 
+    font-weight: 600; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    border-bottom: 2px solid #f1f3ff; 
+}
+
+.reva-table td { 
+    padding: 18px 16px; 
+    border-bottom: 1px solid #f8f9ff; 
+    color: var(--text-dark); 
+    font-size: 14.5px; 
+    vertical-align: middle; 
+}
+
+.reva-table tr:last-child td { border-bottom: none; }
+.reva-table tr:hover td { background: #fcfcfc; }
+
+.type-icon { 
+    margin-right: 8px; 
+    color: var(--blue-lighter); 
+    width: 16px; 
+    text-align: center; 
+}
+
+.text-green { color: var(--success-green); font-weight: 600; }
+.text-red { color: var(--danger-red); font-weight: 600; }
+.text-neutral { color: var(--trend-neutral); font-weight: 600; }
+
+.status-badge { 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    font-weight: 600; 
+    display: inline-block; 
+}
+
+.status-active { background: var(--success-bg); color: var(--success-green); }
+.status-sold { background: #f1f5f9; color: #64748b; }
+.status-pending { background: rgba(251, 191, 36, 0.1); color: #d97706; } /* Adjusted pending colors based on standard warning scheme */
+.status-neutral { background: #f1f5f9; color: #64748b; }
+
+.sentiment-box { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    font-size: 13px; 
+    font-weight: 600; 
+}
+
+.sent-up { color: var(--trend-up); }
+.sent-down { color: var(--trend-down); }
+.sent-neutral { color: var(--trend-neutral); }
+
+.action-icons { 
+    display: flex; 
+    gap: 12px; 
+    justify-content: flex-end; 
+}
+
+.btn-icon { 
+    width: 32px; 
+    height: 32px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    border-radius: 8px; 
+    border: none; 
+    background: transparent;
+    color: var(--text-gray); 
+    cursor: pointer; 
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.btn-icon:hover { background: #f1f3ff; color: var(--blue-medium); }
+.btn-icon.delete:hover { background: var(--danger-bg); color: var(--danger-red); }
+
+.info-icon { 
+    margin-left: 5px; 
+    color: var(--blue-lighter); 
+    cursor: help; 
+    font-size: 14px; 
+}
+
+/* Responsive Dashboard Styles */
+@media (max-width: 1024px) {
+    .financial-grid { grid-template-columns: 1fr 1fr; } /* 2x2 on tablet */
+}
+
+@media (max-width: 768px) {
+    .dash-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 15px; 
+    }
+    .dash-header .btn-primary { 
+        width: 100%; 
+        text-align: center; 
+    }
+    .financial-grid { grid-template-columns: 1fr; } /* Stack vertically on mobile */
+}

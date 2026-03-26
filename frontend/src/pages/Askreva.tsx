@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import '../assets/css/askreva.css';
+import { Link, useLocation } from 'react-router-dom'; // <-- Added useLocation here
+import '../assets/css/askreva.css'; 
+import { API_BASE_URL } from '../config/api';
 
 // --- Interfaces ---
 interface ExtraData {
@@ -148,6 +149,9 @@ const PriceGraph: React.FC = () => (
 // --- Main Page Component ---
 
 const Askreva: React.FC = () => {
+  const location = useLocation(); // <-- 1. Get location object
+  const from = location.state?.from || '/'; // <-- 2. Determine previous path (default to home if directly visited)
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -175,8 +179,7 @@ const Askreva: React.FC = () => {
     setIsTyping(true);
 
     try {
-      // Point directly to the FastAPI server on port 8000
-      const response = await fetch('/api/ask', {
+      const response = await fetch(`${API_BASE_URL}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
@@ -192,7 +195,6 @@ const Askreva: React.FC = () => {
       };
       setMessages(prev => [...prev, newBotMsg]);
     } catch (error) {
-      // Updated error message to accurately reflect FastAPI
       setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: "Could not connect to the Rēva server. Make sure your FastAPI server is running on port 8000.", sender: 'reva', type: 'text' }]);
     } finally {
       setIsTyping(false);
@@ -224,7 +226,8 @@ const Askreva: React.FC = () => {
           <img src="/img/icons/bars.svg" className="hamburger-icon" alt="Menu" onClick={() => setIsSidebarOpen(true)} />
         </div>
         <div className="header-center">
-          <Link to="/" className="back-btn"><i className="fa-solid fa-chevron-left"></i></Link>
+          {/* 3. Replaced "/" with dynamic {from} path */}
+          <Link to={from} className="back-btn"><i className="fa-solid fa-chevron-left"></i></Link>
           <span className="agent-name">Ask Rēva</span>
           <img src="/img/icons/chat.svg" alt="Chat" className="chat-icon" />
         </div>
@@ -270,7 +273,6 @@ const Askreva: React.FC = () => {
 
             {msg.type === 'prediction_form' && msg.extraData && (
               <PredictionFormCard data={msg.extraData} onSubmit={(prompt) => {
-                  // Removed the duplicate setMessages call from here!
                   handleSendMessage(prompt);
               }} />
             )}

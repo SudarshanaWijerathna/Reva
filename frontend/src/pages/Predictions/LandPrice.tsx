@@ -5,6 +5,7 @@ import Footer from '../../components/Footer';
 import MapExplorer from '../../components/MapExplorer';
 import type { Feature } from '../../services/predictionsService';
 import { getFeatures, makePrediction } from '../../services/predictionsService';
+import '../../assets/css/landprice.css';
 
 const PERIODS = [
   '2022 H1', '2022 H2',
@@ -179,35 +180,86 @@ const LandPrice: React.FC = () => {
           {/* INPUT FORM SECTION */}
           <div className="top-section">
             <div className="card">
-              {featuresLoading ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-gray)' }}>
-                  <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '32px', marginBottom: '16px' }}></i>
-                  <p>Loading form fields...</p>
-                </div>
-              ) : features.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-gray)' }}>
-                  <i className="fa-solid fa-inbox" style={{ fontSize: '32px', marginBottom: '16px' }}></i>
-                  <p>No form fields available</p>
-                </div>
-              ) : (
-                <div className="form-container">
-                  <div className="form-col">
-                    {stringFeatures.map(renderFormField)}
-                    {numericFeatures.map(renderFormField)}
+              <div className="form-container">
+                <div className="form-col">
+                  <div className="input-group">
+                    <label>Land size (perches)</label>
+                    <input 
+                      type="number" 
+                      className="input-field" 
+                      placeholder="e.g 20.0"
+                      value={form['land_size'] || ''}
+                      onChange={e => handleFormChange('land_size', e.target.value)}
+                    />
                   </div>
+                  <div className="input-group">
+                    <label>District</label>
+                    <select 
+                      className="input-field"
+                      value={form['district'] || ''}
+                      onChange={e => handleFormChange('district', e.target.value)}
+                    >
+                      <option value="">Select District</option>
+                      <option value="Colombo">Colombo</option>
+                      <option value="Gampaha">Gampaha</option>
+                      <option value="Kandy">Kandy</option>
+                      <option value="Galle">Galle</option>
+                    </select>
+                  </div>
+                  <div className="input-group mt-auto">
+                    <label>Location / Town / Landmarks</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="e.g Kiribathgoda"
+                      value={form['location'] || ''}
+                      onChange={e => handleFormChange('location', e.target.value)}
+                    />
+                  </div>
+                </div>
 
-                  <div className="form-col">
-                    {booleanFeatures.length > 0 && (
-                      <div className="input-group">
-                        <label>Properties</label>
-                        <div className="checkbox-grid">
-                          {booleanFeatures.map(renderFormField)}
-                        </div>
-                      </div>
-                    )}
+                <div className="form-col">
+                  <div className="input-group">
+                    <label>Other utilities</label>
+                    <div className="checkbox-grid">
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['main_road'] || false} onChange={e => handleFormChange('main_road', e.target.checked)} />
+                        <span className="checkmark"></span> Main road
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['electricity'] || false} onChange={e => handleFormChange('electricity', e.target.checked)} />
+                        <span className="checkmark"></span> Electricity
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['clear_deed'] || false} onChange={e => handleFormChange('clear_deed', e.target.checked)} />
+                        <span className="checkmark"></span> Clear deed
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['water'] || false} onChange={e => handleFormChange('water', e.target.checked)} />
+                        <span className="checkmark"></span> Water
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['bank_loan'] || false} onChange={e => handleFormChange('bank_loan', e.target.checked)} />
+                        <span className="checkmark"></span> Bank loan
+                      </label>
+                      <label className="checkbox-item">
+                        <input type="checkbox" checked={form['near_town'] || false} onChange={e => handleFormChange('near_town', e.target.checked)} />
+                        <span className="checkmark"></span> Near town
+                      </label>
+                    </div>
+                  </div>
+                  <div className="input-group mt-auto"> 
+                    <label>Distance to nearest town (meters)</label>
+                    <input 
+                      type="number" 
+                      className="input-field" 
+                      placeholder="e.g 500"
+                      value={form['distance_to_town'] || ''}
+                      onChange={e => handleFormChange('distance_to_town', e.target.value)}
+                    />
                   </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* HERO CARD */}
@@ -311,8 +363,6 @@ const LandPrice: React.FC = () => {
           </section>
 
         </main>
-
-        <Footer />
       </div>
     </Layout>
   );

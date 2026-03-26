@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import '../assets/css/navbar.css';
 
 const Home: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
@@ -29,23 +30,33 @@ const Home: React.FC = () => {
     { name: "Dilini Perera", stars: 4, text: "Really smooth UI and the predictions are very close to market rates.", img: "https://i.pravatar.cc/150?img=5" }
   ];
 
+  // 1. Handle Window Resizing
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    
-    // Exact Loader logic from index.html
-    document.body.style.overflow = 'hidden';
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 2. Handle Loading Screen & Scroll Lock
+  useEffect(() => {
+    // Only lock the scroll if we are actually showing the mobile loader
+    if (isMobile && isLoading) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    // Set the timer to clear the loading state
     const timer = setTimeout(() => {
         setIsLoading(false);
-        document.body.style.overflow = 'auto'; 
-    }, 3000);
+    }, 1500); // Note: I lowered this from 3000ms (3s) to 1500ms (1.5s) for better UX!
 
+    // Cleanup function in case the user navigates away before the timer finishes
     return () => {
-        window.removeEventListener('resize', handleResize);
         clearTimeout(timer);
         document.body.style.overflow = 'auto';
     };
-  }, []);
+  }, [isMobile, isLoading]);
 
   useEffect(() => {
     if (!isMobile) return;

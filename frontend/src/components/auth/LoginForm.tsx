@@ -1,10 +1,15 @@
 import { type FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
 import GoogleButton from "./GoogleButton";
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const navigate = useNavigate();
+  const location = useLocation(); // <-- Add this
+  
+  // Look for the 'from' path in the state, default to dashboard if it doesn't exist
+  const from = location.state?.from || "/dashboard";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -18,7 +23,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
     try {
       const body = new URLSearchParams();
-      body.append("username", email.trim()); // backend expects username field for OAuth2 form
+      body.append("username", email.trim()); 
       body.append("password", password);
 
       const response = await fetch(`${API_BASE_URL}/auth/token`, {
@@ -38,7 +43,11 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       storage.setItem("token_type", data.token_type);
       storage.setItem("user_email", email.trim());
 
-      navigate("/dashboard");
+      // --- NEW REDIRECT LOGIC ---
+      // Replace: navigate("/dashboard");
+      // With this:
+      navigate(from, { replace: true });
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -48,7 +57,8 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <div className="fade-in">
-      <div className="form-header">
+       {/* ... rest of your JSX remains exactly the same ... */}
+       <div className="form-header">
         <h2>Login to your Account</h2>
         <p>See what is going on with your property portfolio</p>
       </div>

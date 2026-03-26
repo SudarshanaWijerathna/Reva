@@ -3,6 +3,7 @@ API routes for admin management.
 Requires admin authentication.
 """
 
+import os
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -40,14 +41,14 @@ from backend.admin.services import (
 # Type aliases
 Database = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[dict, Depends(get_current_user)]
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@reva.com").strip().lower()
 
 
 def check_admin_role(current_user: Annotated[dict, Depends(get_current_user)]):
     """Middleware to check if user is admin."""
     # For now, we'll use a simple check based on email pattern
     # In production, you should have an is_admin field in the database
-    admin_email = "admin@reva.com"
-    if current_user.get("email") != admin_email:
+    if (current_user.get("email") or "").strip().lower() != ADMIN_EMAIL:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"

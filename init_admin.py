@@ -3,8 +3,12 @@ Database initialization script to create the admin user.
 Run this script to initialize the admin account for the application.
 """
 
+import os
 import sys
-sys.path.insert(0, '/path/to/Reva')
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from backend.database.database import SessionLocal, engine, Base
 from backend.database.schemas import UserModel
@@ -16,9 +20,9 @@ Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
 # Admin credentials
-ADMIN_EMAIL = "admin@reva.com"
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@reva.com")
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "Admin@12345"
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@12345")
 
 try:
     # Check if admin already exists

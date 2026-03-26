@@ -114,53 +114,6 @@ const LandPrice: React.FC = () => {
         ? Math.max(...barData.map(b => b.value))
         : 1;
 
-  // Helper to render form field based on data type
-  const renderFormField = (feature: Feature) => {
-    const value = form[feature.name];
-
-    if (feature.data_type === 'boolean') {
-      return (
-        <label className="checkbox-item" key={feature.name}>
-          <input
-            type="checkbox"
-            checked={value || false}
-            onChange={e => handleFormChange(feature.name, e.target.checked)}
-          />
-          <span className="checkmark"></span> {feature.label}
-        </label>
-      );
-    } else if (feature.data_type === 'string') {
-      return (
-        <div className="input-group" key={feature.name}>
-          <label>{feature.label}</label>
-          <input
-            type="text"
-            className="input-field"
-            value={value || ''}
-            onChange={e => handleFormChange(feature.name, e.target.value)}
-          />
-        </div>
-      );
-    } else if (feature.data_type === 'int' || feature.data_type === 'float') {
-      return (
-        <div className="input-group" key={feature.name}>
-          <label>{feature.label}</label>
-          <input
-            type="number"
-            className="input-field"
-            value={value === '' ? '' : value}
-            onChange={e => handleFormChange(feature.name, e.target.value)}
-          />
-        </div>
-      );
-    }
-  };
-
-  // Group features by type for better layout
-  const booleanFeatures = features.filter(f => f.data_type === 'boolean');
-  const stringFeatures = features.filter(f => f.data_type === 'string');
-  const numericFeatures = features.filter(f => f.data_type === 'int' || f.data_type === 'float');
-
   return (
     <Layout>
       <div className="lp-wrapper">

@@ -86,8 +86,6 @@ const DesktopNavbar: React.FC = () => {
 
   const isActive = (path: string): string => location.pathname === path ? 'selected' : '';
   const isPrediction = location.pathname.includes('price');
-  const isSupport = location.pathname === '/support' || location.pathname === '/contact';
-  const isAskReva = location.pathname === '/askreva';
 
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">

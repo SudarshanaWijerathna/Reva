@@ -21,7 +21,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (!isMobile) return;
 
     const mainWrapper = document.getElementById('mainWrapper') as HTMLElement | null;
-    const mainHeader = document.getElementById('mainHeader') as HTMLElement | null;
     let scrollTimeout: ReturnType<typeof setTimeout>;
 
     const snapBackFooter = () => {

@@ -193,7 +193,7 @@ const Askreva: React.FC = () => {
       setMessages(prev => [...prev, newBotMsg]);
     } catch (error) {
       // Updated error message to accurately reflect FastAPI
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: "Could not connect to the Rēva server. Make sure your FastAPI server is running on port 8000.", sender: 'reva', type: 'text' }]);
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: "Could not connect to the Reva server. Make sure your FastAPI server is running on port 8000.", sender: 'reva', type: 'text' }]);
     } finally {
       setIsTyping(false);
     }
@@ -204,7 +204,7 @@ const Askreva: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--primary-bg)', fontFamily: 'fontRegular, sans-serif' }}>
+    <div className="askreva-page" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', backgroundColor: 'var(--primary-bg)', fontFamily: 'fontRegular, sans-serif' }}>
       
       {/* Sidebar Overlays */}
       <div className={`sidebar-overlay ${isSidebarOpen ? 'show' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
@@ -225,7 +225,7 @@ const Askreva: React.FC = () => {
         </div>
         <div className="header-center">
           <Link to="/" className="back-btn"><i className="fa-solid fa-chevron-left"></i></Link>
-          <span className="agent-name">Ask Rēva</span>
+          <span className="agent-name">Ask Reva</span>
           <img src="/img/icons/chat.svg" alt="Chat" className="chat-icon" />
         </div>
         <div className="header-right">
@@ -260,7 +260,7 @@ const Askreva: React.FC = () => {
           <div key={msg.id} className={`message-wrapper ${msg.sender}`}>
             {msg.sender === 'reva' && (
               <div className="bot-avatar-container">
-                <img src="/img/icons/chatbot.svg" alt="Rēva" />
+                <img src="/img/icons/chatbot.svg" alt="Reva" />
               </div>
             )}
             
@@ -301,7 +301,7 @@ const Askreva: React.FC = () => {
         {isTyping && (
           <div className="message-wrapper reva">
             <div className="bot-avatar-container loading">
-              <img src="/img/icons/chatbot.svg" alt="Rēva" />
+              <img src="/img/icons/chatbot.svg" alt="Reva" />
             </div>
             <div className="typing-bubble"><span></span><span></span><span></span></div>
           </div>
@@ -327,7 +327,7 @@ const Askreva: React.FC = () => {
                 handleSendMessage(inputValue);
               }
             }}
-            placeholder="Ask Rēva about property prices..." 
+            placeholder="Ask Reva about property prices..." 
             rows={1} 
           />
           <img src="/img/icons/send.svg" className="send-icon" alt="Send" onClick={() => handleSendMessage(inputValue)} />
@@ -338,3 +338,4 @@ const Askreva: React.FC = () => {
 };
 
 export default Askreva;
+

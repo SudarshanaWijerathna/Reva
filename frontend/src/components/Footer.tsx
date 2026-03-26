@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="m-footer-bottom">
-          <p>© 2026 Rēva Project · All rights reserved · Educational Use Only</p>
+          <p>(c) 2026 Reva Project - All rights reserved - Educational Use Only</p>
         </div>
       </footer>
     );
@@ -76,8 +76,8 @@ const Footer: React.FC = () => {
     <footer className="reva-footer">
       <div className="reva-footer-container">
         <div className="footer-section">
-          <h3>Rēva</h3>
-          <p>Rēva (Real Estate Virtual Assistant) is an academic project developed to explore the application of machine learning and location intelligence in real estate price analysis.</p>
+          <h3>Reva</h3>
+          <p>Reva (Real Estate Virtual Assistant) is an academic project developed to explore the application of machine learning and location intelligence in real estate price analysis.</p>
         </div>
         <div className="footer-section">
           <h4>Academic Context</h4>
@@ -90,7 +90,7 @@ const Footer: React.FC = () => {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>© 2026 Rēva Project · All rights reserved · Educational Use Only</p>
+        <p>(c) 2026 Reva Project - All rights reserved - Educational Use Only</p>
       </div>
     </footer>
   );

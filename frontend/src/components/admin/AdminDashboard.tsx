@@ -10,19 +10,19 @@ interface DashboardStats {
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-        
+        const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+
         const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         });
 
         if (!response.ok) {
@@ -32,7 +32,7 @@ const AdminDashboard: React.FC = () => {
         const data = await response.json();
         setStats(data);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to load statistics";
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load statistics';
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -55,19 +55,21 @@ const AdminDashboard: React.FC = () => {
   }
 
   const statCards = [
-    { label: 'Total Users', value: stats.total_users, icon: '👥', color: '--blue-medium' },
-    { label: 'Total Features', value: stats.total_features, icon: '⚙️', color: '--blue-medium' },
-    { label: 'Total Predictions', value: stats.total_predictions, icon: '📈', color: '--trend-up' }
+    { label: 'Total Users', value: stats.total_users, icon: 'fa-users' },
+    { label: 'Total Features', value: stats.total_features, icon: 'fa-sliders' },
+    { label: 'Total Predictions', value: stats.total_predictions, icon: 'fa-chart-line' },
   ];
 
   return (
     <div className="admin-dashboard">
       <h2>Dashboard Overview</h2>
-      
+
       <div className="stats-grid">
-        {statCards.map((card, index) => (
-          <div key={index} className="stat-card">
-            <div className="stat-icon">{card.icon}</div>
+        {statCards.map((card) => (
+          <div key={card.label} className="stat-card">
+            <div className="stat-icon">
+              <i className={`fa-solid ${card.icon}`}></i>
+            </div>
             <div className="stat-content">
               <p className="stat-label">{card.label}</p>
               <p className="stat-value">{card.value}</p>

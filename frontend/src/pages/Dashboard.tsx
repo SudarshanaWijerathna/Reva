@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import Footer from '../components/Footer';
 import AddPropertyModal from '../components/AddPropertyModal';
 import { portfolioService, type PortfolioSummary, type PropertyData } from '../services/portfolioService';
 
@@ -206,7 +205,7 @@ const Dashboard: React.FC = () => {
                 <div className="insight-card">
                     <div className="insight-header">
                         <i className="fa-solid fa-robot"></i>
-                        <h4>Rēva Insight</h4>
+                        <h4>Reva Insight</h4>
                     </div>
                     <div className="insight-text">
                         {loading ? "Loading insights..." : insight || "No insights available at the moment."}
@@ -219,7 +218,7 @@ const Dashboard: React.FC = () => {
                 <div className="card-title">
                     <div className="card-title-group">
                         <h3>Your Properties</h3>
-                        <span className="card-subtitle"><i className="fa-solid fa-circle-info"></i> Valuations estimated using Rēva ML models (Data: Oct 2025)</span>
+                        <span className="card-subtitle"><i className="fa-solid fa-circle-info"></i> Valuations estimated using Reva ML models (Data: Oct 2025)</span>
                     </div>
                     
                     <select 
@@ -252,7 +251,7 @@ const Dashboard: React.FC = () => {
                                 <th>Type</th>
                                 <th>Location</th>
                                 <th>Bought Price</th>
-                                <th>Current Val <i className="fa-solid fa-circle-info info-icon" title="Predicted by Rēva AI"></i></th>
+                                <th>Current Val <i className="fa-solid fa-circle-info info-icon" title="Predicted by Reva AI"></i></th>
                                 <th>Profit</th>
                                 <th>Sentiment</th>
                                 <th>Status</th>
@@ -302,7 +301,6 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            <Footer />
         </div>
       </div>
 
@@ -317,3 +315,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

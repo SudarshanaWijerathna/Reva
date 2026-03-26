@@ -1,6 +1,5 @@
 import React from 'react';
 import Layout from '../components/Layout';
-import Footer from '../components/Footer';
 
 const Support: React.FC = () => {
   return (
@@ -78,7 +77,6 @@ const Support: React.FC = () => {
                 </form>
             </div>
         </div>
-        <Footer />
       </div>
     </Layout>
   );

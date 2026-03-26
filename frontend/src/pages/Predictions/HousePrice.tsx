@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import Footer from '../../components/Footer';
 import MapExplorer from '../../components/MapExplorer';
 import type { Feature } from '../../services/predictionsService';
 import { getFeatures, makePrediction } from '../../services/predictionsService';
@@ -214,9 +213,9 @@ const HousePrice: React.FC = () => {
               <div className="hero-image">
                 <img src="/img/housing.png" alt="Housing" />
               </div>
-              <h3 className="hero-title">Rēva Housing</h3>
+              <h3 className="hero-title">Reva Housing</h3>
               <p className="hero-desc">
-                Ask Rēva to estimate house prices using real-time market intelligence.
+                Ask Reva to estimate house prices using real-time market intelligence.
               </p>
               <button className="cta-btn" onClick={handleSubmit} disabled={loading || featuresLoading}>
                 {loading ? 'Estimating...' : 'Estimate Price'}
@@ -307,10 +306,10 @@ const HousePrice: React.FC = () => {
 
         </main>
 
-        <Footer />
       </div>
     </Layout>
   );
 };
 
 export default HousePrice;
+

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Assuming you use react-router
-import '../assets/css/askreva.css'; // Make sure this path matches your setup
+import { Link } from 'react-router-dom';
+import '../assets/css/askreva.css';
 
 // --- Interfaces ---
 interface ExtraData {

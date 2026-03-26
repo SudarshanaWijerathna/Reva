@@ -1024,83 +1024,15 @@ textarea.contact-input {
 /* =========================================
    3. MOBILE OVERRIDES (1:1 with index.html)
    ========================================= */
-<<<<<<< HEAD
-@media (max-width: 768px) {
-=======
 @media (max-width: 1024px) {
     .navbar { width: 95%; top: 15px; } 
     .nav-container { padding: 20px 30px; }
-    .financial-grid,
-    .analytics-section,
-    .contact-grid,
-    .map-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .top-section,
-    .form-container {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 768px) {
     /* Hide desktop elements */
     .navbar { display: none !important; }
-    .dashboard-wrapper,
-    .lp-wrapper,
-    .contact-wrapper {
-        width: calc(100% - 32px);
-        padding: 20px 0 36px;
-    }
 
-    .dash-header,
-    .contact-header,
-    .card-title {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .financial-grid,
-    .analytics-section,
-    .contact-grid,
-    .map-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .history-card,
-    .insight-card,
-    .card,
-    .contact-info-card,
-    .contact-form-card,
-    .fin-card,
-    .prediction-box,
-    .chart-container,
-    .details-card {
-        padding: 22px;
-        border-radius: 22px;
-    }
-
-    .financial-grid {
-        gap: 16px;
-    }
-
-    .table-responsive {
-        border-radius: 18px;
-    }
-
-    .reva-table {
-        min-width: 720px;
-    }
-
-    .map-visual {
-        min-height: 360px;
-    }
-
-    .lp-wrapper .checkbox-grid {
-        grid-template-columns: 1fr;
-    }
-
->>>>>>> c0cb3267c3b5c398f99ca9f34eea813283e963ed
     /* Match main background and font sizing strictly to index.html mobile */
     body { padding-bottom: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     
@@ -1317,12 +1249,4 @@ textarea.contact-input {
     .m-footer-bottom p { 
         margin: 0; 
     }
-<<<<<<< HEAD
 }
-=======
-
-    .m-footer-logo-side img{
-        
-    }
-}
->>>>>>> c0cb3267c3b5c398f99ca9f34eea813283e963ed

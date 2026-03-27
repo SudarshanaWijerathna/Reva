@@ -1,24 +1,39 @@
 import { type FormEvent, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
 import GoogleButton from "./GoogleButton";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
-  const navigate = useNavigate();
-  const location = useLocation(); // <-- Add this
-  
-  // Look for the 'from' path in the state, default to dashboard if it doesn't exist
-  const from = location.state?.from || "/dashboard";
+  const { closeAuthModal, redirectPath } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  
+  // --- NEW: State to track password visibility ---
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const [errors, setErrors] = useState({ email: "", password: "", general: "" });
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError("");
+    
+    let newErrors = { email: "", password: "", general: "" };
+    let isValid = true;
+
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    if (!isValid) return;
+
     setIsLoading(true);
 
     try {
@@ -43,13 +58,43 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       storage.setItem("token_type", data.token_type);
       storage.setItem("user_email", email.trim());
 
-      // --- NEW REDIRECT LOGIC ---
-      // Replace: navigate("/dashboard");
-      // With this:
-      navigate(from, { replace: true });
+      try {
+        const profileRes = await fetch(`${API_BASE_URL}/users/me`, {
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${data.access_token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          const userName = profileData.full_name; 
+          
+          if (userName) {
+            storage.setItem("user_name", userName);
+          }
+        } else {
+          const backupName = localStorage.getItem("reva_backup_name");
+          if (backupName) {
+            storage.setItem("user_name", backupName);
+          }
+        }
+      } catch (profileErr) {
+        console.error("Failed to fetch profile info:", profileErr);
+      }
+
+      const pathToGo = redirectPath; 
+      closeAuthModal();
+      
+      if (pathToGo) {
+        window.location.href = pathToGo; 
+      } else {
+        window.location.reload(); 
+      }
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setErrors({ ...newErrors, general: err instanceof Error ? err.message : "Login failed" });
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +102,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <div className="fade-in">
-       {/* ... rest of your JSX remains exactly the same ... */}
-       <div className="form-header">
+       <div className="form-header desktop-only">
         <h2>Login to your Account</h2>
         <p>See what is going on with your property portfolio</p>
       </div>
@@ -71,24 +115,46 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           <label>Email</label>
           <input
             type="email"
-            className="reva-input"
+            className={`reva-input ${errors.email ? "input-error" : ""}`}
             placeholder="mail@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          {errors.email && <span className="error-text">{errors.email}</span>}
         </div>
 
+        {/* --- UPDATED: Password field with visibility toggle --- */}
         <div className="input-group">
           <label>Password</label>
-          <input
-            type="password"
-            className="reva-input"
-            placeholder="••••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              className={`reva-input ${errors.password ? "input-error" : ""}`}
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ width: '100%', paddingRight: '40px' }} // Added padding to prevent text overlapping the icon
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: '#6b7280',
+                cursor: 'pointer',
+                padding: 0
+              }}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+            </button>
+          </div>
+          {errors.password && <span className="error-text">{errors.password}</span>}
         </div>
 
         <div className="form-actions">
@@ -103,7 +169,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           <a href="#" className="forgot-link">Forgot Password?</a>
         </div>
 
-        {error && <p style={{ color: "#d93025", marginBottom: 12 }}>{error}</p>}
+        {errors.general && <p style={{ color: "#d93025", marginBottom: 12 }}>{errors.general}</p>}
 
         <button type="submit" className="btn-login" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Login"}

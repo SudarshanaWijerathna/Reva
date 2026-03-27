@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; // --- ADDED: Import AuthContext ---
 
 const MobileBottomNav: React.FC = () => {
+  const { openAuthModal } = useAuth(); // --- ADDED: hook ---
   const [isPredictionPopupOpen, setIsPredictionPopupOpen] = useState<boolean>(false);
   const location = useLocation();
 
   const isActive = (path: string): string => location.pathname === path ? 'active' : '';
+
+  // --- ADDED: Intercept clicks for protected mobile routes ---
+  const handleProtectedNavigation = (e: React.MouseEvent) => {
+    const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+    if (!token) {
+      e.preventDefault(); 
+      openAuthModal('login', '/dashboard'); // Trigger popup and remember where to go!
+    }
+  };
 
   return (
     <nav className="bottom-nav">
@@ -57,10 +68,17 @@ const MobileBottomNav: React.FC = () => {
         <img src="/img/icons/home.svg" alt="Home" className="nav-icon" />
         <span className="nav-text">Home</span>
       </Link>
-      <Link to="/dashboard" className={`nav-item ${isActive('/dashboard')}`}>
+
+      {/* --- UPDATED: Added onClick interceptor --- */}
+      <Link 
+        to="/dashboard" 
+        className={`nav-item ${isActive('/dashboard')}`}
+        onClick={handleProtectedNavigation}
+      >
         <img src="/img/icons/dashboard.svg" alt="Dashboard" className="nav-icon" />
         <span className="nav-text">Dashboard</span>
       </Link>
+
       <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />
         <span className="nav-text">Ask Rēva</span>

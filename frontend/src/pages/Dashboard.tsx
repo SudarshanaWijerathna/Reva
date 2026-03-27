@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; 
 import Layout from '../components/Layout';
 import AddPropertyModal from '../components/AddPropertyModal';
 import { portfolioService, type PortfolioSummary, type PropertyData } from '../services/portfolioService';
@@ -7,6 +8,9 @@ import '../assets/css/dashboard.css';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation(); 
+  const { openAuthModal } = useAuth(); 
+  
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [properties, setProperties] = useState<PropertyData[]>([]);
   const [insight, setInsight] = useState<string>("");
@@ -21,10 +25,14 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         setError("");
 
-        // Check if user is authenticated
+        // Check if user is authenticated using our global localStorage keys
         const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-        if (!token) {
-          navigate("/login");
+        const email = localStorage.getItem("user_email") || sessionStorage.getItem("user_email");
+
+        // FIX: If they are NOT logged in, send to Home and pop the modal with the redirect path!
+        if (!token || !email) {
+          navigate("/", { replace: true });
+          openAuthModal('login', '/dashboard'); // <-- Tells the modal where to go after success
           return;
         }
 
@@ -43,9 +51,10 @@ const Dashboard: React.FC = () => {
         setError(errorMessage);
         console.error("Portfolio data fetch error:", err);
 
-        // If unauthorized, redirect to login
+        // FIX: If the backend says the token is expired/unauthorized, force a fresh login modal
         if (errorMessage.includes("Unauthorized")) {
-          navigate("/login");
+          navigate("/", { replace: true });
+          openAuthModal('login', '/dashboard'); // <-- Tells the modal where to go after success
         }
       } finally {
         setLoading(false);
@@ -53,7 +62,7 @@ const Dashboard: React.FC = () => {
     };
 
     fetchPortfolioData();
-  }, [navigate]);
+  }, [navigate, location.pathname, openAuthModal]); 
 
   // Handle property added callback
   const handlePropertyAdded = async () => {
@@ -315,4 +324,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-

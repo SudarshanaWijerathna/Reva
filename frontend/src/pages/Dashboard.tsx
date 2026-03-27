@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import AddPropertyModal from '../components/AddPropertyModal';
 import { portfolioService, type PortfolioSummary, type PropertyData } from '../services/portfolioService';
+import '../assets/css/dashboard.css';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -300,7 +301,6 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
             </div>
-
         </div>
       </div>
 

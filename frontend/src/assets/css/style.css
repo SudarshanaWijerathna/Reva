@@ -47,25 +47,6 @@ body {
 .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
 .btn-outline { padding: 8px 16px; border: 2px solid var(--blue-medium); color: var(--blue-medium); }
 
-.navbar { background: white; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 1300px; border-radius: 15px; z-index: 1000; transition: opacity 0.3s ease; }
-.navbar.sticky { position: fixed; top: 0; left: 0; transform: translateX(0); width: 100%; max-width: none; border-radius: 0; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); animation: slideDown 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-@keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.nav-container { height: 80px; padding: 0 50px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: 0 auto; width: 100%; }
-.nav-brand { display: flex; align-items: center; gap: 10px; }
-.nav-brand svg { fill: var(--blue-medium); }
-.nav-title { color: var(--blue-medium); font-size: 20px; font-family: fontExtraBold; margin-left: 10px; transform: translateY(-2px); }
-.nav-links { list-style: none; display: flex; gap: 0px; margin: auto; padding: 0; }
-.nav-links li { padding: 10px 20px; }
-.nav-links .selected { background: var(--blue-lightest); border-radius: 8px; }
-.nav-links a { text-decoration: none; color: var(--primary-dark); }
-.nav-actions { display: flex; gap: 12px; }
-.d-nav-item-container { position: relative; }
-.d-prediction-popup { position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(15px); background: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; min-width: 220px; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1005; }
-.d-nav-item-container:hover .d-prediction-popup { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-.d-prediction-popup a { padding: 12px 16px; text-decoration: none; color: var(--text-gray); font-size: 13px; font-family: fontExtraBold; border-radius: 8px; transition: all 0.2s; display: block; }
-.d-prediction-popup a:hover { background: var(--blue-lightest); color: var(--blue-medium); }
-
 /* Desktop Home layout specific classes */
 .welcome-banner { margin-top: 100px; padding: 80px 50px 40px 50px; border-radius: 24px; }
 .reva-hero-content { display: flex; align-items: center; justify-content: space-between; gap: 60px; }
@@ -1046,75 +1027,11 @@ textarea.contact-input {
 @media (max-width: 1024px) {
     .navbar { width: 95%; top: 15px; } 
     .nav-container { padding: 20px 30px; }
-    .financial-grid,
-    .analytics-section,
-    .contact-grid,
-    .map-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .top-section,
-    .form-container {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 768px) {
     /* Hide desktop elements */
     .navbar { display: none !important; }
-    .dashboard-wrapper,
-    .lp-wrapper,
-    .contact-wrapper {
-        width: calc(100% - 32px);
-        padding: 20px 0 36px;
-    }
-
-    .dash-header,
-    .contact-header,
-    .card-title {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .financial-grid,
-    .analytics-section,
-    .contact-grid,
-    .map-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .history-card,
-    .insight-card,
-    .card,
-    .contact-info-card,
-    .contact-form-card,
-    .fin-card,
-    .prediction-box,
-    .chart-container,
-    .details-card {
-        padding: 22px;
-        border-radius: 22px;
-    }
-
-    .financial-grid {
-        gap: 16px;
-    }
-
-    .table-responsive {
-        border-radius: 18px;
-    }
-
-    .reva-table {
-        min-width: 720px;
-    }
-
-    .map-visual {
-        min-height: 360px;
-    }
-
-    .lp-wrapper .checkbox-grid {
-        grid-template-columns: 1fr;
-    }
 
     /* Match main background and font sizing strictly to index.html mobile */
     body { padding-bottom: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -1139,15 +1056,6 @@ textarea.contact-input {
     .loading-bottom-text { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 1; }
     .loading-bottom-text h1 { font-size: 26px; margin: 0 0 12px 0; color: var(--primary-dark); font-family: fontExtraBold; }
     .loading-bottom-text p { font-size: 14.5px; color: var(--text-gray); line-height: 1.5; margin: 0; }
-
-    /* HEADERS (From index.html) */
-    .top-header { display: flex; justify-content: space-between; align-items: center; padding: 30px 24px 15px; width: 100%; }
-    .header-logo { height: 35px; object-fit: contain; }
-    .header-profile { display: flex; align-items: center; gap: 12px; }
-    .user-name { font-size: 14px; color: var(--primary-dark); font-family: fontExtraBold, sans-serif; }
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue-lightest); }
-    .fixed-header { position: fixed; top: 0; left: 0; background-color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 1001; padding: 15px 24px; transform: translateY(-100%); transition: transform 0.3s ease-in-out; }
-    .fixed-header.visible { transform: translateY(0); }
 
     /* WELCOME BANNER (From index.html) */
     .mobile-welcome-banner { background-image: url('/img/banner-bg.jpg'); background-size: cover; background-position: center; position: relative; padding: 20px 34px 25px 34px; overflow: visible; border-radius: 20px; margin: 20px 20px; /*box-shadow: 0 4px 12px rgba(0,0,0,0.08);*/ font-family: fontRegular, sans-serif; }
@@ -1286,27 +1194,6 @@ textarea.contact-input {
     .m-review-content p { font-size: 12px; color: var(--text-gray); margin: 0; line-height: 1.4; }
 
     /* =========================================
-       BOTTOM NAVIGATION & POPUP (From index.html)
-       ========================================= */
-    .popup-overlay { position: absolute; bottom: 100%; left: 0; width: 100%; height: 100vh; background: linear-gradient(to top, rgba(68, 69, 255, 0.9) 0%, rgba(68, 69, 255, 0) 100%); opacity: 0; visibility: hidden; transition: all 0.3s ease; pointer-events: none; z-index: 999; }
-    .popup-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
-    
-    .bottom-nav { position: -webkit-sticky; position: sticky; bottom: 0; left: 0; width: 100%; background-color: #ffffff; display: flex; justify-content: space-between; align-items: center; padding: 15px 24px; z-index: 1000; font-family: fontRegular, sans-serif; border-radius: 0 0 30px 30px; }
-    
-    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #000000; gap: 5px; flex: 1; padding: 0 4px; border: none; background: transparent; }
-    .nav-icon { width: 30px; height: 30px; object-fit: contain; }
-    .nav-text { font-size: 9px; margin-top: 2px; font-weight: 400; white-space: nowrap; padding: 2px 8px; border-radius: 20px; transition: background-color 0.3s ease, color 0.3s ease; }
-    .nav-item.active .nav-text { background-color: var(--blue-medium); color: #ffffff; }
-
-    .nav-item-container { flex: 1; display: flex; justify-content: center; position: relative; }
-    .prediction-popup { position: absolute; bottom: calc(100% + 35px); left: 50%; transform: translateX(-25px) translateY(15px); display: flex; flex-direction: column; gap: 16px; opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; z-index: 1010; }
-    .prediction-popup.show { opacity: 1; visibility: visible; transform: translateX(-25px) translateY(0); pointer-events: auto; }
-    .popup-item { display: flex; align-items: center; gap: 16px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
-    .popup-icon-circle { width: 50px; height: 50px; background-color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0; }
-    .popup-icon-circle img { width: 24px; height: 24px; object-fit: contain; }
-    .popup-label { background-color: #ffffff; color: #000000; padding: 10px 18px; border-radius: 20px; font-size: 9px; font-family: fontRegular, sans-serif; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); white-space: nowrap; }
-
-    /* =========================================
        FOOTER (From index.html)
        ========================================= */
     .reva-footer.m-footer { 
@@ -1361,9 +1248,5 @@ textarea.contact-input {
     }
     .m-footer-bottom p { 
         margin: 0; 
-    }
-
-    .m-footer-logo-side img{
-        
     }
 }

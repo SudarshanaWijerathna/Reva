@@ -69,7 +69,7 @@ const MobileBottomNav: React.FC = () => {
           <span className="nav-text">Admin</span>
         </Link>
       )}
-      <Link to="/askreva" className={`nav-item ${isActive('/askreva')}`}>
+      <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />
         <span className="nav-text">Ask Reva</span>
       </Link>

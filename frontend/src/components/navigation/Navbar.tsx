@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DesktopNavbar from './DesktopNavbar';
 import MobileHeader from './MobileHeader';
 import MobileBottomNav from './MobileBottomNav';
+import 'C:/Users/User/Desktop/Software_Project/clone/Reva/frontend/src/assets/css/navbar.css'; 
 
 const Navbar: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);

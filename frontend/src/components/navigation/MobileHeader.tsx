@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext'; 
+import {
+  clearAuthStorage,
+  getStoredDisplayName,
+  getStoredUserEmail,
+} from '../../services/authService';
 
 // --- HELPER FUNCTION: Auto-generate Initials Avatar ---
 const generateInitialsAvatar = (name: string): string => {
@@ -42,46 +47,41 @@ const MobileHeader: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogout, setShowLogout] = useState<boolean>(false);
 
+  // --- MERGED: Uses authService helpers but retains authUpdateKey dependency ---
   useEffect(() => {
     const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-    const email = localStorage.getItem("user_email") || sessionStorage.getItem("user_email");
-    const storedName = localStorage.getItem("user_name") || sessionStorage.getItem("user_name");
+    const email = getStoredUserEmail();
+    const displayName = getStoredDisplayName();
     const storedPicture = localStorage.getItem("user_picture") || sessionStorage.getItem("user_picture");
     
-    if (token && (email || storedName)) {
-      const displayName = storedName || (email ? email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1) : "User");
+    if (token && (email || displayName)) {
       setUser({
-        name: displayName,
+        name: displayName || (email ? email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1) : "User"),
         email: email || "",
         profileUrl: storedPicture || null, 
       });
+    } else {
+      setUser(null);
     }
   }, [location.pathname, authUpdateKey]); 
 
-  // --- BULLETPROOF LOGOUT ---
+  // --- MERGED: Uses authService to clear, but retains the bulletproof hard redirect ---
   const handleLogout = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation(); // Prevents the click from bubbling and confusing React
     }
     
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_type");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_name");    
-    localStorage.removeItem("user_picture"); 
+    // Clear via the incoming service
+    clearAuthStorage();
+    // Manually clear our fallback from the signup logic just in case
     localStorage.removeItem("reva_backup_name");
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("token_type");
-    sessionStorage.removeItem("user_email");
-    sessionStorage.removeItem("user_name");    
-    sessionStorage.removeItem("user_picture"); 
     
     // Physically force the browser back to the homepage to guarantee a clean state reset
     window.location.href = "/"; 
   };
 
-  // --- NEW: Smart Click-Outside & Scroll Detector ---
+  // --- Smart Click-Outside & Scroll Detector ---
   useEffect(() => {
     // 1. Close if they click anywhere outside the profile area
     const handleClickOutside = (e: MouseEvent) => {
@@ -159,6 +159,7 @@ const MobileHeader: React.FC = () => {
               zIndex: 999 
             }}
           >
+            {/* --- MERGED: Retains the UI formatting for the first name --- */}
             <span style={{ fontWeight: 600, fontSize: '14px', color: '#000020' }}>
               {user.name.split(' ')[0]} 
             </span>

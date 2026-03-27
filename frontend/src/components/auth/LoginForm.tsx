@@ -1,10 +1,15 @@
 import { type FormEvent, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
+import { checkAdminAccess } from "../../services/authService";
 import GoogleButton from "./GoogleButton";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const { closeAuthModal, redirectPath } = useAuth();
+  const location = useLocation();
+
+  const requestedFrom = typeof location.state?.from === 'string' ? location.state.from : null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,6 +63,15 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       storage.setItem("token_type", data.token_type);
       storage.setItem("user_email", email.trim());
 
+      // --- 1. MERGED: Check Admin Access (From Incoming Branch) ---
+      let isAdmin = false;
+      try {
+        isAdmin = await checkAdminAccess(data.access_token);
+      } catch (adminErr) {
+        console.error("Failed to check admin status:", adminErr);
+      }
+
+      // --- 2. MERGED: Fetch Profile with 404 Fallback (From HEAD) ---
       try {
         const profileRes = await fetch(`${API_BASE_URL}/users/me`, {
           method: 'GET',
@@ -84,11 +98,15 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
         console.error("Failed to fetch profile info:", profileErr);
       }
 
-      const pathToGo = redirectPath; 
       closeAuthModal();
+
+      // --- 3. MERGED: Routing Logic ---
+      // Prioritize Admin routing, then explicit redirects, then fallback to dashboard
+      const fallbackDestination = isAdmin ? '/admin' : (redirectPath || '/dashboard');
+      const pathToGo = requestedFrom && requestedFrom !== '/login' ? requestedFrom : fallbackDestination;
       
       if (pathToGo) {
-        window.location.href = pathToGo; 
+        window.location.href = pathToGo; // Hard redirect to force navbar updates
       } else {
         window.location.reload(); 
       }
@@ -102,6 +120,12 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <div className="fade-in">
+      
+      {/* --- Rēva Logo --- */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+        <img src="/img/logo.png" alt="Rēva Logo" className="header-logo" style={{ height: '35px' }} />
+      </div>
+
        <div className="form-header desktop-only">
         <h2>Login to your Account</h2>
         <p>See what is going on with your property portfolio</p>
@@ -123,7 +147,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           {errors.email && <span className="error-text">{errors.email}</span>}
         </div>
 
-        {/* --- UPDATED: Password field with visibility toggle --- */}
+        {/* --- Password field with visibility toggle --- */}
         <div className="input-group">
           <label>Password</label>
           <div style={{ position: 'relative' }}>
@@ -133,7 +157,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
               placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ width: '100%', paddingRight: '40px' }} // Added padding to prevent text overlapping the icon
+              style={{ width: '100%', paddingRight: '40px' }} 
             />
             <button
               type="button"
@@ -177,7 +201,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       </form>
 
       <div className="form-footer">
-        Not Registered Yet? <a onClick={onSwitch}>Create an account</a>
+        Not Registered Yet? <a onClick={onSwitch} style={{ cursor: 'pointer' }}>Create an account</a>
       </div>
     </div>
   );

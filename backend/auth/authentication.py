@@ -10,7 +10,7 @@ from jose import jwt, JWTError
 
 from backend.database.database import get_db
 from backend.database.models import Token, User, UserOut
-from backend.database.schemas import UserModel
+from backend.database.schemas import UserModel, UserProfile
 from backend.auth.hashing import hashing, verify_password
 
 
@@ -36,6 +36,22 @@ def sign_up(user: User,  db:Session=Depends(get_db)):
     hashed = hashing(user.password)
     new_user = UserModel(email=user.email, hashed_password=hashed)
     db.add(new_user)
+    db.flush()
+
+    full_name = (user.full_name or "").strip()
+    if full_name:
+        db.add(
+            UserProfile(
+                user_id=new_user.id,
+                full_name=full_name,
+                email=user.email,
+                phone="",
+                address="",
+                city="",
+                country="",
+            )
+        )
+
     db.commit()
     db.refresh(new_user)
     return new_user

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // --- ADDED: Import AuthContext ---
+import { useAuth } from '../../context/AuthContext';
+import { isStoredAdmin } from '../../services/authService';
 
 const MobileBottomNav: React.FC = () => {
-  const { openAuthModal } = useAuth(); // --- ADDED: hook ---
+  const { openAuthModal } = useAuth();
   const [isPredictionPopupOpen, setIsPredictionPopupOpen] = useState<boolean>(false);
   const location = useLocation();
+  const isAdmin = isStoredAdmin();
 
-  const isActive = (path: string): string => location.pathname === path ? 'active' : '';
+  const isActive = (path: string): string => (location.pathname === path ? 'active' : '');
 
-  // --- ADDED: Intercept clicks for protected mobile routes ---
+  // --- MERGED: Intercept clicks for protected mobile routes ---
   const handleProtectedNavigation = (e: React.MouseEvent) => {
     const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
     if (!token) {
@@ -20,10 +22,8 @@ const MobileBottomNav: React.FC = () => {
 
   return (
     <nav className="bottom-nav">
-      
-      {/* Overlay for Popup - Notice it is inside the nav tag to match index.html exactly */}
-      <div 
-        className={`popup-overlay ${isPredictionPopupOpen ? 'show' : ''}`} 
+      <div
+        className={`popup-overlay ${isPredictionPopupOpen ? 'show' : ''}`}
         id="popupOverlay"
         onClick={() => setIsPredictionPopupOpen(false)}
       ></div>
@@ -32,10 +32,10 @@ const MobileBottomNav: React.FC = () => {
         <img src="/img/icons/support.svg" alt="Support" className="nav-icon" />
         <span className="nav-text">Support</span>
       </Link>
-      
+
       <div className="nav-item-container">
-        <button 
-          className={`nav-item ${location.pathname.includes('price') ? 'active' : ''}`} 
+        <button
+          className={`nav-item ${location.pathname.includes('price') ? 'active' : ''}`}
           id="predictionToggle"
           onClick={(e) => {
             e.preventDefault();
@@ -46,8 +46,7 @@ const MobileBottomNav: React.FC = () => {
           <img src="/img/icons/prediction.svg" alt="Prediction" className="nav-icon" />
           <span className="nav-text">Prediction</span>
         </button>
-        
-        {/* Prediction Popup Menu */}
+
         <div className={`prediction-popup ${isPredictionPopupOpen ? 'show' : ''}`} id="predictionPopup">
           <Link to="/house-price" className="popup-item" onClick={() => setIsPredictionPopupOpen(false)}>
             <div className="popup-icon-circle"><img src="/img/icons/house.svg" alt="House" /></div>
@@ -69,7 +68,6 @@ const MobileBottomNav: React.FC = () => {
         <span className="nav-text">Home</span>
       </Link>
 
-      {/* --- UPDATED: Added onClick interceptor --- */}
       <Link 
         to="/dashboard" 
         className={`nav-item ${isActive('/dashboard')}`}
@@ -78,6 +76,17 @@ const MobileBottomNav: React.FC = () => {
         <img src="/img/icons/dashboard.svg" alt="Dashboard" className="nav-icon" />
         <span className="nav-text">Dashboard</span>
       </Link>
+
+      {/* --- MERGED: Admin link conditional rendering --- */}
+      {isAdmin && (
+        <Link to="/admin" className={`nav-item ${isActive('/admin')}`}>
+          <i
+            className="fa-solid fa-user-shield nav-icon"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}
+          ></i>
+          <span className="nav-text">Admin</span>
+        </Link>
+      )}
 
       <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />

@@ -120,11 +120,6 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <div className="fade-in">
-      
-      {/* --- Rēva Logo --- */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-        <img src="/img/logo.png" alt="Rēva Logo" className="header-logo" style={{ height: '35px' }} />
-      </div>
 
        <div className="form-header desktop-only">
         <h2>Login to your Account</h2>

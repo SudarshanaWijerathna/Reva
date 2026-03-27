@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import { createContext, useState, useContext, useCallback } from 'react';
+import type { ReactNode } from 'react';
 
 interface AuthContextType {
   isModalOpen: boolean;

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 #   Authentication models
@@ -7,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 class User(BaseModel):
     email: EmailStr
     password: str
+    full_name: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str

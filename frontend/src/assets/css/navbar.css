@@ -114,7 +114,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
     transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.user-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .logout-action {
@@ -155,7 +163,7 @@
     .top-header { display: flex; justify-content: space-between; align-items: center; padding: 30px 24px 15px; width: 100%; }
     .header-logo { height: 35px; object-fit: contain; }
     .header-profile { display: flex; align-items: center; gap: 12px; }
-    .user-name { font-size: 14px; color: var(--primary-dark); font-family: fontExtraBold, sans-serif; }
+    .user-name { max-width: 120px; font-size: 14px; color: var(--primary-dark); font-family: fontExtraBold, sans-serif; }
     .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blue-lightest); }
     
     .fixed-header { 

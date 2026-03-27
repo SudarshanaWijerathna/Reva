@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../../assets/css/navbar.css';
+import {
+  clearAuthStorage,
+  getStoredDisplayName,
+  getStoredUserEmail,
+  isStoredAdmin,
+} from '../../services/authService';
 
-// --- HELPER FUNCTION: Auto-generate Initials Avatar ---
 const generateInitialsAvatar = (name: string): string => {
   const initials = name
     .split(' ')
-    .map((n) => n[0])
+    .map((part) => part[0])
     .slice(0, 2)
     .join('')
     .toUpperCase() || 'U';
@@ -23,7 +28,7 @@ const generateInitialsAvatar = (name: string): string => {
       </text>
     </svg>
   `;
-  
+
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
@@ -35,39 +40,27 @@ interface User {
 
 const DesktopNavbar: React.FC = () => {
   const [isSticky, setIsSticky] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const isAdmin = isStoredAdmin();
 
-  // 1. Set default state to NULL (Logged out by default)
-  const [user, setUser] = useState<User | null>(null);
-
-  // 2. Check for actual login token on component mount
   useEffect(() => {
-    const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-    const email = localStorage.getItem("user_email") || sessionStorage.getItem("user_email");
-    
-    if (token && email) {
-      // Create a display name from the email (e.g., admin@reva.com -> "Admin")
-      const displayName = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
-      setUser({
-        name: displayName,
-        email: email,
-        profileUrl: null, // Replace with Google Photo URL when OAuth is implemented
-      });
-    }
-  }, [location.pathname]); // Re-run when navigation happens
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const email = getStoredUserEmail();
+    const displayName = getStoredDisplayName();
 
-  // 3. Handle actual logout
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_type");
-    localStorage.removeItem("user_email");
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("token_type");
-    sessionStorage.removeItem("user_email");
+    if (token && email) {
+      setUser({
+        name: displayName || 'User',
+        email,
+        profileUrl: null,
+      });
+      return;
+    }
+
     setUser(null);
-    navigate("/"); // Send back to home page
-  };
+  }, [location.pathname]);
 
   useEffect(() => {
     let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -84,16 +77,24 @@ const DesktopNavbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isActive = (path: string): string => location.pathname === path ? 'selected' : '';
+  const handleLogout = () => {
+    clearAuthStorage();
+    setUser(null);
+    navigate('/');
+  };
+
+  const isActive = (path: string): string => (location.pathname === path ? 'selected' : '');
   const isPrediction = location.pathname.includes('price');
+  const isSupport = location.pathname === '/support' || location.pathname === '/contact';
+  const isAskReva = location.pathname === '/askreva';
+  const isAdminPage = location.pathname === '/admin';
 
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
       <div className="nav-container">
-        
         <div className="nav-brand">
           <Link to="/">
-             <img src="/img/logo.png" alt="Reva Logo" className="header-logo" style={{ height: '35px' }} />
+            <img src="/img/logo.png" alt="Reva Logo" className="header-logo" style={{ height: '35px' }} />
           </Link>
         </div>
 
@@ -101,48 +102,44 @@ const DesktopNavbar: React.FC = () => {
           <li className={isActive('/')}><Link to="/">Home</Link></li>
           <li className={isActive('/dashboard')}><Link to="/dashboard">Dashboard</Link></li>
           <li className={`d-nav-item-container ${isPrediction ? 'selected' : ''}`}>
-             <Link to="#">Prediction <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i></Link>
-             <div className="d-prediction-popup">
-                 <Link to="/house-price">House price prediction</Link>
-                 <Link to="/rental-price">Rental price prediction</Link>
-                 <Link to="/land-price">Land price prediction</Link>
-             </div>
+            <Link to="#">Prediction <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i></Link>
+            <div className="d-prediction-popup">
+              <Link to="/house-price">House price prediction</Link>
+              <Link to="/rental-price">Rental price prediction</Link>
+              <Link to="/land-price">Land price prediction</Link>
+            </div>
           </li>
-          <li className={isActive('/askreva')}><Link to="/askreva" state={{ from: location.pathname }}>Ask Reva</Link></li>
-          <li className={isActive('/support')}><Link to="/support">Support</Link></li>
-
+          <li className={isSupport ? 'selected' : ''}><Link to="/support">Support</Link></li>
+          <li className={isAskReva ? 'selected' : ''}><Link to="/askreva" state={{ from: location.pathname }}>Ask Reva</Link></li>
+          {isAdmin && <li className={isAdminPage ? 'selected' : ''}><Link to="/admin">Admin</Link></li>}
         </ul>
 
         <div className="nav-actions">
           {user ? (
-            // LOGGED IN VIEW: Profile Hover Swap Container
             <div className="header-profile profile-hover-container">
-              
               <div className="profile-info">
                 <span className="user-name" style={{ fontWeight: 600 }}>
-                  {user.name.split(' ')[0]} {/* Strictly one word */}
+                  {user.name}
                 </span>
-                <img 
-                  src={user.profileUrl || generateInitialsAvatar(user.name)} 
-                  alt={`${user.name} Profile`} 
+                <img
+                  src={user.profileUrl || generateInitialsAvatar(user.name)}
+                  alt={`${user.name} Profile`}
                   className="user-avatar"
-                  style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                  style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
                 />
               </div>
 
               <div className="logout-action">
-                <button 
-                  onClick={handleLogout} 
-                  className="btn-outline" 
+                <button
+                  onClick={handleLogout}
+                  className="btn-outline"
                   style={{ padding: '6px 20px', fontSize: '14px', cursor: 'pointer', margin: 0 }}
                 >
                   Logout
                 </button>
               </div>
-
             </div>
           ) : (
-            // LOGGED OUT VIEW: Wrapped in a div to prevent flexbox button stretching
             <div className="auth-buttons" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <Link to="/login" state={{ mode: 'signup', from: location.pathname }} className="btn-outline">
                 Sign Up
@@ -153,7 +150,6 @@ const DesktopNavbar: React.FC = () => {
             </div>
           )}
         </div>
-        
       </div>
     </nav>
   );

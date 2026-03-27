@@ -8,6 +8,7 @@ import UsersManagement from '../components/admin/UsersManagement.tsx';
 import ModelsManagement from '../components/admin/ModelsManagement';
 import '../assets/css/admin.css';
 import { API_BASE_URL } from '../config/api';
+import { clearAuthStorage, getAuthToken } from '../services/authService';
 
 type AdminTab = 'dashboard' | 'features' | 'models' | 'users';
 
@@ -21,7 +22,7 @@ const AdminPage: React.FC = () => {
     const checkAdminAccess = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+        const token = getAuthToken();
         
         if (!token) {
           console.log("No token found, redirecting to login");
@@ -39,8 +40,16 @@ const AdminPage: React.FC = () => {
 
         if (response.status === 403) {
           console.log("User is not admin (403 Forbidden)");
+          localStorage.setItem("is_admin", "false");
+          sessionStorage.setItem("is_admin", "false");
           alert("You don't have admin privileges. Only admin@reva.com can access this panel.");
           navigate("/dashboard");
+          return;
+        }
+
+        if (response.status === 401) {
+          clearAuthStorage();
+          navigate("/login");
           return;
         }
 
@@ -50,6 +59,8 @@ const AdminPage: React.FC = () => {
 
         const data = await response.json();
         console.log("Admin access granted, stats loaded:", data);
+        localStorage.setItem("is_admin", "true");
+        sessionStorage.setItem("is_admin", "true");
         setIsAuthorized(true);
       } catch (err) {
         console.error("Admin access check failed:", err);
@@ -57,6 +68,7 @@ const AdminPage: React.FC = () => {
         console.log("Error details:", errorMsg);
         // Don't redirect on network errors, let user try again
         if (errorMsg.includes("403")) {
+          clearAuthStorage();
           navigate("/login");
         }
       } finally {

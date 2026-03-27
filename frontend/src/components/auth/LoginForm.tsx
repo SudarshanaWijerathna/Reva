@@ -1,55 +1,64 @@
-import { type FormEvent, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { API_BASE_URL } from "../../config/api";
-import GoogleButton from "./GoogleButton";
+import { type FormEvent, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api';
+import { checkAdminAccess, fetchCurrentUserProfile, persistAuthSession } from '../../services/authService';
+import GoogleButton from './GoogleButton';
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const navigate = useNavigate();
-  const location = useLocation(); // <-- Add this
-  
-  // Look for the 'from' path in the state, default to dashboard if it doesn't exist
-  const from = location.state?.from || "/dashboard";
+  const location = useLocation();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const requestedFrom = typeof location.state?.from === 'string' ? location.state.from : null;
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError("");
+    setError('');
     setIsLoading(true);
 
     try {
       const body = new URLSearchParams();
-      body.append("username", email.trim()); 
-      body.append("password", password);
+      body.append('username', email.trim());
+      body.append('password', password);
 
       const response = await fetch(`${API_BASE_URL}/auth/token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.detail || "Login failed");
+        throw new Error(data?.detail || 'Login failed');
       }
 
       const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("access_token", data.access_token);
-      storage.setItem("token_type", data.token_type);
-      storage.setItem("user_email", email.trim());
+      const normalizedEmail = email.trim().toLowerCase();
+      const [isAdmin, profile] = await Promise.all([
+        checkAdminAccess(data.access_token),
+        fetchCurrentUserProfile(data.access_token).catch(() => null),
+      ]);
 
-      // --- NEW REDIRECT LOGIC ---
-      // Replace: navigate("/dashboard");
-      // With this:
-      navigate(from, { replace: true });
-      
+      persistAuthSession(storage, {
+        accessToken: data.access_token,
+        tokenType: data.token_type,
+        email: normalizedEmail,
+        fullName: profile?.full_name ?? null,
+        isAdmin,
+      });
+
+      const fallbackDestination = isAdmin ? '/admin' : '/dashboard';
+      const destination = requestedFrom && requestedFrom !== '/login' ? requestedFrom : fallbackDestination;
+
+      navigate(destination, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +66,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <div className="fade-in">
-       {/* ... rest of your JSX remains exactly the same ... */}
-       <div className="form-header">
+      <div className="form-header">
         <h2>Login to your Account</h2>
         <p>See what is going on with your property portfolio</p>
       </div>
@@ -84,7 +92,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           <input
             type="password"
             className="reva-input"
-            placeholder="••••••••••••"
+            placeholder="************"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -103,10 +111,10 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           <a href="#" className="forgot-link">Forgot Password?</a>
         </div>
 
-        {error && <p style={{ color: "#d93025", marginBottom: 12 }}>{error}</p>}
+        {error && <p style={{ color: '#d93025', marginBottom: 12 }}>{error}</p>}
 
         <button type="submit" className="btn-login" disabled={isLoading}>
-          {isLoading ? "Logging in..." : "Login"}
+          {isLoading ? 'Logging in...' : 'Login'}
         </button>
       </form>
 

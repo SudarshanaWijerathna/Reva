@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../../assets/css/navbar.css';
-import { clearAuthStorage, isStoredAdmin } from '../../services/authService';
+import {
+  clearAuthStorage,
+  getStoredDisplayName,
+  getStoredUserEmail,
+  isStoredAdmin,
+} from '../../services/authService';
 
 const generateInitialsAvatar = (name: string): string => {
   const initials = name
@@ -42,13 +47,12 @@ const DesktopNavbar: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-    const email = localStorage.getItem('user_email') || sessionStorage.getItem('user_email');
+    const email = getStoredUserEmail();
+    const displayName = getStoredDisplayName();
 
     if (token && email) {
-      const baseName = email.split('@')[0] || 'User';
-      const displayName = baseName.charAt(0).toUpperCase() + baseName.slice(1);
       setUser({
-        name: displayName,
+        name: displayName || 'User',
         email,
         profileUrl: null,
       });
@@ -115,7 +119,7 @@ const DesktopNavbar: React.FC = () => {
             <div className="header-profile profile-hover-container">
               <div className="profile-info">
                 <span className="user-name" style={{ fontWeight: 600 }}>
-                  {user.name.split(' ')[0]}
+                  {user.name}
                 </span>
                 <img
                   src={user.profileUrl || generateInitialsAvatar(user.name)}

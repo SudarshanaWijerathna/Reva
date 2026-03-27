@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  clearAuthStorage,
+  getStoredDisplayName,
+  getStoredUserEmail,
+} from '../../services/authService';
 
 // --- HELPER FUNCTION: Auto-generate Initials Avatar ---
 const generateInitialsAvatar = (name: string): string => {
@@ -44,26 +49,24 @@ const MobileHeader: React.FC = () => {
   // 2. Check for actual login token on component mount
   useEffect(() => {
     const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
-    const email = localStorage.getItem("user_email") || sessionStorage.getItem("user_email");
+    const email = getStoredUserEmail();
+    const displayName = getStoredDisplayName();
     
     if (token && email) {
-      const displayName = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
       setUser({
-        name: displayName,
+        name: displayName || 'User',
         email: email,
         profileUrl: null, // Replace with Google Photo URL when OAuth is implemented
       });
+      return;
     }
+
+    setUser(null);
   }, [location.pathname]); // Re-run when navigation happens
 
   // 3. Handle actual logout
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_type");
-    localStorage.removeItem("user_email");
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("token_type");
-    sessionStorage.removeItem("user_email");
+    clearAuthStorage();
     setUser(null);
     navigate("/"); // Send back to home page
   };
@@ -86,7 +89,7 @@ const MobileHeader: React.FC = () => {
           
           <div className="profile-info">
             <span className="user-name" style={{ fontWeight: 600 }}>
-              {user.name.split(' ')[0]} {/* Strictly one word */}
+              {user.name}
             </span>
             <img 
               src={user.profileUrl || generateInitialsAvatar(user.name)} 

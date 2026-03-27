@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
-import { checkAdminAccess, persistAuthSession } from '../../services/authService';
+import { checkAdminAccess, fetchCurrentUserProfile, persistAuthSession } from '../../services/authService';
 import GoogleButton from './GoogleButton';
 
 export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
@@ -40,12 +40,16 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
       const storage = rememberMe ? localStorage : sessionStorage;
       const normalizedEmail = email.trim().toLowerCase();
-      const isAdmin = await checkAdminAccess(data.access_token);
+      const [isAdmin, profile] = await Promise.all([
+        checkAdminAccess(data.access_token),
+        fetchCurrentUserProfile(data.access_token).catch(() => null),
+      ]);
 
       persistAuthSession(storage, {
         accessToken: data.access_token,
         tokenType: data.token_type,
         email: normalizedEmail,
+        fullName: profile?.full_name ?? null,
         isAdmin,
       });
 

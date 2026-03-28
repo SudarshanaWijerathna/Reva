@@ -82,6 +82,52 @@ def get_all_users_admin(db: Session) -> List[UserModel]:
     return db.query(UserModel).all()
 
 
+def get_user_by_id_admin(db: Session, user_id: int) -> UserModel:
+    """Get a single user by ID for admin actions."""
+    return db.query(UserModel).filter(UserModel.id == user_id).first()
+
+
+def delete_user_admin(db: Session, user_id: int) -> Dict[str, Any] | None:
+    """
+    Delete one user and all related data.
+
+    Related user-owned rows such as profile, preferences, and properties are
+    removed through ORM/database cascades. Prediction history is deleted
+    explicitly to avoid depending on database-specific FK cascade behavior.
+    """
+    db_user = get_user_by_id_admin(db, user_id)
+    if not db_user:
+        return None
+
+    deleted_properties = len(db_user.properties or [])
+    deleted_profile = db_user.profile is not None
+    deleted_preferences = db_user.preferences is not None
+    deleted_email = db_user.email
+    deleted_predictions = db.query(PredictionRecord).filter(
+        PredictionRecord.user_id == user_id
+    ).count()
+
+    try:
+        db.query(PredictionRecord).filter(
+            PredictionRecord.user_id == user_id
+        ).delete(synchronize_session=False)
+        db.delete(db_user)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "id": user_id,
+        "email": deleted_email,
+        "deleted_properties": deleted_properties,
+        "deleted_predictions": deleted_predictions,
+        "deleted_profile": deleted_profile,
+        "deleted_preferences": deleted_preferences,
+        "message": "User and related data deleted successfully",
+    }
+
+
 def get_user_count(db: Session) -> int:
     """Get total user count."""
     return db.query(UserModel).count()

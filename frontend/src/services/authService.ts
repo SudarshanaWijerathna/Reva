@@ -23,7 +23,12 @@ export const getStoredUserEmail = (): string | null => {
 };
 
 export const getStoredUserFullName = (): string | null => {
-  return localStorage.getItem('user_full_name') || sessionStorage.getItem('user_full_name');
+  return (
+    localStorage.getItem('user_full_name') ||
+    sessionStorage.getItem('user_full_name') ||
+    localStorage.getItem('user_name') ||
+    sessionStorage.getItem('user_name')
+  );
 };
 
 export const isStoredAdmin = (): boolean => {
@@ -56,13 +61,22 @@ export const clearAuthStorage = (): void => {
     storage.removeItem('token_type');
     storage.removeItem('user_email');
     storage.removeItem('user_full_name');
+    storage.removeItem('user_name');
+    storage.removeItem('user_picture');
     storage.removeItem('is_admin');
   }
 };
 
 export const persistAuthSession = (
   storage: AuthStorage,
-  payload: { accessToken: string; tokenType: string; email: string; fullName?: string | null; isAdmin: boolean }
+  payload: {
+    accessToken: string;
+    tokenType: string;
+    email: string;
+    fullName?: string | null;
+    pictureUrl?: string | null;
+    isAdmin: boolean;
+  }
 ): void => {
   clearAuthStorage();
   storage.setItem('access_token', payload.accessToken);
@@ -70,6 +84,9 @@ export const persistAuthSession = (
   storage.setItem('user_email', payload.email);
   if (payload.fullName?.trim()) {
     storage.setItem('user_full_name', payload.fullName.trim());
+  }
+  if (payload.pictureUrl?.trim()) {
+    storage.setItem('user_picture', payload.pictureUrl.trim());
   }
   storage.setItem('is_admin', String(payload.isAdmin));
 };

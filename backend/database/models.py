@@ -28,6 +28,11 @@ class Token(BaseModel):
     access_token: str
     token_type: str 
 
+class GoogleAuthResponse(Token):
+    email: EmailStr
+    full_name: Optional[str] = None
+    picture: Optional[str] = None
+
 # 4. Used when sending user data BACK to the frontend (hides the password!)
 class UserOut(BaseModel):
     id: int

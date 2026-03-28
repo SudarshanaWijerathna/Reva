@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,9 +8,10 @@ from starlette import status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
+import requests
 
 from backend.database.database import get_db
-from backend.database.models import Token, User, UserOut
+from backend.database.models import Token, User, UserOut, GoogleToken, GoogleAuthResponse
 from backend.database.schemas import UserModel, UserProfile
 from backend.auth.hashing import hashing, verify_password
 
@@ -21,6 +23,7 @@ router = APIRouter(
 
 SECRET_KEY = os.getenv("SECRET_KEY", "mysecretkey123")
 ALGORITHM = "HS256"
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 password_with_salt = ""
  
 bcrypt_content = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -67,8 +70,88 @@ async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm, 
     return{'access_token': token, 'token_type': 'bearer'}
 
 
+@router.post("/google", response_model=GoogleAuthResponse)
+def google_auth(google_token: GoogleToken, db: Session = Depends(get_db)):
+    google_user = get_google_user_info(google_token.token)
+
+    user = db.query(UserModel).filter(UserModel.email == google_user["email"]).first()
+    if not user:
+        user = UserModel(
+            email=google_user["email"],
+            hashed_password=hashing(secrets.token_urlsafe(32)),
+        )
+        db.add(user)
+        db.flush()
+
+    profile = db.query(UserProfile).filter(UserProfile.user_id == user.id).first()
+    if not profile:
+        profile = UserProfile(
+            user_id=user.id,
+            full_name=google_user["full_name"] or "",
+            email=google_user["email"],
+            phone="",
+            address="",
+            city="",
+            country="",
+        )
+        db.add(profile)
+    else:
+        profile.email = google_user["email"]
+        if google_user["full_name"]:
+            profile.full_name = google_user["full_name"]
+
+    db.commit()
+    db.refresh(user)
+
+    app_token = create_access_token(user.email, user.id, timedelta(minutes=20))
+    full_name = google_user["full_name"] or (profile.full_name if profile else None)
+
+    return GoogleAuthResponse(
+        access_token=app_token,
+        token_type="bearer",
+        email=user.email,
+        full_name=full_name,
+        picture=google_user["picture"],
+    )
+
+
 
 #--------------Utility Functions---------------
+
+def get_google_user_info(access_token: str):
+    try:
+        response = requests.get(
+            GOOGLE_USERINFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to contact Google for authentication",
+        ) from exc
+
+    if not response.ok:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google authentication failed",
+        )
+
+    data = response.json()
+    email = (data.get("email") or "").strip().lower()
+    email_verified = bool(data.get("email_verified"))
+
+    if not email or not email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google account email is missing or not verified",
+        )
+
+    return {
+        "email": email,
+        "full_name": (data.get("name") or "").strip() or None,
+        "picture": (data.get("picture") or "").strip() or None,
+    }
 
 def authenticate_user(email:str, password:str, db):
     user = db.query(UserModel).filter(UserModel.email==email).first()  

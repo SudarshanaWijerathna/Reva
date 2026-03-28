@@ -15,6 +15,7 @@ from backend.admin.schemas import (
     AdminFeatureUpdate,
     AdminFeatureOut,
     AdminUserListOut,
+    AdminUserDeleteOut,
     AdminDashboardStats,
     AdminModelCreate,
     AdminModelUpdate,
@@ -28,6 +29,8 @@ from backend.admin.services import (
     update_feature_admin,
     delete_feature_admin,
     get_all_users_admin,
+    get_user_by_id_admin,
+    delete_user_admin,
     get_dashboard_stats,
     get_all_models_admin,
     get_model_by_id_admin,
@@ -184,6 +187,36 @@ def list_all_users(
     """Get list of all users."""
     users = get_all_users_admin(db)
     return users
+
+
+@admin_router.delete("/users/{user_id}", response_model=AdminUserDeleteOut)
+def delete_user(
+    user_id: int,
+    db: Database,
+    current_user: Annotated[dict, Depends(check_admin_role)]
+):
+    """Delete a user and their related data."""
+    if current_user.get("id") == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admins cannot delete their own account"
+        )
+
+    db_user = get_user_by_id_admin(db, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    if (db_user.email or "").strip().lower() == ADMIN_EMAIL:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The primary admin account cannot be deleted"
+        )
+
+    deleted_user = delete_user_admin(db, user_id)
+    return AdminUserDeleteOut(**deleted_user)
 
 
 # ============ Admin Model Registry Router ============

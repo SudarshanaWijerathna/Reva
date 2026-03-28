@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import MapExplorer from '../../components/MapExplorer';
-import type { Feature } from '../../services/predictionsService';
-import { getFeatures, makePrediction } from '../../services/predictionsService';
+import { makePrediction } from '../../services/predictionsService';
 import '../../assets/css/landprice.css';
 
 const PERIODS = [
@@ -15,43 +14,22 @@ const PERIODS = [
 
 const LandPrice: React.FC = () => {
   /* -------------------- STATE -------------------- */
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [form, setForm] = useState<Record<string, any>>({});
+  const [form, setForm] = useState<Record<string, any>>({
+    land_size: '',
+    district: '',
+    location_text: '',
+    main_road: false,
+    electricity: false,
+    clear_deed: false,
+    water: false,
+    bank_loan: false,
+    near_town: false,
+    distance_to_town_m: '',
+    period: '2025 H2',
+  });
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [featuresLoading, setFeaturesLoading] = useState(true);
   const [error, setError] = useState<string>('');
-
-  /* -------------------- EFFECTS -------------------- */
-  useEffect(() => {
-    const loadFeatures = async () => {
-      try {
-        setFeaturesLoading(true);
-        setError('');
-        const data = await getFeatures('land');
-        setFeatures(data);
-        
-        // Initialize form with default values based on feature types
-        const initialForm: Record<string, any> = {};
-        data.forEach(feature => {
-          if (feature.data_type === 'boolean') {
-            initialForm[feature.name] = false;
-          } else if (feature.data_type === 'int' || feature.data_type === 'float') {
-            initialForm[feature.name] = '';
-          } else {
-            initialForm[feature.name] = '';
-          }
-        });
-        setForm(initialForm);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load features');
-      } finally {
-        setFeaturesLoading(false);
-      }
-    };
-
-    loadFeatures();
-  }, []);
 
   /* -------------------- HANDLERS -------------------- */
   const handleSubmit = async () => {
@@ -60,21 +38,19 @@ const LandPrice: React.FC = () => {
     setError('');
 
     try {
-      // Build payload with correct types
-      const payload: Record<string, any> = {};
-      features.forEach(feature => {
-        const value = form[feature.name];
-        
-        if (feature.data_type === 'int') {
-          payload[feature.name] = value === '' ? 0 : Number(value);
-        } else if (feature.data_type === 'float') {
-          payload[feature.name] = value === '' ? 0.0 : parseFloat(value);
-        } else if (feature.data_type === 'boolean') {
-          payload[feature.name] = Boolean(value);
-        } else {
-          payload[feature.name] = value;
-        }
-      });
+      const payload = {
+        land_size: form.land_size === '' ? 0 : parseFloat(form.land_size),
+        district: String(form.district || '').trim(),
+        location_text: String(form.location_text || '').trim(),
+        main_road: Boolean(form.main_road),
+        electricity: Boolean(form.electricity),
+        clear_deed: Boolean(form.clear_deed),
+        water: Boolean(form.water),
+        bank_loan: Boolean(form.bank_loan),
+        near_town: Boolean(form.near_town),
+        distance_to_town_m: form.distance_to_town_m === '' ? 0 : parseFloat(form.distance_to_town_m),
+        period: String(form.period || '2025 H2'),
+      };
 
       const data = await makePrediction('land', payload);
       setResult(data);
@@ -164,8 +140,8 @@ const LandPrice: React.FC = () => {
                       type="text" 
                       className="input-field" 
                       placeholder="e.g Kiribathgoda"
-                      value={form['location'] || ''}
-                      onChange={e => handleFormChange('location', e.target.value)}
+                      value={form['location_text'] || ''}
+                      onChange={e => handleFormChange('location_text', e.target.value)}
                     />
                   </div>
                 </div>
@@ -206,8 +182,8 @@ const LandPrice: React.FC = () => {
                       type="number" 
                       className="input-field" 
                       placeholder="e.g 500"
-                      value={form['distance_to_town'] || ''}
-                      onChange={e => handleFormChange('distance_to_town', e.target.value)}
+                      value={form['distance_to_town_m'] || ''}
+                      onChange={e => handleFormChange('distance_to_town_m', e.target.value)}
                     />
                   </div>
                 </div>
@@ -223,7 +199,7 @@ const LandPrice: React.FC = () => {
               <p className="hero-desc">
                 Ask Reva to estimate land prices using real-time location intelligence.
               </p>
-              <button className="cta-btn" onClick={handleSubmit} disabled={loading || featuresLoading}>
+              <button className="cta-btn" onClick={handleSubmit} disabled={loading}>
                 {loading ? 'Estimating...' : 'Estimate Price'}
               </button>
             </div>

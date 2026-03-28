@@ -2,7 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://reva-backend.salmonrock-0ced1a8b.southeastasia.azurecontainerapps.io/api/:path*"
+      "destination": "https://reva-backend.salmonrock-0ced1a8b.southeastasia.azurecontainerapps.io/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

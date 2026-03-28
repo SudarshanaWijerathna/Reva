@@ -6,11 +6,11 @@ export default function LoginFormWrapper() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Derive state directly from the router so LoginHero always matches
-  const isSignup = location.state?.mode === 'signup';
+  // Support both explicit auth routes and route state-driven toggling.
+  const isSignup = location.pathname === '/signup' || location.state?.mode === 'signup';
 
   const switchMode = (mode: 'login' | 'signup') => {
-    navigate(location.pathname, {
+    navigate(mode === 'signup' ? '/signup' : '/login', {
       replace: true,
       state: { ...location.state, mode }
     });

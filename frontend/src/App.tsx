@@ -10,6 +10,7 @@ import HousePrice from './pages/Predictions/HousePrice';
 import RentalPrice from './pages/Predictions/RentalPrice';
 import Askreva from './pages/Askreva';
 import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<LoginPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/support" element={<Support />} />
           <Route path="/askreva" element={<Askreva />} />

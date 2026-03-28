@@ -34,7 +34,7 @@ class SentimentStorage:
         """
 
         query = {
-            "relevance": "noise"
+            "relevance": "relevant"
         }
 
         if cutoff_date is not None:

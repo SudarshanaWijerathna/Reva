@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from backend.database.schemas import Property
 from backend.predictions.utils import get_current_market_price
-from backend.sentiment.sentiment_api import  get_sentiment, get_overall_sentiment
-from backend.core.cache_service import get_cached_sentiment
+from backend.sentiment.sentiment_api import fetch_market_sentiment, get_sentiment, get_overall_sentiment
 
 def calculate_portfolio(db: Session, user_id: int):
     overall_sentiment = "unknown"
+    sentiment_dict = None
     try:
         properties = db.query(Property).filter(Property.user_id == user_id).all()
 
@@ -15,12 +15,11 @@ def calculate_portfolio(db: Session, user_id: int):
 
         detailed = []
         try:
-            sentiment_dict = get_cached_sentiment()
+            sentiment_dict = fetch_market_sentiment()
             overall_sentiment = get_overall_sentiment(sentiment_dict)
         except Exception as e:
             print(f"Error fetching overall market sentiment: {str(e)}")
             overall_sentiment = "unknown"
-        #overall_sentiment = "unknown"
     
 
         for prop in properties:
@@ -33,12 +32,10 @@ def calculate_portfolio(db: Session, user_id: int):
                 mix[prop.property_type] += 1
 
                 try:
-                    sentiment = get_sentiment(sentiment_dict, prop.property_type, "medium_term") 
+                    sentiment = get_sentiment(sentiment_dict, prop.property_type, "medium_term")
                 except Exception as e:
                     print(f"Error fetching sentiment for property {prop.id}: {str(e)}")
-                    sentiment = "unknown"
-                #sentiment = "unknown"
-                
+                    sentiment = {"value": 0.0, "label": "unknown"}
 
 
                 detailed.append({
@@ -49,7 +46,7 @@ def calculate_portfolio(db: Session, user_id: int):
                     "purchase_price": prop.purchase_price,
                     "current_value": current_price,
                     "profit": profit,
-                    "sentiment": sentiment["label"],
+                    "sentiment": sentiment.get("label", "unknown"),
                     "status": prop.status
                 })
             except Exception as e:

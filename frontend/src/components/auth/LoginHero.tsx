@@ -7,7 +7,7 @@ export default function LoginHero() {
   return (
     <div className="login-hero">
       
-      {/* Added flex positioning so Logo is left, Close is right */}
+      {/* Top bar uses Flexbox to perfectly space Logo and Close Button */}
       <div className="hero-top-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div className="mobile-hero-logo mobile-only">
           <img className="hero-reva-image" src="/img/logo.png" alt="Rēva" style={{ width: '100px', marginLeft: '-10px' }} />
@@ -26,6 +26,7 @@ export default function LoginHero() {
       <i className="fa-solid fa-chart-simple hero-shape shape-2"></i>
       <i className="fa-solid fa-building hero-shape shape-3"></i>
 
+      {/* Hero Content pushes text to the bottom using auto margins */}
       <div className="hero-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div className="main-logo-large desktop-only">
           <img src="/img/banner-hero-image.gif" alt="reva-gif-image" />
@@ -36,7 +37,6 @@ export default function LoginHero() {
           <p>Start for free and get intelligent AI-driven insights for smarter property decisions.</p>
         </div>
 
-        {/* Pushed to the bottom of the hero section using margin-top: auto */}
         <div className="mobile-only hero-mobile-titles" style={{ marginTop: 'auto', marginBottom: '20px' }}>
           <h1 style={{ fontSize: '28px', color: '#000020', marginBottom: '8px' }}>
             {isSignup ? "Create Account" : "Login to your Account"}

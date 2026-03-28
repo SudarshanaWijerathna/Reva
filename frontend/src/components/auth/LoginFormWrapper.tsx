@@ -9,7 +9,6 @@ export default function LoginFormWrapper() {
   // Derive state directly from the router so LoginHero always matches
   const isSignup = location.state?.mode === 'signup';
 
-  // Instead of internal state, update the URL state so LoginHero sees it too!
   const switchMode = (mode: 'login' | 'signup') => {
     navigate(location.pathname, {
       replace: true,
@@ -19,56 +18,78 @@ export default function LoginFormWrapper() {
 
   return (
     <>
-      {/* --- THE MOBILE FIX: CSS Grid Injection --- */}
+      {/* --- THE MOBILE FIX: Bulletproof Full-Screen Takeover --- */}
       <style>{`
         @media (max-width: 768px) {
-          /* 1. Force the parent Modal Container to be a Full-Screen Grid */
+          /* 1. Target the Modal Container and force it to take over the screen */
           div:has(> .login-form-wrapper) {
-            display: grid !important;
-            grid-template-rows: 1fr 2.5fr !important; /* Divides into 2 vertical sections using fr units */
-            width: 100vw !important;
-            height: 100dvh !important; /* dvh adapts perfectly to mobile browser bars */
-            max-width: 100vw !important;
-            max-height: 100dvh !important;
-            border-radius: 0 !important;
-            overflow: hidden !important;
-            background-color: #f4f7f9 !important; /* Solid background to replace the blur */
-            padding: 0 !important;
-            margin: 0 !important;
+            position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            transform: none !important;
+            width: 100vw !important;
+            height: 100dvh !important; /* dvh perfectly handles mobile Safari/Chrome address bars */
+            max-width: 100vw !important;
+            max-height: 100dvh !important;
+            z-index: 999999 !important; /* Ensure it floats above the blurred overlay */
+            
+            display: flex !important;
+            flex-direction: column !important;
+            
+            background-color: #f4f7f9 !important; /* Solid background obscures the blur */
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
           }
 
-          /* 2. Remove the blur from the dark overlay behind the modal */
+          /* 2. Hide the blur effect entirely to save mobile battery/performance */
           div:has(> div > .login-form-wrapper) {
              backdrop-filter: none !important;
+             background: transparent !important;
           }
 
-          /* 3. The Hero Section (Top 1fr) */
+          /* 3. The Hero Section (Top Area) */
           .login-hero {
             position: relative !important;
             width: 100% !important;
-            height: 100% !important;
-            min-height: 0 !important; /* Critical to prevent grid blowout */
+            flex: 0 0 auto !important; /* Don't stretch or shrink */
+            min-height: 25vh !important;
             border-radius: 0 !important;
-            padding: 24px 24px 0px 24px !important;
+            padding: 24px 24px 32px 24px !important;
             display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
+            margin: 0 !important;
+            background-color: transparent !important;
           }
 
-          /* 4. The Form Section (Bottom 2.5fr) - Make it scrollable! */
+          /* 4. The Form Wrapper (Bottom Area) */
           .login-form-wrapper {
+            position: relative !important;
+            width: 100% !important;
+            flex: 1 1 auto !important; /* Take up all remaining space */
+            display: flex !important;
+            flex-direction: column !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 0 !important; /* CRITICAL: Allows the inner form to scroll without breaking the flexbox */
+          }
+
+          /* 5. The Scrollable Form Container */
+          .login-form-wrapper > .fade-in {
             width: 100% !important;
             height: 100% !important;
-            min-height: 0 !important; /* Critical to prevent grid blowout */
-            overflow-y: auto !important; /* The magic scroll property */
-            padding: 24px 24px 100px 24px !important; /* Extra bottom padding for thumb reachability */
+            overflow-y: auto !important; /* The magic scroll property! */
+            padding: 32px 24px 100px 24px !important; /* Extra padding at bottom for thumb comfort */
             background-color: #ffffff !important;
-            border-top-left-radius: 28px !important; /* Creates a modern overlapping card effect */
-            border-top-right-radius: 28px !important;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05) !important;
+            border-top-left-radius: 32px !important; /* Creates the overlapping card effect */
+            border-top-right-radius: 32px !important;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.08) !important;
+            margin: 0 !important;
+          }
+          
+          .nav-brand-small {
+            display: none !important;
           }
         }
       `}</style>

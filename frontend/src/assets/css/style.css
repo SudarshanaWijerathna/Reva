@@ -1250,3 +1250,122 @@ textarea.contact-input {
         margin: 0; 
     }
 }
+
+/* ... Keep all your existing CSS above this line ... */
+
+/* ======================
+   FRONTEND ERROR STYLES
+====================== */
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  display: block;
+}
+.input-error {
+  border-color: #f87171 !important;
+}
+
+/* ======================
+   RESPONSIVE HELPERS
+====================== */
+.mobile-only { display: none; }
+.desktop-only { display: block; }
+
+/* ======================
+   MOBILE REDESIGN
+====================== */
+/* ======================
+   MOBILE REDESIGN
+====================== */
+@media (max-width:992px){
+  .mobile-only { display: flex; }
+  .desktop-only { display: none !important; }
+
+  .login-container{
+    grid-template-columns:1fr;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    min-height: 100svh;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  /* The top gradient Hero section - Changed to 90deg left-to-right */
+  .login-hero{
+    display: flex;
+    min-height: 35vh;
+    padding: 30px;
+    background: linear-gradient(90deg, #e0e5ff 0%, #f1f3ff 100%);
+    align-items: flex-start;
+    justify-content: flex-start; /* Ensures content flows from top down */
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* --- NEW ALIGNMENT CONTAINER --- */
+  .hero-top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    z-index: 10;
+  }
+
+  /* Reset the back button to sit in the flex row on mobile */
+  .hero-back-btn{
+    position: static;
+    margin: 0;
+    padding: 0;
+  }
+
+  .mobile-hero-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--blue-medium);
+    font-weight: 800;
+    font-size: 20px;
+  }
+
+  /* Mobile Titles */
+  .hero-mobile-titles {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 10px;
+    z-index: 5;
+  }
+
+  .hero-mobile-titles h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+    font-weight: 700;
+  }
+
+  .hero-mobile-titles p {
+    font-size: 14px;
+    color: var(--text-gray);
+  }
+
+  /* Halved Floating Icons for Mobile View */
+  .shape-1{ font-size: 20px; bottom: 10px; left: -10px; } /* Was 40px */
+  .shape-2{ font-size: 30px; top: 10px; right: -20px; }   /* Was 60px */
+  .shape-3{ font-size: 15px; top: 40px; left: -20px; }    /* Was 30px */
+
+  /* Solid White Form with spacing and margins */
+  .login-form-wrapper{
+    padding: 20px 30px 40px 30px; 
+    background: #ffffff; /* Solid white */
+    flex: 1; 
+  }
+
+  .btn-google {
+    background: white;
+  }
+}

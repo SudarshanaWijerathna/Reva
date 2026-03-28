@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { isStoredAdmin } from '../../services/authService';
 
 const MobileBottomNav: React.FC = () => {
+  const { openAuthModal } = useAuth();
   const [isPredictionPopupOpen, setIsPredictionPopupOpen] = useState<boolean>(false);
   const location = useLocation();
   const isAdmin = isStoredAdmin();
 
   const isActive = (path: string): string => (location.pathname === path ? 'active' : '');
+
+  // --- MERGED: Intercept clicks for protected mobile routes ---
+  const handleProtectedNavigation = (e: React.MouseEvent) => {
+    const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+    if (!token) {
+      e.preventDefault(); 
+      openAuthModal('login', '/dashboard'); // Trigger popup and remember where to go!
+    }
+  };
 
   return (
     <nav className="bottom-nav">
@@ -56,10 +67,17 @@ const MobileBottomNav: React.FC = () => {
         <img src="/img/icons/home.svg" alt="Home" className="nav-icon" />
         <span className="nav-text">Home</span>
       </Link>
-      <Link to="/dashboard" className={`nav-item ${isActive('/dashboard')}`}>
+
+      <Link 
+        to="/dashboard" 
+        className={`nav-item ${isActive('/dashboard')}`}
+        onClick={handleProtectedNavigation}
+      >
         <img src="/img/icons/dashboard.svg" alt="Dashboard" className="nav-icon" />
         <span className="nav-text">Dashboard</span>
       </Link>
+
+      {/* --- MERGED: Admin link conditional rendering --- */}
       {isAdmin && (
         <Link to="/admin" className={`nav-item ${isActive('/admin')}`}>
           <i
@@ -69,9 +87,10 @@ const MobileBottomNav: React.FC = () => {
           <span className="nav-text">Admin</span>
         </Link>
       )}
+
       <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />
-        <span className="nav-text">Ask Reva</span>
+        <span className="nav-text">Ask Rēva</span>
       </Link>
     </nav>
   );

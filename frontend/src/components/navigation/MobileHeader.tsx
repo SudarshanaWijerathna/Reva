@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext'; 
 import {
   clearAuthStorage,
   getStoredDisplayName,
@@ -31,7 +32,6 @@ const generateInitialsAvatar = (name: string): string => {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
-// Define the User interface
 interface User {
   name: string;
   email: string;
@@ -39,75 +39,135 @@ interface User {
 }
 
 const MobileHeader: React.FC = () => {
+  const { openAuthModal, authUpdateKey } = useAuth(); 
+
   const [isHeaderSticky, setIsHeaderSticky] = useState<boolean>(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // 1. Set default state to NULL (Logged out by default)
   const [user, setUser] = useState<User | null>(null);
+  const [showLogout, setShowLogout] = useState<boolean>(false);
 
-  // 2. Check for actual login token on component mount
+  // --- MERGED: Uses authService helpers but retains authUpdateKey dependency ---
   useEffect(() => {
     const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
     const email = getStoredUserEmail();
     const displayName = getStoredDisplayName();
+    const storedPicture = localStorage.getItem("user_picture") || sessionStorage.getItem("user_picture");
     
-    if (token && email) {
+    if (token && (email || displayName)) {
       setUser({
-        name: displayName || 'User',
-        email: email,
-        profileUrl: null, // Replace with Google Photo URL when OAuth is implemented
+        name: displayName || (email ? email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1) : "User"),
+        email: email || "",
+        profileUrl: storedPicture || null, 
       });
-      return;
+    } else {
+      setUser(null);
     }
+  }, [location.pathname, authUpdateKey]); 
 
-    setUser(null);
-  }, [location.pathname]); // Re-run when navigation happens
-
-  // 3. Handle actual logout
-  const handleLogout = () => {
+  // --- MERGED: Uses authService to clear, but retains the bulletproof hard redirect ---
+  const handleLogout = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation(); // Prevents the click from bubbling and confusing React
+    }
+    
+    // Clear via the incoming service
     clearAuthStorage();
-    setUser(null);
-    navigate("/"); // Send back to home page
+    // Manually clear our fallback from the signup logic just in case
+    localStorage.removeItem("reva_backup_name");
+    
+    // Physically force the browser back to the homepage to guarantee a clean state reset
+    window.location.href = "/"; 
   };
 
+  // --- Smart Click-Outside & Scroll Detector ---
   useEffect(() => {
+    // 1. Close if they click anywhere outside the profile area
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.mobile-auth-container')) {
+        setShowLogout(false);
+      }
+    };
+
+    // 2. Close if they start scrolling the page
     const handleScroll = () => {
       setIsHeaderSticky(window.scrollY > 90);
+      setShowLogout(false); // Auto-hide menu on scroll!
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  // --- REUSABLE AUTH SECTION ---
+    if (showLogout) {
+      // Small delay prevents the opening click from immediately triggering the closing listener
+      setTimeout(() => document.addEventListener('click', handleClickOutside), 10);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showLogout]);
+
   const renderAuthSection = () => {
     if (user) {
       return (
-        // EXACT SAME HOVER UI AS DESKTOP
-        <div className="header-profile profile-hover-container">
+        // Added the class 'mobile-auth-container' so our smart click detector knows what to look for
+        <div className="mobile-auth-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           
-          <div className="profile-info">
-            <span className="user-name" style={{ fontWeight: 600 }}>
-              {user.name}
+          {/* Inline Logout Button (Slides out smoothly to the left) */}
+          <div style={{
+            position: 'absolute',
+            right: '100%', 
+            marginRight: '12px', 
+            opacity: showLogout ? 1 : 0,
+            visibility: showLogout ? 'visible' : 'hidden',
+            transform: showLogout ? 'translateX(0)' : 'translateX(10px)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', // Snappier animation
+            pointerEvents: showLogout ? 'auto' : 'none', 
+            zIndex: 999
+          }}>
+            <button 
+              onClick={handleLogout} 
+              className="btn-outline" 
+              style={{ 
+                padding: '6px 16px', 
+                fontSize: '13px', 
+                cursor: 'pointer', 
+                margin: 0, 
+                whiteSpace: 'nowrap', 
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)', // Subtle shadow
+                backgroundColor: '#ffffff00' // Ensures it blocks any background elements
+              }}
+            >
+              Logout
+            </button>
+          </div>
+          
+          {/* The Clickable Profile Trigger */}
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLogout(!showLogout);
+            }}
+            style={{ 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px',
+              position: 'relative',
+              zIndex: 999 
+            }}
+          >
+            {/* --- MERGED: Retains the UI formatting for the first name --- */}
+            <span style={{ fontWeight: 600, fontSize: '14px', color: '#000020' }}>
+              {user.name.split(' ')[0]} 
             </span>
             <img 
               src={user.profileUrl || generateInitialsAvatar(user.name)} 
               alt={`${user.name} Profile`} 
-              className="user-avatar"
-              style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+              style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} 
             />
-          </div>
-
-          <div className="logout-action">
-            <button 
-              onClick={handleLogout} 
-              className="btn-outline" 
-              // Making the button slightly smaller for mobile fit
-              style={{ padding: '6px 16px', fontSize: '13px', cursor: 'pointer', margin: 0 }}
-            >
-              Logout
-            </button>
           </div>
 
         </div>
@@ -116,29 +176,45 @@ const MobileHeader: React.FC = () => {
 
     return (
       <div className="auth-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <Link 
-          to="/login" 
-          state={{ mode: 'signup', from: location.pathname }} 
+        <button 
+          onClick={() => openAuthModal('signup')} 
           className="btn-outline" 
-          style={{ padding: '6px 12px', fontSize: '12px' }}
+          style={{ 
+            padding: '0 16px', 
+            fontSize: '13px',
+            height: '36px',
+            boxSizing: 'border-box',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            lineHeight: 1
+          }}
         >
           Sign Up
-        </Link>
-        <Link 
-          to="/login" 
-          state={{ mode: 'login', from: location.pathname }} 
+        </button>
+        <button 
+          onClick={() => openAuthModal('login')} 
           className="btn-primary" 
-          style={{ padding: '6px 14px', fontSize: '12px' }}
+          style={{ 
+            padding: '0 16px', 
+            fontSize: '13px', 
+            height: '36px', 
+            boxSizing: 'border-box', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            border: '1px solid transparent', 
+            lineHeight: 1
+          }}
         >
           Login
-        </Link>
+        </button>
       </div>
     );
   };
 
   return (
     <>
-      {/* SCROLLING FIXED HEADER */}
       <header className={`top-header fixed-header ${isHeaderSticky ? 'visible' : ''}`} id="fixedHeader">
         <Link to="/">
           <img src="/img/logo.png" alt="Reva Logo" className="header-logo" />
@@ -146,7 +222,6 @@ const MobileHeader: React.FC = () => {
         {renderAuthSection()}
       </header>
 
-      {/* MAIN STATIC HEADER */}
       <header className="top-header" id="mainHeader">
         <Link to="/">
           <img src="/img/logo.png" alt="Reva Logo" className="header-logo" />

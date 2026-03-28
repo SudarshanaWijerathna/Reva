@@ -5,7 +5,11 @@ import '../assets/css/navbar.css';
 
 const Home: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // 1. FIX: Check sessionStorage on initial load. If 'hasSeenHomeLoader' exists, start as FALSE.
+  const [isLoading, setIsLoading] = useState<boolean>(
+    !sessionStorage.getItem('hasSeenHomeLoader')
+  );
   
   // New State for Mobile Horizontal Roadmap
   const [activeRoadmapStep, setActiveRoadmapStep] = useState<number>(0);
@@ -30,26 +34,32 @@ const Home: React.FC = () => {
     { name: "Dilini Perera", stars: 4, text: "Really smooth UI and the predictions are very close to market rates.", img: "https://i.pravatar.cc/150?img=5" }
   ];
 
-  // 1. Handle Window Resizing
+  // Handle Window Resizing
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 2. Handle Loading Screen & Scroll Lock
+  // 2. FIX: Handle Loading Screen & Scroll Lock with 3-second timer
   useEffect(() => {
-    // Only lock the scroll if we are actually showing the mobile loader
-    if (isMobile && isLoading) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
+    // If the user has already seen the loader, ensure scrolling is unlocked and do nothing else
+    if (!isLoading) {
+        document.body.style.overflow = 'auto';
+        return;
     }
 
-    // Set the timer to clear the loading state
+    // Lock the scroll while the loader is showing on mobile
+    if (isMobile) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Set the timer to clear the loading state after 3000ms (3 seconds)
     const timer = setTimeout(() => {
         setIsLoading(false);
-    }, 1500); // Note: I lowered this from 3000ms (3s) to 1500ms (1.5s) for better UX!
+        // Leave a breadcrumb so they don't see it again this session!
+        sessionStorage.setItem('hasSeenHomeLoader', 'true');
+    }, 3000);
 
     // Cleanup function in case the user navigates away before the timer finishes
     return () => {
@@ -131,7 +141,6 @@ const Home: React.FC = () => {
                 </Link>
             </div>
             
-            {/* UPDATED: Mobile How Rēva Works Section */}
             <section className="section-card bg-img how-works-section">
                 <div className="section-header">
                     <h2>How Rēva Works</h2>
@@ -171,7 +180,6 @@ const Home: React.FC = () => {
                 <p><i className="fa-solid fa-circle-check"></i> Unlock the power of AI to navigate the real estate market with confidence and make smarter decisions for your future.</p>
             </div>
             
-            {/* UPDATED: Mobile Privacy Section with Custom SVGs */}
             <section className="section-card bg-white">
               <div className="m-split-layout">
                 <h2>Your Data Stays With You</h2>

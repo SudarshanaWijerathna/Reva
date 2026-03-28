@@ -74,6 +74,17 @@ class AdminUserListOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminUserDeleteOut(BaseModel):
+    """Schema returned after a user and their related data are deleted."""
+    id: int
+    email: str
+    deleted_properties: int
+    deleted_predictions: int
+    deleted_profile: bool
+    deleted_preferences: bool
+    message: str
+
+
 class AdminDashboardStats(BaseModel):
     """Schema for admin dashboard statistics."""
     total_users: int

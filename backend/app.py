@@ -1,6 +1,8 @@
 import os
 
 from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from google import genai
@@ -20,8 +22,8 @@ from backend.dynamic.routes import (
     predictions_router,
 )
 from backend.admin.routes import admin_router
+from backend.sentiment.routes import router as sentiment_router
 
-load_dotenv()
 app = FastAPI()
 
 ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").strip().lower() == "true"
@@ -97,6 +99,7 @@ app.include_router(users_router)
 app.include_router(features_router)
 app.include_router(predictions_router)
 app.include_router(admin_router)
+app.include_router(sentiment_router)
 
 
 @app.on_event("startup")

@@ -111,16 +111,16 @@ const Dashboard: React.FC = () => {
   // Get sentiment badge styling
   const getSentimentClass = (sentiment: string): string => {
     const lower = sentiment.toLowerCase();
-    if (lower.includes("high") || lower.includes("positive")) return "sent-up";
-    if (lower.includes("negative")) return "sent-down";
+    if (lower.includes("high") || lower.includes("positive") || lower.includes("bullish")) return "sent-up";
+    if (lower.includes("negative") || lower.includes("bearish")) return "sent-down";
     return "sent-neutral";
   };
 
   // Get sentiment trend icon
   const getSentimentIcon = (sentiment: string): string => {
     const lower = sentiment.toLowerCase();
-    if (lower.includes("high") || lower.includes("positive")) return "fa-arrow-trend-up";
-    if (lower.includes("negative")) return "fa-arrow-trend-down";
+    if (lower.includes("high") || lower.includes("positive") || lower.includes("bullish")) return "fa-arrow-trend-up";
+    if (lower.includes("negative") || lower.includes("bearish")) return "fa-arrow-trend-down";
     return "fa-minus";
   };
 

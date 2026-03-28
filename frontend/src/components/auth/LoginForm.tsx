@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE_URL } from "../../config/api";
-import { checkAdminAccess } from "../../services/authService";
+import { checkAdminAccess, persistAuthSession } from "../../services/authService";
 import GoogleButton from "./GoogleButton";
 import { useAuth } from "../../context/AuthContext";
 
@@ -59,9 +59,6 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       }
 
       const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("access_token", data.access_token);
-      storage.setItem("token_type", data.token_type);
-      storage.setItem("user_email", email.trim());
 
       // --- 1. MERGED: Check Admin Access (From Incoming Branch) ---
       let isAdmin = false;
@@ -72,6 +69,7 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       }
 
       // --- 2. MERGED: Fetch Profile with 404 Fallback (From HEAD) ---
+      let fullName: string | null = null;
       try {
         const profileRes = await fetch(`${API_BASE_URL}/users/me`, {
           method: 'GET',
@@ -86,17 +84,25 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
           const userName = profileData.full_name; 
           
           if (userName) {
-            storage.setItem("user_name", userName);
+            fullName = userName;
           }
         } else {
           const backupName = localStorage.getItem("reva_backup_name");
           if (backupName) {
-            storage.setItem("user_name", backupName);
+            fullName = backupName;
           }
         }
       } catch (profileErr) {
         console.error("Failed to fetch profile info:", profileErr);
       }
+
+      persistAuthSession(storage, {
+        accessToken: data.access_token,
+        tokenType: data.token_type,
+        email: email.trim(),
+        fullName,
+        isAdmin,
+      });
 
       closeAuthModal();
 

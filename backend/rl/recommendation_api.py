@@ -29,6 +29,8 @@ print("Action Index:", idx)
 print("Action Vector:", vec)
 print("Recommendation:", labels)   ''' 
 if __name__ == "__main__":
-    from backend.core.cache_service import get_cached_sentiment, update_sentiment_cache
-    print(get_cached_sentiment())
-    #print(update_sentiment_cache())
+    from backend.core.cache_service import get_cached_sentiment, update_sentiment_cache, get_sentiment_history, update_sentiment_history
+    print(str(get_cached_sentiment()) + "get_cached_sentiment")
+    #print(str(update_sentiment_cache()) + "update_sentiment_cache")
+    #print(str(get_sentiment_history()) + "get_sentiment_history")
+    print(str(update_sentiment_history()) + "update_sentiment_history")

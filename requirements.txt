@@ -16,6 +16,9 @@ chromadb
 sentence-transformers
 tqdm
 google-genai
+tensorflow
+keras
+tf_keras
 
 # ===== FastAPI Backend =====
 fastapi>=0.95.0
@@ -36,5 +39,5 @@ pandas
 numpy
 joblib
 lightgbm
-scikit-learn
+scikit-learn==1.6.1
 geopy

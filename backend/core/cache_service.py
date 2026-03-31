@@ -47,43 +47,41 @@ def get_cached_sentiment(force_refresh: bool = False):
     score = _compute_market_sentiment()
     _write_cache(score)
     return score
-
-def update_sentiment_history(force_refresh: bool = False, score=None):
+def update_sentiment_history():
     """
     Compute today's sentiment and store it in a rolling 30-day history.
     Does NOT affect existing cache functions.
     """
-    if not force_refresh and redis_client is not None:
-        try:
-            # 1. Compute latest sentiment (reuse your function)
-            if score is None:
-                score = _compute_market_sentiment()
+    if redis_client is None:
+        return
 
-            # 2. Create record with timestamp
-            record = {
-                "date": datetime.utcnow().strftime("%Y-%m-%d"),
-                "data": score
-            }
+    try:
+        # 1. Compute latest sentiment (reuse your function)
+        score = _compute_market_sentiment()
 
-            # 3. Push to Redis list (left push = newest first)
-            redis_client.lpush(HISTORY_KEY, json.dumps(record))
+        # 2. Create record with timestamp
+        record = {
+            "date": datetime.utcnow().strftime("%Y-%m-%d"),
+            "data": score
+        }
 
-            # 4. Trim list to last 30 days
-            redis_client.ltrim(HISTORY_KEY, 0, MAX_DAYS - 1)
-            print("Updated sentiment history with record:", record)
-            return record
+        # 3. Push to Redis list (left push = newest first)
+        redis_client.lpush(HISTORY_KEY, json.dumps(record))
 
-        except RedisError as exc:
-            logger.warning("Failed to update sentiment history: %s", exc)
-    else:
-        print("Redis client not available, skipping history update.")
-        return None
-    
+        # 4. Trim list to last 30 days
+        redis_client.ltrim(HISTORY_KEY, 0, MAX_DAYS - 1)
+
+        return record
+
+    except RedisError as exc:
+        logger.warning("Failed to update sentiment history: %s", exc)
 
     
 
 def get_sentiment_history():
-    
+    if redis_client is None:
+        return []
+
     try:
         records = redis_client.lrange(HISTORY_KEY, 0, -1)
         return [json.loads(r) for r in records]

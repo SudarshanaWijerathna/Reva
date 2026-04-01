@@ -24,7 +24,7 @@ def calculate_portfolio(db: Session, user_id: int):
 
         for prop in properties:
             try:
-                current_price = get_current_market_price(prop)
+                current_price = get_current_market_price(prop.property_type, prop.location)
                 profit = current_price - prop.purchase_price
 
                 total_investment += prop.purchase_price

@@ -201,8 +201,3 @@ def flatten_sentiment_features(features: Dict[str, Dict[str, float]]) -> List[fl
     )
   return flat
 
-if __name__ == "__main__":
-  features = aggregate_sentiment_features(debug=True)
-  print("Aggregated Sentiment Features:")
-  print(features)
-

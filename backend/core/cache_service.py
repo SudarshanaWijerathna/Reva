@@ -8,6 +8,7 @@ from backend.core.redis_client import get_redis
 MAX_DAYS = 30
 HISTORY_KEY = "sentiment_history"
 CACHE_KEY = "market_sentiment"
+CURRENT_PRICES_KEY = "current_prices"
 logger = logging.getLogger(__name__)
 
 
@@ -117,3 +118,36 @@ def get_sentiment_history():
     except (RedisError, json.JSONDecodeError) as exc:
         logger.warning("Failed to read sentiment history: %s", exc)
         return []
+    
+
+def update_current_prices():
+    redis_client = get_redis()
+    if redis_client is None:
+        return
+
+    try:
+        from backend.predictions.current_prices import web_scraper
+        result = web_scraper()
+        redis_client.set(CURRENT_PRICES_KEY, json.dumps(result))
+        return result
+    except RedisError as exc:
+        logger.warning("Failed to update current prices cache: %s", exc)
+
+def get_current_prices():
+    redis_client = get_redis()
+    if redis_client is None:
+        return {}
+
+    try:
+        cached_value = redis_client.get(CURRENT_PRICES_KEY)
+        if cached_value:
+            print("Current prices cache hit")
+            return json.loads(cached_value)
+        else:
+            logger.info("Current prices cache miss")
+            fetched = update_current_prices()  # Attempt to refresh cache on miss
+            print("Current prices updated")
+            return fetched
+    except (RedisError, json.JSONDecodeError) as exc:
+        logger.warning("Failed to read current prices cache: %s", exc)
+        return {}

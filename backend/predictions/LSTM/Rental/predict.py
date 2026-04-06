@@ -3,18 +3,18 @@ import pandas as pd
 from pathlib import Path
 from importlib import import_module
 import joblib
-from backend.predictions.LSTM.Land.thresholds import time_steps
+from backend.predictions.LSTM.Rental.threshold import time_steps
 import os
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
-DATASET_PATH = Path(__file__).resolve().parents[1] / "datasets" / "LandDF.csv"
+DATASET_PATH = Path(__file__).resolve().parents[1] / "datasets" / "HousingDF.csv"
 MODEL_PATH = Path(__file__).resolve().parent / "my_model.keras"
 SCALER_PATH = Path(__file__).resolve().parent / "scaler.joblib"
 
 
-def _load_land_df(csv_path=None):
+def _load_rental_df(csv_path=None):
     path = Path(csv_path) if csv_path else DATASET_PATH
     return pd.read_csv(path)
 
@@ -31,11 +31,7 @@ def _format_prediction_value(value, decimals=2):
     return f"{float(value):,.{decimals}f}"
 
 
-def _predict_next_value(model, x_input):
-    return model(x_input, training=False).numpy()
-
-
-def load_land_model_and_scaler(model_path=None, scaler_path=None):
+def load_rental_model_and_scaler(model_path=None, scaler_path=None):
     model_file = Path(model_path) if model_path else MODEL_PATH
     scaler_file = Path(scaler_path) if scaler_path else SCALER_PATH
 
@@ -47,7 +43,7 @@ def load_land_model_and_scaler(model_path=None, scaler_path=None):
 
 def predict_next_close_price(model, scaler, df=None, csv_path=None):
     if df is None:
-        df = _load_land_df(csv_path)
+        df = _load_rental_df(csv_path)
 
     if "close" not in df.columns:
         raise ValueError("CSV/DataFrame must contain a 'close' column")
@@ -65,7 +61,7 @@ def predict_next_close_price(model, scaler, df=None, csv_path=None):
     X_input = last_60_scaled.reshape(1, time_steps, 1)
 
     # predict
-    pred = _predict_next_value(model, X_input)
+    pred = model.predict(X_input, verbose=0)
 
     # inverse scale
     pred_actual = scaler.inverse_transform(pred)
@@ -76,13 +72,13 @@ def predict_next_close_price(model, scaler, df=None, csv_path=None):
 
 
 def predict_next_close_price_from_saved(csv_path=None, model_path=None, scaler_path=None):
-    model, scaler = load_land_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
+    model, scaler = load_rental_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
     return predict_next_close_price(model=model, scaler=scaler, df=None, csv_path=csv_path)
 
 def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
 
     if df is None:
-        df = _load_land_df(csv_path)
+        df = _load_rental_df(csv_path)
 
     last_60_days = df["close"].tail(time_steps).to_numpy()
     last_60_scaled = scaler.transform(last_60_days.reshape(-1, 1))
@@ -97,7 +93,7 @@ def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
         X_input = current_sequence.reshape(1, time_steps, 1)
 
         # predict next step
-        pred = _predict_next_value(model, X_input)
+        pred = model.predict(X_input, verbose=0)
 
         # store prediction
         predictions.append(pred[0][0])
@@ -114,7 +110,7 @@ def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
     return predictions
 
 def predict_future_sequence_from_saved(csv_path=None, model_path=None, scaler_path=None, steps=10):
-    model, scaler = load_land_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
+    model, scaler = load_rental_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
     return predict_future_sequence(model=model, scaler=scaler, df=None, csv_path=csv_path, steps=steps)
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import datetime
-import json
 from redis.exceptions import RedisError
 from backend.core.redis_client import get_redis
 
@@ -9,6 +8,7 @@ MAX_DAYS = 30
 HISTORY_KEY = "sentiment_history"
 CACHE_KEY = "market_sentiment"
 CURRENT_PRICES_KEY = "current_prices"
+FUTURE_PREDICTIONS_KEY = "future_predictions"
 logger = logging.getLogger(__name__)
 
 
@@ -151,3 +151,75 @@ def get_current_prices():
     except (RedisError, json.JSONDecodeError) as exc:
         logger.warning("Failed to read current prices cache: %s", exc)
         return {}
+    
+def compute_future_predictions():
+    print("Computing future predictions...")
+    from backend.predictions.LSTM.Land.predict import (
+        predict_next_close_price_from_saved as predict_land_next_close,
+        predict_future_sequence_from_saved as predict_land_sequence,
+    )
+    from backend.predictions.LSTM.Housing.predict import (
+        predict_next_close_price_from_saved as predict_housing_next_close,
+        predict_future_sequence_from_saved as predict_housing_sequence,
+    )
+    from backend.predictions.LSTM.Rental.predict import (
+        predict_next_close_price_from_saved as predict_rental_next_close,
+        predict_future_sequence_from_saved as predict_rental_sequence,
+    )
+
+    predictions = {
+        "land": {
+            "next_close": predict_land_next_close(),
+            "next_5_close": predict_land_sequence(steps=5),
+        },
+        "housing": {
+            "next_close": predict_housing_next_close(),
+            "next_5_close": predict_housing_sequence(steps=5),
+        },
+        "rental": {
+            "next_close": predict_rental_next_close(),
+            "next_5_close": predict_rental_sequence(steps=5),
+        },
+        "updated_at": datetime.utcnow().isoformat() + "Z",
+    }
+
+    return predictions
+
+
+def update_future_prediction_cache(data: dict = None):
+    print("Updating future predictions cache...")
+    redis_client = get_redis()
+    if redis_client is None:
+        print("No Redis client available, skipping cache update.")
+        return data if data is not None else compute_future_predictions()
+
+    try:
+        if data is None:
+            data = compute_future_predictions()
+
+        redis_client.set(FUTURE_PREDICTIONS_KEY, json.dumps(data))
+        return data
+    except RedisError as exc:
+        logger.warning("Failed to update future predictions cache: %s", exc)
+        return data
+
+
+def get_future_predictions(force_refresh: bool = False):
+    redis_client = get_redis()
+
+    if not force_refresh and redis_client is not None:
+        try:
+            cached_value = redis_client.get(FUTURE_PREDICTIONS_KEY)
+            if cached_value:
+                print("Future predictions cache hit")
+                return json.loads(cached_value)
+        except (RedisError, json.JSONDecodeError) as exc:
+            logger.warning("Failed to read future predictions cache: %s", exc)
+    print("Future predictions cache miss, recomputing...")
+    logger.info("Future predictions cache miss")
+    return update_future_prediction_cache()
+
+
+# Backward-compatible alias using the requested spelling.
+def update_future_prediction_catche(data: dict = None):
+    return update_future_prediction_cache(data)

@@ -67,8 +67,8 @@ def predict_next_close_price(model, scaler, df=None, csv_path=None):
     pred_actual = scaler.inverse_transform(pred)
 
     predicted_close = float(pred_actual[0][0])
-    print("Predicted next close:", _format_prediction_value(predicted_close))
-    return predicted_close
+    #print("Predicted next close:", _format_prediction_value(predicted_close))
+    return _format_prediction_value(predicted_close)
 
 
 def predict_next_close_price_from_saved(csv_path=None, model_path=None, scaler_path=None):
@@ -105,15 +105,15 @@ def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
     predictions = np.array(predictions).reshape(-1, 1)
     predictions = scaler.inverse_transform(predictions)
     formatted_predictions = [_format_prediction_value(v[0]) for v in predictions]
-    print(f"Predicted next {steps} close prices:", formatted_predictions)
+    #print(f"Predicted next {steps} close prices:", formatted_predictions)
 
-    return predictions
+    return formatted_predictions
 
 def predict_future_sequence_from_saved(csv_path=None, model_path=None, scaler_path=None, steps=10):
     model, scaler = load_housing_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
     return predict_future_sequence(model=model, scaler=scaler, df=None, csv_path=csv_path, steps=steps)
-
+'''
 if __name__ == "__main__":
     predict_next_close_price_from_saved()
-    predict_future_sequence_from_saved(steps=5)
+    predict_future_sequence_from_saved(steps=5)'''
     

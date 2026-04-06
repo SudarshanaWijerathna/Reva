@@ -115,21 +115,37 @@ def _validate_bounds(bounds: Tuple[float, float], name: str) -> Tuple[float, flo
 	return lower, upper
 
 
+def _to_float(value: object, default: float = 0.0) -> float:
+	"""Convert cache/model values like '1,234.56' to float safely."""
+	if value is None:
+		return default
+	if isinstance(value, (int, float)):
+		return float(value)
+	if isinstance(value, str):
+		try:
+			return float(value.replace(",", "").strip())
+		except ValueError:
+			return default
+	return default
+
+
 def get_data():
+
+	#current_prices of preoperties from cache
 	current_prices = get_current_prices()
 
-	curr_land_price = current_prices.get("lands", {}).get("national average", 0.0)
-	curr_housing_price = current_prices.get("sales", {}).get("national average", 0.0)
-	current_rental_price = current_prices.get("rentals", {}).get("national average", 0.0)
+	curr_land_price = _to_float(current_prices.get("lands", {}).get("national average", 0.0))
+	curr_housing_price = _to_float(current_prices.get("sales", {}).get("national average", 0.0))
+	current_rental_price = _to_float(current_prices.get("rentals", {}).get("national average", 0.0))
 
-    # implemt the actual prediction logic here using your ML models or APIs
-	future_land_price = 11000000
-	future_housing_price_3m = 52000000
-	future_rental_price = 22000000
+	# future predictions of properties from cache
+	from backend.core.cache_service import get_future_predictions, update_future_prediction_cache
+	get_future_predictions = get_future_predictions()
 
-	#print(result_custom.get("sales", {}).get("national average", "N/A"), "National Average Sale Price")
-	#print(result_custom.get("rentals", {}).get("national average", "N/A"), "National Average Rental Price")
-	#print(result_custom.get("lands", {}).get("national average", "N/A"), "National Average Land Price")
+	future_land_price = _to_float(get_future_predictions.get("land", {}).get("next_close", "0"))
+	housing_next_5 = get_future_predictions.get("housing", {}).get("next_5_close", ["0", "0", "0"])
+	future_housing_price_3m = _to_float(housing_next_5[2] if len(housing_next_5) > 2 else "0")
+	future_rental_price = _to_float(get_future_predictions.get("rental", {}).get("next_close", "0"))
 	
     
 	return curr_land_price, curr_housing_price, future_land_price, current_rental_price, future_housing_price_3m, future_rental_price

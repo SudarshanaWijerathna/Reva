@@ -58,17 +58,5 @@ if __name__ == "__main__":
     print(features)
     # ++++++++++++++++++++++++
 
-    with SessionLocal() as db:
-        current_user = db.query(UserModel).first()
-        if current_user:
-            count = portfolio_property_type_counts(
-                user_id=current_user.id,
-                user=None,
-                db=db,
-            )
-            print(f"Portfolio Property Type Counts: {count}")
-        else:
-            print("Portfolio Property Type Counts: {'housing': 0, 'rental': 0, 'land': 0}")
-
 
     

@@ -13,11 +13,6 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 from backend.core.cache_service import get_current_prices
-#from backend.predictions.house_api import predict_house_price
-#from backend.predictions.land_api import predict_land_price
-#from backend.predictions.rental_api import predict_rental_price
-
-
 # Global, runtime-editable feature boundaries.
 # Update these values directly or via ``set_feature_boundaries``.
 LAND_TREND_BOUNDS: Tuple[float, float] = (-0.10, 0.15)
@@ -139,7 +134,7 @@ def get_data():
 	current_rental_price = _to_float(current_prices.get("rentals", {}).get("national average", 0.0))
 
 	# future predictions of properties from cache
-	from backend.core.cache_service import get_future_predictions, update_future_prediction_cache
+	from backend.core.cache_service import get_future_predictions
 	get_future_predictions = get_future_predictions()
 
 	future_land_price = _to_float(get_future_predictions.get("land", {}).get("next_close", "0"))

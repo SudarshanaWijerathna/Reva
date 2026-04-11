@@ -116,8 +116,3 @@ def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
 def predict_future_sequence_from_saved(csv_path=None, model_path=None, scaler_path=None, steps=10):
     model, scaler = load_land_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
     return predict_future_sequence(model=model, scaler=scaler, df=None, csv_path=csv_path, steps=steps)
-'''
-if __name__ == "__main__":
-    predict_next_close_price_from_saved()
-    predict_future_sequence_from_saved(steps=5)
-    '''

@@ -9,6 +9,7 @@ HISTORY_KEY = "sentiment_history"
 CACHE_KEY = "market_sentiment"
 CURRENT_PRICES_KEY = "current_prices"
 FUTURE_PREDICTIONS_KEY = "future_predictions"
+RECCOMMENDATION_CACHE_KEY = "recommendation_cache"
 logger = logging.getLogger(__name__)
 
 
@@ -223,3 +224,37 @@ def get_future_predictions(force_refresh: bool = False):
 # Backward-compatible alias using the requested spelling.
 def update_future_prediction_catche(data: dict = None):
     return update_future_prediction_cache(data)
+
+def update_reccomendations():
+    redis_client = get_redis()
+    if redis_client is None:
+        return {}
+
+    try:
+        from backend.rl.recommendation_api import get_recommendation_for_user
+        from backend.auth.routes import user_dependency, Database
+        recommendations = get_recommendation_for_user(user_dependency, Database)
+        redis_client.set(RECCOMMENDATION_CACHE_KEY, json.dumps(recommendations))
+        return recommendations
+    except RedisError as exc:
+        logger.warning("Failed to update recommendations cache: %s", exc)
+        return {}
+
+def get_reccomendations():
+    redis_client = get_redis()
+    if redis_client is None:
+        return {}
+
+    try:
+        cached_value = redis_client.get(RECCOMMENDATION_CACHE_KEY)
+        if cached_value:
+            print("Recommendations cache hit")
+            return json.loads(cached_value)
+        else:
+            logger.info("Recommendations cache miss")
+            fetched = update_reccomendations()  # Attempt to refresh cache on miss
+            print("Recommendations updated")
+            return fetched
+    except (RedisError, json.JSONDecodeError) as exc:
+        logger.warning("Failed to read recommendations cache: %s", exc)
+        return {}

@@ -1,13 +1,25 @@
-from backend.agent.llm_graph import extract_query
+from backend.agent.services.intent_classifier import IntentContextClassifier
 
 
 def planner_node(state):
-    history = state["messages"][-10:]
-    data = extract_query(history, state["user_query"])
-    return {
-        "intent": data.get("intent"),
-        "inputs": {
-            "property_type": data.get("property_type"),
-            "location": data.get("location"),
-        },
+
+    #Context
+    #Intent
+    classifier = IntentContextClassifier(state)
+    context = classifier.ContextClassifier()
+    intent = classifier.IntentClassifier()
+    intent_value = intent.get("intent", None)
+    context_value = context.get("context", None)
+    requirements = {
+        "prediction": ["property_type", "location"],
+        "investment": ["property_type", "location"],
+        "analysis": ["property_type", "location"]
     }
+
+    return {
+        "intent": intent_value,
+        "context": context_value,
+        "missing_fields": requirements.get(intent_value, []),
+        "required_fields": requirements.get(intent_value, [])
+        }
+    

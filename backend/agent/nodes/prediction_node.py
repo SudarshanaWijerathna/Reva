@@ -1,6 +1,6 @@
-from backend.agent.tools import lstm_forecast
+from backend.agent.tools.lstm_tool import lstm_next_close
 
 
 def prediction_node(state):
-    forecast = lstm_forecast(state["inputs"]["property_type"], state["inputs"]["location"])
+    forecast = lstm_next_close(state["inputs"]["property_type"])
     return {"data": {"forecast": forecast}}

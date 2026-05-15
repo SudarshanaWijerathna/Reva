@@ -12,7 +12,7 @@ def lstm_next_close(property_type):
         return {"next_close": predictions["rental"]["next_close"]}
     else:
         return {"error": "Invalid property type"}
-def lstm_future_sequence(property_type, steps=5):
+def lstm_future_sequence(property_type, steps=None):
     predictions = get_future_predictions()
     if not predictions:
         return {"error": "No predictions available"}

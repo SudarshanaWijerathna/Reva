@@ -1,12 +1,14 @@
-from backend.agent.tools import lstm_forecast, sentiment_analysis, rl_decision
+from backend.agent.tools.rl_tool import get_recommendations
+from backend.agent.tools.sentiment_tool import get_sentiment
+from backend.agent.tools.lstm_tool import lstm_next_close
 
 
 def investment_node(state):
     inputs = state.get("inputs", {})
 
-    forecast = lstm_forecast(inputs["property_type"], inputs["location"], inputs.get("horizon", 6))
-    sentiment = sentiment_analysis(inputs["property_type"], inputs["location"])
-    decision = rl_decision(forecast, sentiment)
+    forecast = lstm_next_close(inputs["property_type"])
+    sentiment = get_sentiment(inputs["property_type"])
+    decision = get_recommendations(inputs["property_type"])
 
     return {
         "data": {

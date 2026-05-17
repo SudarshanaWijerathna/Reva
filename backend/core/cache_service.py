@@ -187,22 +187,20 @@ def compute_future_predictions():
     return predictions
 
 
-def update_future_prediction_cache(data: dict = None):
+def update_future_prediction_cache():
     print("Updating future predictions cache...")
     redis_client = get_redis()
     if redis_client is None:
         print("No Redis client available, skipping cache update.")
-        return data if data is not None else compute_future_predictions()
+        return compute_future_predictions()
 
     try:
-        if data is None:
-            data = compute_future_predictions()
-
+        data = compute_future_predictions()
         redis_client.set(FUTURE_PREDICTIONS_KEY, json.dumps(data))
         return data
     except RedisError as exc:
         logger.warning("Failed to update future predictions cache: %s", exc)
-        return data
+        return compute_future_predictions()
 
 
 def get_future_predictions(force_refresh: bool = False):
@@ -222,8 +220,8 @@ def get_future_predictions(force_refresh: bool = False):
 
 
 # Backward-compatible alias using the requested spelling.
-def update_future_prediction_catche(data: dict = None):
-    return update_future_prediction_cache(data)
+def update_future_prediction_catche():
+    return update_future_prediction_cache()
 
 def update_reccomendations():
     redis_client = get_redis()

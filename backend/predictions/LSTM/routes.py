@@ -49,29 +49,3 @@ def get_future_sequences(
 		"housing": {"sequence": predict_housing_sequence(steps=steps)},
 		"rental": {"sequence": predict_rental_sequence(steps=steps)},
 	}
-
-@router.get("/cached-predictions")
-def get_cached_predictions(
-	user: user_dependency,
-	db: Database,
-):
-	predictions = get_future_predictions()
-	if not predictions:
-		raise HTTPException(
-			status_code=status.HTTP_404_NOT_FOUND,
-			detail="No cached predictions available",
-		)
-	return predictions
-
-@router.get("/cached_current-prices")
-def get_current_prices_endpoint(
-	user: user_dependency,
-	db: Database,
-):
-	prices = get_current_prices()
-	if not prices:
-		raise HTTPException(
-			status_code=status.HTTP_404_NOT_FOUND,
-			detail="No current prices available",
-		)
-	return prices

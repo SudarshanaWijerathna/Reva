@@ -2,4 +2,7 @@ fastapi>=0.95.0
 uvicorn[standard]>=0.18.3
 pandas
 numpy
+scipy
 catboost
+torch
+torch-geometric

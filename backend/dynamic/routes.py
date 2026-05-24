@@ -89,16 +89,18 @@ def predict_value(
                 detail="Invalid user token"
             )
         
-        predicted_value = make_prediction(
+        prediction_result = make_prediction(
             db=db,
             model_type=model_type,
             input_features=request.features,
             user_id=user_id
         )
+        predicted_value = float(prediction_result["predicted_value"])
         print(f"Predicted value: {predicted_value}, for model type: {model_type}")
         return PredictionResponse(
             predicted_value=predicted_value,
-            model_type=model_type
+            model_type=model_type,
+            details=prediction_result,
         )
         
     except ValueError as e:

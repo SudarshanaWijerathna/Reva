@@ -1,0 +1,101 @@
+{
+  "model_variant": "house_catboost_gnn_residual_v1",
+  "feature_version": "house_gnn_v1",
+  "accepted_model": "",
+  "accepted_reason": "Best GNN model improved MAE by -3.0739%, below the 2.0000% threshold.",
+  "baseline_mae": 3980.370605862797,
+  "train_rows": 54134,
+  "validation_rows": 3354,
+  "graph_config": {
+    "spatial_k": 16,
+    "feature_k": 16,
+    "location_k": 8,
+    "query_multiplier": 4
+  },
+  "train_edge_counts": {
+    "spatial": 1732288,
+    "feature": 1732288,
+    "location": 865092,
+    "self": 0
+  },
+  "validation_edge_counts": {
+    "spatial": 107328,
+    "feature": 107328,
+    "location": 51924,
+    "self": 0
+  },
+  "results": {
+    "standalone_gnn": {
+      "train": {
+        "mae": 16559.10948603451,
+        "rmse": 18967.751813864008,
+        "mape": 99.99286686344992,
+        "median_ape": 99.99283333328668
+      },
+      "validation": {
+        "mae": 20072.798671187855,
+        "rmse": 23609.40934993176,
+        "mape": 99.99384369771978,
+        "median_ape": 99.99401447039129
+      },
+      "imputation": {
+        "numeric_mae": 0.9999181582019699,
+        "numeric_rmse": 1.7353836184602265
+      }
+    },
+    "residual_no_imputation": {
+      "train": {
+        "mae": 2370.6041056589165,
+        "rmse": 3949.0335785131897,
+        "mape": 14.525575186462275,
+        "median_ape": 10.313636466245828
+      },
+      "validation": {
+        "mae": 4110.756274564501,
+        "rmse": 7177.697996724576,
+        "mape": 20.638144667914293,
+        "median_ape": 14.405213534811242
+      },
+      "imputation": {
+        "numeric_mae": 1.0393325317922624,
+        "numeric_rmse": 1.7725248992170781
+      }
+    },
+    "residual_mtl_70_30": {
+      "train": {
+        "mae": 2453.7713477502944,
+        "rmse": 4076.1443334247997,
+        "mape": 14.75423398177437,
+        "median_ape": 10.514432051326535
+      },
+      "validation": {
+        "mae": 4199.787746872039,
+        "rmse": 7266.647144350385,
+        "mape": 20.493220516707332,
+        "median_ape": 14.655261746327405
+      },
+      "imputation": {
+        "numeric_mae": 0.8399199146517372,
+        "numeric_rmse": 1.5699654097104043
+      }
+    },
+    "residual_mtl_85_15": {
+      "train": {
+        "mae": 2381.904898036192,
+        "rmse": 4007.9001837461624,
+        "mape": 14.296711168951454,
+        "median_ape": 10.18673964963259
+      },
+      "validation": {
+        "mae": 4102.722753849778,
+        "rmse": 7188.11179520303,
+        "mape": 20.461729155040118,
+        "median_ape": 14.292235401576203
+      },
+      "imputation": {
+        "numeric_mae": 0.8702430781350854,
+        "numeric_rmse": 1.5925471480029771
+      }
+    }
+  }
+}

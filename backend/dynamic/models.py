@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict, Any, Optional
 
 
@@ -47,6 +47,7 @@ class PredictionResponse(BaseModel):
     """Schema for prediction response."""
     predicted_value: float
     model_type: str
+    details: Dict[str, Any] = Field(default_factory=dict)
 
 
 class PredictionRecordOut(BaseModel):

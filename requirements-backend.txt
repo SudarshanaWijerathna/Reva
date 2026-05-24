@@ -13,6 +13,12 @@ requests
 email-validator
 google-genai
 
+# ===== Local house model runtime =====
+pandas
+numpy
+scipy
+catboost
+
 # ===== Backend integrations used by current routes =====
 pymongo
 redis[hiredis]

@@ -18,6 +18,7 @@ export interface PredictionRequest {
 export interface PredictionResponse {
   predicted_value: number;
   model_type: string;
+  details?: Record<string, any>;
 }
 
 // Get access token from localStorage or sessionStorage

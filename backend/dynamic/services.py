@@ -53,6 +53,39 @@ def validate_features(feature_defs: list[FeatureDefinition], input_features: Dic
     return errors
 
 
+HOUSE_REQUIRED_FEATURES = [
+    (("house_sqft", "house_sqft_capped"), (int, float)),
+    (("land_sqft", "land_sqft_capped"), (int, float)),
+    (("bedrooms",), int),
+    (("bathrooms",), int),
+    (("lat",), (int, float)),
+    (("lon",), (int, float)),
+    (("district",), str),
+    (("sub_location",), str),
+    (("posted_year",), int),
+    (("posted_month",), int),
+]
+
+
+def validate_builtin_house_features(input_features: Dict[str, Any]) -> None:
+    errors = []
+    for field_names, expected_type in HOUSE_REQUIRED_FEATURES:
+        field_name = next((name for name in field_names if name in input_features), field_names[0])
+        if field_name not in input_features:
+            errors.append(f"Required field '{field_names[0]}' is missing")
+            continue
+        value = input_features[field_name]
+        if isinstance(expected_type, tuple):
+            is_valid = isinstance(value, expected_type) and not isinstance(value, bool)
+        else:
+            is_valid = isinstance(value, expected_type) and not isinstance(value, bool)
+        if not is_valid:
+            errors.append(f"Field '{field_name}' has an invalid value")
+
+    if errors:
+        raise ValueError("; ".join(errors))
+
+
 # ============ Prediction Services ============
 
 def make_prediction(
@@ -60,7 +93,7 @@ def make_prediction(
     model_type: str,
     input_features: Dict[str, Any],
     user_id: int
-) -> float:
+) -> Dict[str, Any]:
     """Make a prediction for the specified model type."""
     
     try:
@@ -68,10 +101,12 @@ def make_prediction(
 
         # Get active features and validate
         feature_defs = get_active_features(db, model_type)
-        if not feature_defs:
+        if model_type == "house":
+            validate_builtin_house_features(input_features)
+        elif feature_defs:
+            validate_features(feature_defs, input_features)
+        else:
             raise ValueError(f"No feature definitions found for model type: {model_type}")
-        
-        validate_features(feature_defs, input_features)
 
         if model_type not in {"land", "house", "rental"}:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -90,7 +125,7 @@ def make_prediction(
             predicted_value=str(predicted_value),
         )
         create_prediction_record(db, prediction_record)
-        return predicted_value
+        return results
     
     except ValueError as e:
         raise ValueError(f"Prediction validation error: {str(e)}")

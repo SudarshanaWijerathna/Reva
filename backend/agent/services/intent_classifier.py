@@ -20,8 +20,9 @@ class IntentContextClassifier:
             )
         result = self.llm(prompt)
         print("LLM response for context classification:", result)
-        try: return result
-        except: return {}
+        if isinstance(result, dict):
+            return result
+        return {}
 
     def IntentClassifier(self):
         history = self.state["messages"][-10:]
@@ -40,8 +41,9 @@ class IntentContextClassifier:
         )
         result = self.llm(prompt)
         print("LLM response for intent classification:", result)
-        try: return result
-        except: return {}
+        if isinstance(result, dict):
+            return result
+        return {}
     
     
 

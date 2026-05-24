@@ -1,5 +1,6 @@
 import os
 import json
+import ast
 from typing import Sequence
 from google import genai
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -17,4 +18,12 @@ def call_llm(prompt: str) -> str:
     #result = llm.invoke([HumanMessage(content=prompt)])
     result = call_open_router(prompt).replace("```json", "").replace("```", "").strip()
     print(f"LLM response: {result}")
-    return json.loads(result)
+    try:
+        return json.loads(result)
+    except json.JSONDecodeError:
+        # Some models return a Python-like dict with single quotes.
+        try:
+            parsed = ast.literal_eval(result)
+        except (ValueError, SyntaxError):
+            return {"response": result}
+        return parsed if isinstance(parsed, dict) else {"response": parsed}

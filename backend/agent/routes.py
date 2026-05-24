@@ -1,6 +1,6 @@
 from backend.agent.graph import graph
 from pydantic import BaseModel
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, HTTPException
 from backend.auth.routes import user_dependency, Database
 from langchain_core.messages import HumanMessage
 
@@ -16,12 +16,15 @@ router = APIRouter(
 async def ask(chat_request: ChatMessage,
               user: user_dependency,
               db: Database):
-    config = {"configurable": {"thread_id": user["id"]}}
-    input_state = {
-        "messages": [HumanMessage(content=chat_request.message)],
-        "user_query": chat_request.message
-    }
+    try:
+        config = {"configurable": {"thread_id": user["id"]}}
+        input_state = {
+            "messages": [HumanMessage(content=chat_request.message)],
+            "user_query": chat_request.message,
+        }
 
-    result = graph.invoke(input_state, config=config)
+        result = graph.invoke(input_state, config=config)
 
-    return result.get("response")
+        return result.get("response")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Error has occured to the chatbot") from exc

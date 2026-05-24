@@ -23,9 +23,8 @@ class InputDataFetchService:
             - Extract a JSON object ONLY (no prose, no code fences) with keys given in the Required fields to fetch section 
             - Only fetch data that is explicitly mentioned in the conversation history or is commonly required for the identified intent.
             - Do not fetch any data that is not relevant to the user's request or is not commonly required for the identified intent.
-
-            Some pre defined data. Use this data as reference for fetching the required fields. Only fetch data that is explicitly mentioned in the conversation history or is commonly required for the identified intent.
-            - property_type: land, housing, rental
+            - Prioritize user query data over conversation history when fetching data. Because the user query can change the context or intent of the conversation, so it is important to give it more weight when fetching data.
+            - Property type should be one of the following: ["land", "housing", "rental"]. Only retun these key words for property type
 
 
 

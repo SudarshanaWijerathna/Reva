@@ -52,11 +52,11 @@ def call_open_router(prompt: str=None) -> str:
 #response = response['choices'][0]['message']
 
 # Preserve the assistant message with reasoning_details
-'''
+
 if __name__ == "__main__":
     print("checking response")
-    
-    prompt = f"""
+    '''
+    prompt = """
             You are a real-estate assistant. Your task is to fetch the required data based on the intent, context and user query provided.
 
             Important instructions for data fetching:
@@ -65,12 +65,13 @@ if __name__ == "__main__":
             - Only fetch data that is explicitly mentioned in the conversation history or is commonly required for the identified intent.
             - Do not fetch any data that is not relevant to the user's request or is not commonly required for the identified intent.
 
-            Some pre defined data
-            - property_type: land, housing, rental
+            
+            Property type should be one of the following: ["land", "housing", "rental"]. Only retun these key words for property type
 
-            Conversation context : None
-            User query: "Can you find me a land in colombo?"
-            Intent: prediction
+
+
+            User query: fututre predictions about houses in colombo?
+            Intent: analysis
             Required fields to fetch: ["property_type", "location"]
 
             ex:

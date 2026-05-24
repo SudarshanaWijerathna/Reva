@@ -8,8 +8,8 @@ def planner_node(state):
     classifier = IntentContextClassifier(state)
     context = classifier.ContextClassifier()
     intent = classifier.IntentClassifier()
-    intent_value = intent.get("intent", None)
-    context_value = context.get("context", None)
+    intent_value = intent.get("intent", None) if isinstance(intent, dict) else None
+    context_value = context.get("context", None) if isinstance(context, dict) else None
     requirements = {
         "prediction": ["property_type", "location"],
         "investment": ["property_type", "location"],

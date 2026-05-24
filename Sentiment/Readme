@@ -9,36 +9,3 @@ Root - Reva :python -m Sentiment.Analysis.semantic_filter.semantic_pipeline
 Root - Reva :python -m Sentiment.Analysis.sentiment_aggregate.agg_pipe
 Root - Reva :python -m Sentiment.Analysis.run_both
 
-
-workflow 
-==================
-cd Reva
-PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> venv\Scripts\Activate
-(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> python -m Sentiment.Analysis.run_both
-Connected to MongoDB, database 'Reve', collection 'Sentiment_collection'
-Device set to use cpu
-==================================================
-Starting Sentiment Pipeline...
-==================================================
-Device set to use cpu
-Pipeline Results: 99
-
-Sentiment Pipeline completed.✅✅✅
-99 documents inserted into MongoDB.
-Sentiment results stored in database.✅✅✅
-
-Sentiment Pipeline completed!
-==================================================
-Starting Semantic Pipeline...
-==================================================
-Fetched ✅✅✅99 documents for evaluation.
-==================================================
-
-Semantic Pipeline completed!
-
-Both pipelines completed successfully!
-(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva> python -m Sentiment.Analysis.sentiment_aggregate.agg_pipe
-Connected to MongoDB, database 'Reve', collection 'Sentiment_collection'
-Fetched 43 relevant documents for aggregation.
-{'short_term': {'value': -0.4934, 'label': 'bearish'}, 'medium_term': {'value': -0.3576, 'label': 'bearish'}, 'long_term': {'value': -0.3063, 'label': 'bearish'}}
-(venv) PS C:\Users\Kavishka\Desktop\Assesments\Projects\Software_Project\Reva>

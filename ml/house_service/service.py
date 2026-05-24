@@ -1,30 +1,39 @@
 from pathlib import Path
 from typing import Any, Dict
+import json
 
 import pandas as pd
 from catboost import CatBoostRegressor, Pool
 
+from ml.house_service.description_features import (
+    DESCRIPTION_FEATURES,
+    FEATURE_EXTRACTION_VERSION,
+    extract_description_features,
+)
+from ml.house_service.feature_schema import BASELINE_CATEGORICAL_COLUMNS, BASELINE_FEATURES
+
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "catboost_house_price_baseline.cbm"
-
-FEATURES = [
-    "house_sqft_capped",
-    "land_sqft_capped",
-    "bedrooms",
-    "bathrooms",
-    "lat",
-    "lon",
-    "district",
-    "sub_location",
-    "posted_year",
-    "posted_month",
-]
-
-CATEGORICAL_COLUMNS = ["district", "sub_location"]
+BASELINE_MODEL_PATH = BASE_DIR / "catboost_house_price_baseline.cbm"
+ENHANCED_MODEL_PATH = BASE_DIR / "catboost_house_price_enhanced.cbm"
+METADATA_PATH = BASE_DIR / "catboost_house_price_enhanced_metadata.json"
 
 HOUSE_SQFT_MIN = 800.0
 LAND_SQFT_MIN = 1000.0
+
+metadata: Dict[str, Any] = {}
+model_variant = "baseline"
+MODEL_PATH = BASELINE_MODEL_PATH
+FEATURES = BASELINE_FEATURES
+CATEGORICAL_COLUMNS = BASELINE_CATEGORICAL_COLUMNS
+
+if ENHANCED_MODEL_PATH.exists() and METADATA_PATH.exists():
+    with METADATA_PATH.open("r", encoding="utf-8") as file:
+        metadata = json.load(file)
+    MODEL_PATH = ENHANCED_MODEL_PATH
+    FEATURES = metadata.get("features", BASELINE_FEATURES)
+    CATEGORICAL_COLUMNS = metadata.get("categorical_columns", BASELINE_CATEGORICAL_COLUMNS)
+    model_variant = metadata.get("model_variant", "enhanced")
 
 model = CatBoostRegressor()
 model.load_model(str(MODEL_PATH))
@@ -59,7 +68,10 @@ def _normalize_payload(payload: Dict[str, Any]) -> pd.DataFrame:
         "posted_month": int(_require_field(payload, "posted_month")),
     }
 
-    return pd.DataFrame([[normalized[column] for column in FEATURES]], columns=FEATURES)
+    description = payload.get("description") or payload.get("description_raw") or payload.get("ad_description") or ""
+    normalized.update(extract_description_features(description))
+
+    return pd.DataFrame([[normalized.get(column, 0) for column in FEATURES]], columns=FEATURES)
 
 
 def predict_house_price(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -68,10 +80,28 @@ def predict_house_price(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     predicted_price_per_sqft = float(model.predict(inference_pool)[0])
     total_price = predicted_price_per_sqft * float(frame.iloc[0]["house_sqft_capped"])
+    description_value_index = None
+    if "description_value_index" in frame.columns:
+        description_value_index = float(frame.iloc[0]["description_value_index"])
+    elif any(feature in FEATURES for feature in DESCRIPTION_FEATURES):
+        description = payload.get("description") or payload.get("description_raw") or payload.get("ad_description") or ""
+        description_value_index = float(
+            extract_description_features(description).get("description_value_index", 0.0)
+        )
 
-    return {
+    response = {
         "predicted_value": round(total_price, 2),
         "predicted_price_per_sqft": round(predicted_price_per_sqft, 2),
         "house_sqft_capped": float(frame.iloc[0]["house_sqft_capped"]),
         "model_type": "house",
+        "model_variant": model_variant,
     }
+
+    if description_value_index is not None:
+        response["description_value_index"] = round(description_value_index, 4)
+        response["feature_extraction_version"] = metadata.get(
+            "feature_extraction_version",
+            FEATURE_EXTRACTION_VERSION,
+        )
+
+    return response

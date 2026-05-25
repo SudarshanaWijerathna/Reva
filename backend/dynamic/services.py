@@ -67,23 +67,67 @@ HOUSE_REQUIRED_FEATURES = [
 ]
 
 
-def validate_builtin_house_features(input_features: Dict[str, Any]) -> None:
+LAND_REQUIRED_FEATURES = [
+    (("land_size",), (int, float)),
+    (("district",), str),
+]
+
+LAND_OPTIONAL_FEATURES = [
+    (("location_text",), str),
+    (("main_road",), bool),
+    (("electricity",), bool),
+    (("clear_deed",), bool),
+    (("water",), bool),
+    (("bank_loan",), bool),
+    (("near_town",), bool),
+    (("distance_to_town_m",), (int, float)),
+    (("period",), str),
+]
+
+
+def _validate_feature_contract(
+    input_features: Dict[str, Any],
+    required_features: list[tuple[tuple[str, ...], Any]],
+    optional_features: list[tuple[tuple[str, ...], Any]] | None = None,
+) -> None:
     errors = []
-    for field_names, expected_type in HOUSE_REQUIRED_FEATURES:
+    for field_names, expected_type in required_features:
         field_name = next((name for name in field_names if name in input_features), field_names[0])
         if field_name not in input_features:
             errors.append(f"Required field '{field_names[0]}' is missing")
             continue
         value = input_features[field_name]
-        if isinstance(expected_type, tuple):
-            is_valid = isinstance(value, expected_type) and not isinstance(value, bool)
-        else:
-            is_valid = isinstance(value, expected_type) and not isinstance(value, bool)
-        if not is_valid:
+        if not _value_matches_type(value, expected_type):
+            errors.append(f"Field '{field_name}' has an invalid value")
+
+    for field_names, expected_type in optional_features or []:
+        field_name = next((name for name in field_names if name in input_features), None)
+        if not field_name:
+            continue
+        value = input_features[field_name]
+        if value in {None, ""}:
+            continue
+        if not _value_matches_type(value, expected_type):
             errors.append(f"Field '{field_name}' has an invalid value")
 
     if errors:
         raise ValueError("; ".join(errors))
+
+
+def _value_matches_type(value: Any, expected_type: Any) -> bool:
+    if expected_type is bool:
+        return isinstance(value, bool)
+    if isinstance(expected_type, tuple):
+        return isinstance(value, expected_type) and not isinstance(value, bool)
+    return isinstance(value, expected_type) and not isinstance(value, bool)
+
+
+def validate_builtin_house_features(input_features: Dict[str, Any]) -> None:
+    _validate_feature_contract(input_features, HOUSE_REQUIRED_FEATURES)
+
+
+def validate_builtin_land_features(input_features: Dict[str, Any]) -> None:
+    _validate_feature_contract(input_features, LAND_REQUIRED_FEATURES, LAND_OPTIONAL_FEATURES)
 
 
 # ============ Prediction Services ============
@@ -103,6 +147,8 @@ def make_prediction(
         feature_defs = get_active_features(db, model_type)
         if model_type == "house":
             validate_builtin_house_features(input_features)
+        elif model_type == "land":
+            validate_builtin_land_features(input_features)
         elif feature_defs:
             validate_features(feature_defs, input_features)
         else:

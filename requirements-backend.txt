@@ -13,11 +13,15 @@ requests
 email-validator
 google-genai
 
-# ===== Local house model runtime =====
+# ===== Local model service runtime =====
 pandas
 numpy
 scipy
 catboost
+joblib
+lightgbm
+scikit-learn
+geopy
 
 # ===== Backend integrations used by current routes =====
 pymongo

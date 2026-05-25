@@ -4,5 +4,3 @@ pandas
 numpy
 scipy
 catboost
-torch
-torch-geometric

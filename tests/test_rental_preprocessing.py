@@ -98,7 +98,7 @@ class RentalQualityTests(unittest.TestCase):
 
 class RentalPreprocessSmokeTests(unittest.TestCase):
     def test_preprocess_writes_cleaned_features_and_report(self):
-        root = Path.cwd() / "tests" / "_tmp_rental_preprocessing"
+        root = Path.cwd() / ".tmp_rental_preprocessing_tests"
         shutil.rmtree(root, ignore_errors=True)
         try:
             input_dir = root / "input"

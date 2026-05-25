@@ -105,3 +105,49 @@ FEATURE_OUTPUT_COLUMNS = [
 ]
 
 SCHEMA_VERSION = "rental_features_v1"
+
+MODEL_VARIANT = "catboost_rental_price_v1"
+
+REQUIRED_TRAINING_COLUMNS = [
+    "record_id",
+    "source_file",
+    "listing_id",
+    *FEATURE_OUTPUT_COLUMNS,
+]
+
+REQUIRED_PREDICTION_COLUMNS = [
+    "property_type",
+    "location",
+]
+
+DEFAULT_CATEGORICAL_VALUES = {
+    "property_type": "unknown",
+    "district": "unknown",
+    "location": "unknown",
+    "furnishing_status": "unknown",
+    "source": "user_input",
+}
+
+RENTAL_FEATURE_DEFINITIONS = [
+    {"name": "property_type", "label": "Property type", "data_type": "string", "required": True},
+    {"name": "location", "label": "Location", "data_type": "string", "required": True},
+    {"name": "district", "label": "District", "data_type": "string", "required": False},
+    {"name": "furnishing_status", "label": "Furnishing status", "data_type": "string", "required": False},
+    {"name": "bedrooms", "label": "Bedrooms", "data_type": "float", "required": False},
+    {"name": "bathrooms", "label": "Bathrooms", "data_type": "float", "required": False},
+    {"name": "floor_area_sqft", "label": "Floor area (sqft)", "data_type": "float", "required": False},
+    {"name": "land_perches", "label": "Land size (perches)", "data_type": "float", "required": False},
+    {"name": "floor_number", "label": "Floor number", "data_type": "float", "required": False},
+    {"name": "car_parking_spaces", "label": "Car parking spaces", "data_type": "float", "required": False},
+    {"name": "is_short_term", "label": "Short-term rental", "data_type": "boolean", "required": False},
+    {"name": "amenity_24_hour_security", "label": "24 hour security", "data_type": "boolean", "required": False},
+    {"name": "amenity_ac_rooms", "label": "AC rooms", "data_type": "boolean", "required": False},
+    {"name": "amenity_fully_furnished", "label": "Fully furnished", "data_type": "boolean", "required": False},
+    {"name": "amenity_garage", "label": "Garage", "data_type": "boolean", "required": False},
+    {"name": "amenity_gym", "label": "Gym", "data_type": "boolean", "required": False},
+    {"name": "amenity_hot_water", "label": "Hot water", "data_type": "boolean", "required": False},
+    {"name": "amenity_internet", "label": "Internet", "data_type": "boolean", "required": False},
+    {"name": "amenity_lawn_garden", "label": "Garden", "data_type": "boolean", "required": False},
+    {"name": "amenity_on_site_parking", "label": "On-site parking", "data_type": "boolean", "required": False},
+    {"name": "amenity_swimming_pool", "label": "Swimming pool", "data_type": "boolean", "required": False},
+]

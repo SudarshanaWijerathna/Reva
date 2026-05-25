@@ -34,10 +34,47 @@ if ($Port -le 0) {
 }
 
 $module = "ml.$($Model)_service.app:app"
+$healthUrl = "http://$HostAddress`:$Port/health"
+$predictUrl = "http://$HostAddress`:$Port/predict"
+
+try {
+    $health = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2 -ErrorAction Stop
+    $runningModel = ""
+    if ($health.PSObject.Properties.Name -contains "model_type") {
+        $runningModel = [string]$health.model_type
+    }
+    if (-not $runningModel -or $runningModel -eq $Model) {
+        Write-Host "Reva $Model model service is already running"
+        Write-Host "URL: http://$HostAddress`:$Port"
+        Write-Host "Health: $healthUrl"
+        Write-Host "Predict: $predictUrl"
+        return
+    }
+} catch {
+    # No healthy model service is responding on this port; continue to port check.
+}
+
+$portIsOpen = $false
+$client = [System.Net.Sockets.TcpClient]::new()
+try {
+    $connect = $client.BeginConnect($HostAddress, $Port, $null, $null)
+    if ($connect.AsyncWaitHandle.WaitOne(500)) {
+        $client.EndConnect($connect)
+        $portIsOpen = $true
+    }
+} catch {
+    $portIsOpen = $false
+} finally {
+    $client.Close()
+}
+
+if ($portIsOpen) {
+    throw "Port $Port on $HostAddress is already in use by another process. Stop that process or run with -Port <another-port>."
+}
 
 Write-Host "Starting Reva $Model model service"
 Write-Host "URL: http://$HostAddress`:$Port"
-Write-Host "Health: http://$HostAddress`:$Port/health"
-Write-Host "Predict: http://$HostAddress`:$Port/predict"
+Write-Host "Health: $healthUrl"
+Write-Host "Predict: $predictUrl"
 
 & $Python -B -m uvicorn $module --host $HostAddress --port $Port --reload

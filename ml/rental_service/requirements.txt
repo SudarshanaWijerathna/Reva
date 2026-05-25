@@ -3,3 +3,5 @@ uvicorn[standard]>=0.18.3
 pandas
 numpy
 joblib
+catboost
+scikit-learn

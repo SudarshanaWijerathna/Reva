@@ -16,6 +16,7 @@ from backend.dynamic.repositories import (
     get_user_predictions
 )
 from backend.dynamic.services import (
+    get_builtin_features_for_model,
     validate_features,
     make_prediction
 )
@@ -55,6 +56,9 @@ def get_features(
 ):
     features = get_active_features(db, model_type)
     if not features:
+        builtin_features = get_builtin_features_for_model(model_type)
+        if builtin_features:
+            return builtin_features
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No features found for model type: {model_type}"

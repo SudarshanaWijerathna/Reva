@@ -7,6 +7,7 @@ from backend.dynamic.repositories import (
 )
 from backend.dynamic.schemas import FeatureDefinition, PredictionRecord
 from backend.predictions.model_runtime import predict_with_active_model
+from ml.rental_service.feature_schema import RENTAL_FEATURE_DEFINITIONS
 
 # ============ Feature Validation Services ============
 
@@ -85,6 +86,45 @@ LAND_OPTIONAL_FEATURES = [
 ]
 
 
+RENTAL_REQUIRED_FEATURES = [
+    (("property_type",), str),
+    (("location",), str),
+]
+
+RENTAL_OPTIONAL_FEATURES = [
+    (("district",), str),
+    (("furnishing_status",), str),
+    (("source",), str),
+    (("bedrooms",), (int, float)),
+    (("bathrooms",), (int, float)),
+    (("floor_area_sqft", "house_sqft", "house_sqft_capped", "size_sqft"), (int, float)),
+    (("land_perches", "land_size_perches"), (int, float)),
+    (("floor_number",), (int, float)),
+    (("car_parking_spaces", "parking_spaces"), (int, float)),
+    (("deposit_months",), (int, float)),
+    (("advance_months",), (int, float)),
+    (("lease_term_months",), (int, float)),
+    (("posted_year",), (int, float)),
+    (("posted_month",), (int, float)),
+    (("is_short_term", "short_term"), bool),
+    *((definition["name"],) for definition in RENTAL_FEATURE_DEFINITIONS if definition["data_type"] == "boolean"),
+]
+
+
+def get_builtin_features_for_model(model_type: str) -> list[dict[str, Any]]:
+    if (model_type or "").strip().lower() != "rental":
+        return []
+    return [
+        {
+            "id": 100000 + index,
+            "model_type": "rental",
+            "active": True,
+            **definition,
+        }
+        for index, definition in enumerate(RENTAL_FEATURE_DEFINITIONS, start=1)
+    ]
+
+
 def _validate_feature_contract(
     input_features: Dict[str, Any],
     required_features: list[tuple[tuple[str, ...], Any]],
@@ -130,6 +170,10 @@ def validate_builtin_land_features(input_features: Dict[str, Any]) -> None:
     _validate_feature_contract(input_features, LAND_REQUIRED_FEATURES, LAND_OPTIONAL_FEATURES)
 
 
+def validate_builtin_rental_features(input_features: Dict[str, Any]) -> None:
+    _validate_feature_contract(input_features, RENTAL_REQUIRED_FEATURES, RENTAL_OPTIONAL_FEATURES)
+
+
 # ============ Prediction Services ============
 
 def make_prediction(
@@ -149,6 +193,8 @@ def make_prediction(
             validate_builtin_house_features(input_features)
         elif model_type == "land":
             validate_builtin_land_features(input_features)
+        elif model_type == "rental" and not feature_defs:
+            validate_builtin_rental_features(input_features)
         elif feature_defs:
             validate_features(feature_defs, input_features)
         else:

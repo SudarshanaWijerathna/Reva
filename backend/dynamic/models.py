@@ -23,6 +23,7 @@ class FeatureOut(BaseModel):
     model_type: str
     required: bool
     active: bool
+    options: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
 

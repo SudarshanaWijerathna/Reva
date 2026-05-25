@@ -1,4 +1,8 @@
 
+import csv
+from collections import Counter
+from functools import lru_cache
+from pathlib import Path
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from backend.dynamic.repositories import (
@@ -107,18 +111,55 @@ RENTAL_OPTIONAL_FEATURES = [
     (("posted_year",), (int, float)),
     (("posted_month",), (int, float)),
     (("is_short_term", "short_term"), bool),
-    *((definition["name"],) for definition in RENTAL_FEATURE_DEFINITIONS if definition["data_type"] == "boolean"),
+    *(
+        ((definition["name"],), bool)
+        for definition in RENTAL_FEATURE_DEFINITIONS
+        if definition["data_type"] == "boolean"
+    ),
 ]
+
+
+@lru_cache(maxsize=1)
+def _rental_dropdown_options() -> dict[str, list[str]]:
+    options: dict[str, list[str]] = {
+        "property_type": ["Apartment", "House", "Office space", "Annex", "Room", "Building", "Shop space", "Warehouse", "Villa"],
+        "district": ["Colombo", "Gampaha", "Kalutara", "unknown"],
+        "location": ["Colombo 5", "Colombo 3", "Colombo 2", "Dehiwala", "Nugegoda", "Rajagiriya", "Battaramulla"],
+        "furnishing_status": ["furnished", "semi-furnished", "unfurnished", "unknown"],
+    }
+    feature_path = Path(__file__).resolve().parents[2] / "data" / "features" / "rental_features_v1.csv"
+    if not feature_path.exists():
+        return options
+
+    counters = {column: Counter() for column in options}
+    with feature_path.open("r", encoding="utf-8-sig", newline="", errors="replace") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            for column, counter in counters.items():
+                value = str(row.get(column) or "").strip()
+                if value:
+                    counter[value] += 1
+
+    for column, counter in counters.items():
+        if counter:
+            values = [value for value, _ in counter.most_common()]
+            if column == "furnishing_status":
+                preferred = ["furnished", "semi-furnished", "unfurnished", "unknown"]
+                values = preferred + [value for value in values if value not in preferred]
+            options[column] = values
+    return options
 
 
 def get_builtin_features_for_model(model_type: str) -> list[dict[str, Any]]:
     if (model_type or "").strip().lower() != "rental":
         return []
+    dropdown_options = _rental_dropdown_options()
     return [
         {
             "id": 100000 + index,
             "model_type": "rental",
             "active": True,
+            "options": dropdown_options.get(definition["name"]),
             **definition,
         }
         for index, definition in enumerate(RENTAL_FEATURE_DEFINITIONS, start=1)

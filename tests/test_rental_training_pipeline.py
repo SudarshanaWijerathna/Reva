@@ -1,6 +1,7 @@
 import importlib.util
 import math
 import unittest
+from unittest.mock import patch
 
 from ml.rental_service import train_model
 from ml.rental_service.feature_schema import REQUIRED_TRAINING_COLUMNS, TRAINING_FEATURE_COLUMNS
@@ -85,6 +86,61 @@ class RentalServiceNormalizationTests(unittest.TestCase):
         self.assertIn("location", missing)
         self.assertEqual(normalized["property_type"], "unknown")
         self.assertEqual(normalized["location"], "unknown")
+
+
+class RentalBackendFeatureContractTests(unittest.TestCase):
+    def test_builtin_rental_validation_accepts_boolean_amenities(self):
+        from backend.dynamic.services import validate_builtin_rental_features
+
+        validate_builtin_rental_features(
+            {
+                "property_type": "Apartment",
+                "location": "Colombo 5",
+                "district": "Colombo",
+                "furnishing_status": "furnished",
+                "bedrooms": 2,
+                "bathrooms": 2,
+                "floor_area_sqft": 1100.0,
+                "amenity_ac_rooms": True,
+                "amenity_swimming_pool": False,
+            }
+        )
+
+    def test_builtin_rental_features_include_dropdown_options(self):
+        from backend.dynamic.services import get_builtin_features_for_model
+
+        features = {feature["name"]: feature for feature in get_builtin_features_for_model("rental")}
+
+        self.assertIn("Apartment", features["property_type"]["options"])
+        self.assertIn("Colombo 5", features["location"]["options"])
+        self.assertIn("Colombo", features["district"]["options"])
+        self.assertIn("furnished", features["furnishing_status"]["options"])
+
+    def test_make_prediction_uses_builtin_rental_validation_when_db_features_are_empty(self):
+        from backend.dynamic import services
+
+        with (
+            patch.object(services, "get_active_features", return_value=[]),
+            patch.object(services, "predict_with_active_model", return_value={"predicted_value": 200000, "model_type": "rental"}),
+            patch.object(services, "create_prediction_record", return_value=None),
+        ):
+            result = services.make_prediction(
+                db=None,
+                model_type="rental",
+                user_id=1,
+                input_features={
+                    "property_type": "Apartment",
+                    "location": "Colombo 5",
+                    "district": "Colombo",
+                    "furnishing_status": "furnished",
+                    "bedrooms": 2,
+                    "bathrooms": 2,
+                    "floor_area_sqft": 1100,
+                    "amenity_ac_rooms": True,
+                },
+            )
+
+        self.assertEqual(result["predicted_value"], 200000)
 
 
 @unittest.skipUnless(

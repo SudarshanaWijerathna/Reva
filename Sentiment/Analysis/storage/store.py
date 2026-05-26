@@ -1,5 +1,4 @@
 from Sentiment.Analysis.database import Sentiment_collection
-from datetime import datetime
 
 class SentimentStorage:
     def __init__(self):
@@ -27,20 +26,9 @@ class SentimentStorage:
         return list(self.db_collection.find({}))
     
 
-    def fetch_relevant_docs(self, cutoff_date: datetime = None):
-        """
-        Return documents marked as relevant.
-        If cutoff_date is provided, only return documents newer than that.
-        """
-
-        query = {
-            "relevance": "relevant"
-        }
-
-        if cutoff_date is not None:
-            query["timestamp"] = {"$gte": cutoff_date}
-
-        return list(self.db_collection.find(query))
+    def fetch_relevant_docs(self):
+        """Return documents marked as relevant."""
+        return list(self.db_collection.find({"relevance": "noise"}))
     
     def update_doc_similarity(self, doc_id,scores_dict):
         self.db_collection.update_one(

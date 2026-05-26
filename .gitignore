@@ -59,3 +59,7 @@ backend/database/test.db
 chroma_store/
 Sentiment/chroma_store/
 Sentiment/chroma_store
+
+# .gitignore
+Sentiment/Analysis/__pycache__/
+*.pyc

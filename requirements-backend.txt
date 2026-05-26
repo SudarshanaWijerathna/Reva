@@ -17,3 +17,9 @@ google-genai
 pymongo
 redis[hiredis]
 apscheduler
+
+# ===== Agent dependencies =====
+langgraph
+langchain_core
+langchain-community
+langchain-google-genai

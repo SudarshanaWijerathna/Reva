@@ -23,6 +23,10 @@ from backend.dynamic.routes import (
 )
 from backend.admin.routes import admin_router
 from backend.sentiment.routes import router as sentiment_router
+from backend.rl.routes import router as rl_router
+from backend.agent.routes import router as agent_router
+from backend.predictions.LSTM.routes import router as lstm_router
+from backend.core.routes import router as cache_router
 
 app = FastAPI()
 
@@ -100,8 +104,10 @@ app.include_router(features_router)
 app.include_router(predictions_router)
 app.include_router(admin_router)
 app.include_router(sentiment_router)
-
-
+app.include_router(rl_router)
+app.include_router(agent_router)
+app.include_router(lstm_router)
+app.include_router(cache_router)
 @app.on_event("startup")
 def startup_event():
     if ENABLE_SCHEDULER:

@@ -46,6 +46,7 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     """Schema for prediction response."""
     predicted_value: float
+    predicted_sequence: list[float]
     model_type: str
 
 

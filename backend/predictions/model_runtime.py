@@ -18,10 +18,12 @@ def predict_with_active_model(
     """
     Resolve the active model from the registry and execute a prediction against it.
     """
+    """
     active_model = get_active_model_by_type(db, model_type)
     if not active_model:
         raise ValueError(f"No active model found for model type: {model_type}")
-
+    
+    
     endpoint_url = (active_model.deployed_endpoint or "").strip()
     if not endpoint_url:
         raise ValueError(f"Active model for '{model_type}' has no deployed endpoint configured")
@@ -32,4 +34,5 @@ def predict_with_active_model(
             "Active models must use an http(s) deployed endpoint."
         )
 
-    return predict_via_http(model_type, endpoint_url, payload)
+    """
+    return predict_via_http(model_type, payload)

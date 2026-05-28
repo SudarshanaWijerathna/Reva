@@ -3,6 +3,28 @@ import { Link, useLocation } from 'react-router-dom'; // <-- Added useLocation h
 import '../assets/css/askreva.css'; 
 import { API_BASE_URL } from '../config/api';
 
+
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+  onstart: (() => void) | null;
+  onresult: ((event: any) => void) | null;
+  onerror: ((event: any) => void) | null;
+  onend: (() => void) | null;
+};
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => BrowserSpeechRecognition;
+    webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+  }
+}
+
 // --- Interfaces ---
 interface ExtraData {
   extracted?: {
@@ -158,6 +180,16 @@ const Askreva: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const baseTranscriptRef = useRef('');
+  const finalTranscriptRef = useRef('');
+  const latestTranscriptRef = useRef('');
+  const speechStartTimerRef = useRef<number | null>(null);
+  const holdTimerRef = useRef<number | null>(null);
+  const holdModeRef = useRef(false);
+  const suppressClickRef = useRef(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -166,6 +198,62 @@ const Askreva: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      if (speechStartTimerRef.current) {
+        window.clearTimeout(speechStartTimerRef.current);
+      }
+      if (holdTimerRef.current) {
+        window.clearTimeout(holdTimerRef.current);
+      }
+      recognitionRef.current?.abort();
+    };
+  }, []);
+
+  const cleanSpeechTranscript = (text: string) => {
+    let cleaned = text
+      .replace(/\s+/g, ' ')
+      .replace(/\s+([,.!?])/g, '$1')
+      .trim();
+
+    const corrections: Array<[RegExp, string]> = [
+      [/\b(reba|riva|river|rev a|reva)\b/gi, 'Reva'],
+      [/\bmore to work\b/gi, 'Moratuwa'],
+      [/\bmora two a\b/gi, 'Moratuwa'],
+      [/\bmore two a\b/gi, 'Moratuwa'],
+      [/\bcolumbo\b/gi, 'Colombo'],
+      [/\bgampa ha\b/gi, 'Gampaha'],
+      [/\bkaluthara\b/gi, 'Kalutara'],
+      [/\bperches\b/gi, 'perches'],
+      [/\bperch\b/gi, 'perch']
+    ];
+
+    corrections.forEach(([wrong, right]) => {
+      cleaned = cleaned.replace(wrong, right);
+    });
+
+    return cleaned;
+  };
+
+  const getSpeechErrorMessage = (error: string) => {
+    if (error === 'network') {
+      return 'Voice recognition failed because of a network issue. Please check your connection and try again.';
+    }
+    if (error === 'not-allowed' || error === 'service-not-allowed') {
+      return 'Microphone access is blocked. Please allow microphone permission in your browser.';
+    }
+    if (error === 'no-speech') {
+      return 'No speech was detected. Please speak clearly after the mic starts listening.';
+    }
+    if (error === 'audio-capture') {
+      return 'No microphone was found. Please check your microphone connection.';
+    }
+    if (error === 'aborted') {
+      return '';
+    }
+    return 'Speech recognition failed. Please try again.';
+  };
 
  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
@@ -201,6 +289,146 @@ const Askreva: React.FC = () => {
       
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const startSpeechToText = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechError('Speech recognition is not supported in this browser. Please try Google Chrome.');
+      return;
+    }
+
+    if (recognitionRef.current) {
+      return;
+    }
+
+    setSpeechError('');
+    baseTranscriptRef.current = inputValue.trim();
+    finalTranscriptRef.current = '';
+    latestTranscriptRef.current = inputValue.trim();
+
+    const recognition = new SpeechRecognition();
+
+    // English-only setup. For Sri Lankan English, test "en-US", "en-GB", and "en-IN"
+    // and keep the one that recognizes your users best.
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript.trim();
+
+        if (event.results[i].isFinal) {
+          finalTranscriptRef.current = `${finalTranscriptRef.current} ${transcript}`.trim();
+        } else {
+          interimTranscript = `${interimTranscript} ${transcript}`.trim();
+        }
+      }
+
+      const combinedTranscript = `${baseTranscriptRef.current} ${finalTranscriptRef.current} ${interimTranscript}`
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      latestTranscriptRef.current = cleanSpeechTranscript(combinedTranscript);
+      setInputValue(latestTranscriptRef.current);
+
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      const message = getSpeechErrorMessage(event.error);
+      if (message) {
+        setSpeechError(message);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+
+      const finalText = cleanSpeechTranscript(latestTranscriptRef.current);
+      setInputValue(finalText);
+
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    // Small delay prevents users from speaking before the browser is ready.
+    speechStartTimerRef.current = window.setTimeout(() => {
+      try {
+        recognition.start();
+      } catch (error) {
+        recognitionRef.current = null;
+        setIsListening(false);
+        setSpeechError('Could not start voice recognition. Please try again.');
+      }
+    }, 300);
+  };
+
+  const stopSpeechToText = () => {
+    if (speechStartTimerRef.current) {
+      window.clearTimeout(speechStartTimerRef.current);
+      speechStartTimerRef.current = null;
+    }
+
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const toggleSpeechToText = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+
+    if (isListening) {
+      stopSpeechToText();
+    } else {
+      startSpeechToText();
+    }
+  };
+
+  const handleMicPointerDown = () => {
+    holdModeRef.current = false;
+
+    holdTimerRef.current = window.setTimeout(() => {
+      holdModeRef.current = true;
+      if (!isListening) {
+        startSpeechToText();
+      }
+    }, 250);
+  };
+
+  const handleMicPointerUp = () => {
+    if (holdTimerRef.current) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+
+    if (holdModeRef.current) {
+      suppressClickRef.current = true;
+      stopSpeechToText();
+      holdModeRef.current = false;
     }
   };
 
@@ -335,8 +563,22 @@ const Askreva: React.FC = () => {
             placeholder="Ask Reva about property prices..." 
             rows={1} 
           />
+          <button
+            type="button"
+            className={`mic-button ${isListening ? 'listening' : ''}`}
+            onClick={toggleSpeechToText}
+            onPointerDown={handleMicPointerDown}
+            onPointerUp={handleMicPointerUp}
+            onPointerLeave={handleMicPointerUp}
+            onPointerCancel={handleMicPointerUp}
+            title={isListening ? 'Stop listening' : 'Start speaking'}
+            aria-label={isListening ? 'Stop speech recognition' : 'Start speech recognition'}
+          >
+            <i className={`fa-solid ${isListening ? 'fa-microphone-lines' : 'fa-microphone'}`}></i>
+          </button>
           <img src="/img/icons/send.svg" className="send-icon" alt="Send" onClick={() => handleSendMessage(inputValue)} />
         </div>
+        {speechError && <div className="speech-error">{speechError}</div>}
       </div>
     </div>
   );

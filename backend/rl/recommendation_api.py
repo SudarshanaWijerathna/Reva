@@ -57,7 +57,7 @@ def get_recommendation_for_user(user, db):
     return {
         "action_index": action_index,
         "action_vector": action_vector,
-        "action_labels": action_labels,
+        "action_labels": action_labels, # order is land, housing, rental
         "state_vector": [float(value) for value in state_vector],
     }
 

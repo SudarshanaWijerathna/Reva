@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ced7fb;
+        stroke-width: 0px;
+      }
+      .cls-2 {
+        fill: #6b76f7;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <!-- 3/4 Wedge in Light Blue -->
+      <path class="cls-1" d="M 52 52 L 52 12 A 40 40 0 1 1 12 52 Z" />
+      
+      <!-- 1/4 Separated Wedge in Dark Blue (exploded) -->
+      <path class="cls-2" d="M 46 46 L 46 6 A 40 40 0 0 0 6 46 Z" />
+    </g>
+  </g>
+</svg>

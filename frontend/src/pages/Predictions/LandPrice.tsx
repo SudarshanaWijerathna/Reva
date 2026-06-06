@@ -109,83 +109,87 @@ const LandPrice: React.FC = () => {
           <div className="top-section">
             <div className="card">
               <div className="form-container">
-                <div className="form-col">
-                  <div className="input-group">
-                    <label>Land size (perches)</label>
-                    <input 
-                      type="number" 
-                      className="input-field" 
-                      placeholder="e.g 20.0"
-                      value={form['land_size'] || ''}
-                      onChange={e => handleFormChange('land_size', e.target.value)}
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label>District</label>
-                    <select 
-                      className="input-field"
-                      value={form['district'] || ''}
-                      onChange={e => handleFormChange('district', e.target.value)}
-                    >
-                      <option value="">Select District</option>
-                      <option value="Colombo">Colombo</option>
-                      <option value="Gampaha">Gampaha</option>
-                      <option value="Kandy">Kandy</option>
-                      <option value="Galle">Galle</option>
-                    </select>
-                  </div>
-                  <div className="input-group mt-auto">
-                    <label>Location / Town / Landmarks</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="e.g Kiribathgoda"
-                      value={form['location_text'] || ''}
-                      onChange={e => handleFormChange('location_text', e.target.value)}
-                    />
+                {/* Land Size */}
+                <div className="input-group">
+                  <label>Land size (perches)</label>
+                  <input 
+                    type="number" 
+                    className="input-field" 
+                    placeholder="e.g 20.0"
+                    value={form['land_size'] || ''}
+                    onChange={e => handleFormChange('land_size', e.target.value)}
+                  />
+                </div>
+
+                {/* Other Utilities (grid-row: span 2) */}
+                <div className="input-group other-utilities-group">
+                  <label>Other utilities</label>
+                  <div className="checkbox-grid">
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['main_road'] || false} onChange={e => handleFormChange('main_road', e.target.checked)} />
+                      <span className="checkmark"></span> Main road
+                    </label>
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['electricity'] || false} onChange={e => handleFormChange('electricity', e.target.checked)} />
+                      <span className="checkmark"></span> Electricity
+                    </label>
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['clear_deed'] || false} onChange={e => handleFormChange('clear_deed', e.target.checked)} />
+                      <span className="checkmark"></span> Clear deed
+                    </label>
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['water'] || false} onChange={e => handleFormChange('water', e.target.checked)} />
+                      <span className="checkmark"></span> Water
+                    </label>
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['bank_loan'] || false} onChange={e => handleFormChange('bank_loan', e.target.checked)} />
+                      <span className="checkmark"></span> Bank loan
+                    </label>
+                    <label className="checkbox-item">
+                      <input type="checkbox" checked={form['near_town'] || false} onChange={e => handleFormChange('near_town', e.target.checked)} />
+                      <span className="checkmark"></span> Near town
+                    </label>
                   </div>
                 </div>
 
-                <div className="form-col">
-                  <div className="input-group">
-                    <label>Other utilities</label>
-                    <div className="checkbox-grid">
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['main_road'] || false} onChange={e => handleFormChange('main_road', e.target.checked)} />
-                        <span className="checkmark"></span> Main road
-                      </label>
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['electricity'] || false} onChange={e => handleFormChange('electricity', e.target.checked)} />
-                        <span className="checkmark"></span> Electricity
-                      </label>
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['clear_deed'] || false} onChange={e => handleFormChange('clear_deed', e.target.checked)} />
-                        <span className="checkmark"></span> Clear deed
-                      </label>
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['water'] || false} onChange={e => handleFormChange('water', e.target.checked)} />
-                        <span className="checkmark"></span> Water
-                      </label>
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['bank_loan'] || false} onChange={e => handleFormChange('bank_loan', e.target.checked)} />
-                        <span className="checkmark"></span> Bank loan
-                      </label>
-                      <label className="checkbox-item">
-                        <input type="checkbox" checked={form['near_town'] || false} onChange={e => handleFormChange('near_town', e.target.checked)} />
-                        <span className="checkmark"></span> Near town
-                      </label>
-                    </div>
-                  </div>
-                  <div className="input-group mt-auto"> 
-                    <label>Distance to nearest town (meters)</label>
-                    <input 
-                      type="number" 
-                      className="input-field" 
-                      placeholder="e.g 500"
-                      value={form['distance_to_town_m'] || ''}
-                      onChange={e => handleFormChange('distance_to_town_m', e.target.value)}
-                    />
-                  </div>
+                {/* District */}
+                <div className="input-group">
+                  <label>District</label>
+                  <select 
+                    className="input-field"
+                    value={form['district'] || ''}
+                    onChange={e => handleFormChange('district', e.target.value)}
+                  >
+                    <option value="">Select District</option>
+                    <option value="Colombo">Colombo</option>
+                    <option value="Gampaha">Gampaha</option>
+                    <option value="Kandy">Kandy</option>
+                    <option value="Galle">Galle</option>
+                  </select>
+                </div>
+
+                {/* Location */}
+                <div className="input-group">
+                  <label>Location / Town / Landmarks</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder="e.g Kiribathgoda"
+                    value={form['location_text'] || ''}
+                    onChange={e => handleFormChange('location_text', e.target.value)}
+                  />
+                </div>
+
+                {/* Distance to nearest town */}
+                <div className="input-group">
+                  <label>Distance to nearest town (meters)</label>
+                  <input 
+                    type="number" 
+                    className="input-field" 
+                    placeholder="e.g 500"
+                    value={form['distance_to_town_m'] || ''}
+                    onChange={e => handleFormChange('distance_to_town_m', e.target.value)}
+                  />
                 </div>
               </div>
             </div>

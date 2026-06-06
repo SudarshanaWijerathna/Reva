@@ -5,7 +5,6 @@ from typing import Sequence
 from google import genai
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import BaseMessage, BaseMessage, HumanMessage
-from pyparsing import Dict
 from dotenv import load_dotenv
 from backend.agent.open_router import call_open_router
 load_dotenv()

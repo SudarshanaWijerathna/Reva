@@ -112,7 +112,24 @@ const Home: React.FC = () => {
                         <h1>Intelligent Real Estate Virtual Assistant</h1>
                     </div>
                     <div className="reva-hero-image">
-                        <img src="/img/banner-hero-image.gif" alt="Rēva Assistant" className="overhang-image" />
+                        <video
+                          className="overhang-image hero-theme-media hero-theme-media-light"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                        >
+                          <source src="/img/animate_logo_light.webm" type="video/webm" />
+                        </video>
+                        <video
+                          className="overhang-image hero-theme-media hero-theme-media-dark"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                        >
+                          <source src="/img/animate_logo_dark.webm" type="video/webm" />
+                        </video>
                     </div>
                 </section>
             </div>
@@ -258,7 +275,26 @@ const Home: React.FC = () => {
                         <div className="reva-hero-features"></div>
                     </div>
                     <div className="rightside-hero">
-                        <img src="/img/banner-hero-image.gif" alt="Real Estate Analysis Animation" />
+                        <video
+                          className="hero-theme-media hero-theme-media-light"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          aria-label="Real estate analysis animation light mode"
+                        >
+                          <source src="/img/animate_logo_light.webm" type="video/webm" />
+                        </video>
+                        <video
+                          className="hero-theme-media hero-theme-media-dark"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          aria-label="Real estate analysis animation dark mode"
+                        >
+                          <source src="/img/animate_logo_dark.webm" type="video/webm" />
+                        </video>
                     </div>
                 </section>
             </div>

@@ -29,7 +29,26 @@ export default function LoginHero() {
       {/* Hero Content pushes text to the bottom using auto margins */}
       <div className="hero-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div className="main-logo-large desktop-only">
-          <img src="/img/banner-hero-image.gif" alt="reva-gif-image" />
+          <video
+            className="hero-theme-media hero-theme-media-light"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-label="Reva hero animation light mode"
+          >
+            <source src="/img/animate_logo_light.webm" type="video/webm" />
+          </video>
+          <video
+            className="hero-theme-media hero-theme-media-dark"
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-label="Reva hero animation dark mode"
+          >
+            <source src="/img/animate_logo_dark.webm" type="video/webm" />
+          </video>
         </div>
 
         <div className="desktop-only">

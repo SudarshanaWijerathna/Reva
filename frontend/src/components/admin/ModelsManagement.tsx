@@ -205,6 +205,11 @@ const ModelsManagement: React.FC = () => {
     }
   };
 
+  const handleCopyEndpoint = (endpoint: string) => {
+    navigator.clipboard.writeText(endpoint);
+    setSuccessMessage('Endpoint copied to clipboard!');
+  };
+
   const handleActivate = async (modelId: number) => {
     try {
       const token = getAuthToken();
@@ -426,7 +431,8 @@ const ModelsManagement: React.FC = () => {
         </div>
       )}
 
-      <div className="filter-bar">
+      {/* Desktop Filter Bar */}
+      <div className="filter-bar desktop-only-view">
         <label>Filter Models:</label>
         <div className="filter-buttons">
           {['all', ...modelTypes].map((type) => (
@@ -447,13 +453,46 @@ const ModelsManagement: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Filter Bar (Dropdowns) */}
+      <div className="filter-bar-mobile mobile-only-view">
+        <div className="filter-dropdown-group">
+          <label htmlFor="mobile-model-type">Type:</label>
+          <select
+            id="mobile-model-type"
+            value={selectedModelType}
+            onChange={(e) => setSelectedModelType(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Types</option>
+            {modelTypes.map((type) => (
+              <option key={type} value={type}>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-dropdown-group">
+          <label htmlFor="mobile-model-status">Status:</label>
+          <select
+            id="mobile-model-status"
+            value={activeOnly ? 'active' : 'all'}
+            onChange={(e) => setActiveOnly(e.target.value === 'active')}
+            className="filter-select"
+          >
+            <option value="all">All Models</option>
+            <option value="active">Active Only</option>
+          </select>
+        </div>
+      </div>
+
       {selectedModel && (
         <div className="form-container model-details-card">
           <div className="content-header model-details-header">
             <div>
               <h3>{selectedModel.name}</h3>
               <div className="user-count">
-                {selectedModel.model_type} · {selectedModel.version} · {selectedModel.is_active ? 'Active' : 'Inactive'}
+                {selectedModel.model_type} Â· {selectedModel.version} Â· {selectedModel.is_active ? 'Active' : 'Inactive'}
               </div>
             </div>
             <div className="action-buttons">
@@ -526,69 +565,176 @@ const ModelsManagement: React.FC = () => {
       ) : models.length === 0 ? (
         <div className="empty-state">No models registered for this filter.</div>
       ) : (
-        <div className="models-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Version</th>
-                <th>Metrics</th>
-                <th>Status</th>
-                <th>Uploaded By</th>
-                <th>Registered</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.map((model) => (
-                <tr key={model.id}>
-                  <td>
-                    <strong>{model.name}</strong>
-                    <div className="table-subtext">{model.deployed_endpoint}</div>
-                  </td>
-                  <td>
-                    <span className="badge">{model.model_type}</span>
-                  </td>
-                  <td>{model.version}</td>
-                  <td>
-                    <div className="table-subtext">MAE: {formatMetric(model.mae)}</div>
-                    <div className="table-subtext">RMSE: {formatMetric(model.rmse)}</div>
-                  </td>
-                  <td>
+        <>
+          {/* Desktop Table View */}
+          <div className="models-table desktop-only-view">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Version</th>
+                  <th>Metrics</th>
+                  <th>Status</th>
+                  <th>Uploaded By</th>
+                  <th>Registered</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {models.map((model) => (
+                  <tr key={model.id}>
+                    <td>
+                      <strong>{model.name}</strong>
+                      <div className="table-subtext">{model.deployed_endpoint}</div>
+                    </td>
+                    <td>
+                      <span className="badge">{model.model_type}</span>
+                    </td>
+                    <td>{model.version}</td>
+                    <td>
+                      <div className="table-subtext">MAE: {formatMetric(model.mae)}</div>
+                      <div className="table-subtext">RMSE: {formatMetric(model.rmse)}</div>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${model.is_active ? 'active' : 'inactive'}`}>
+                        {model.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>{model.uploaded_by_email || 'N/A'}</td>
+                    <td>{model.created_at ? new Date(model.created_at).toLocaleDateString() : 'N/A'}</td>
+                    <td className="action-buttons">
+                      <button
+                        className="btn-action"
+                        onClick={() => setExpandedModelId(expandedModelId === model.id ? null : model.id)}
+                      >
+                        {expandedModelId === model.id ? 'Hide' : 'View'}
+                      </button>
+                      <button className="btn-edit" onClick={() => populateForm(model)}>
+                        Edit
+                      </button>
+                      {!model.is_active && (
+                        <button className="btn-action" onClick={() => handleActivate(model.id)}>
+                          Activate
+                        </button>
+                      )}
+                      <button className="btn-delete" onClick={() => handleDelete(model)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="models-cards-mobile mobile-only-view">
+            {models.map((model) => (
+              <div key={model.id} className="model-card-item">
+                <div className="model-card-header">
+                  {/* Row 1: Title and Active Status */}
+                  <div className="model-card-header-top-row">
+                    <h3>{model.name}</h3>
                     <span className={`status-badge ${model.is_active ? 'active' : 'inactive'}`}>
                       {model.is_active ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td>{model.uploaded_by_email || 'N/A'}</td>
-                  <td>{model.created_at ? new Date(model.created_at).toLocaleDateString() : 'N/A'}</td>
-                  <td className="action-buttons">
+                  </div>
+                  
+                  {/* Row 2: Version, Type tag (Left) and Endpoint, Copy button (Right) */}
+                  <div className="model-card-meta-row">
+                    <div className="model-card-meta-left">
+                      <span className="model-card-version-tag">Version: {model.version}</span>
+                      <span className="badge">{model.model_type}</span>
+                    </div>
+                    <div className="model-card-meta-right">
+                      <span className="endpoint-text">
+                        {model.deployed_endpoint.length > 15
+                          ? model.deployed_endpoint.slice(0, 15) + '...'
+                          : model.deployed_endpoint}
+                      </span>
+                      <button
+                        onClick={() => handleCopyEndpoint(model.deployed_endpoint)}
+                        className="endpoint-copy-btn"
+                        title="Copy Endpoint"
+                        aria-label="Copy Deployed Endpoint"
+                      >
+                        <i className="fa-regular fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="model-card-body">
+                  <div className="model-card-row">
+                    <span className="model-card-label">Metrics:</span>
+                    <div style={{ textAlign: 'right' }}>
+                      <div>MAE: {formatMetric(model.mae)}</div>
+                      <div>RMSE: {formatMetric(model.rmse)}</div>
+                    </div>
+                  </div>
+                  <div className="model-card-row">
+                    <span className="model-card-label">Uploaded By:</span>
+                    <span>{model.uploaded_by_email || 'N/A'}</span>
+                  </div>
+                  <div className="model-card-row">
+                    <span className="model-card-label">Registered:</span>
+                    <span>{model.created_at ? new Date(model.created_at).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                </div>
+
+                <div className="model-card-actions action-buttons">
+                  <div className="model-card-actions-left">
                     <button
                       className="btn-action"
                       onClick={() => setExpandedModelId(expandedModelId === model.id ? null : model.id)}
+                      title={expandedModelId === model.id ? 'Hide Details' : 'View Details'}
+                      aria-label={expandedModelId === model.id ? 'Hide Details' : 'View Details'}
                     >
-                      {expandedModelId === model.id ? 'Hide' : 'View'}
+                      {expandedModelId === model.id ? (
+                        <i className="fa-solid fa-eye-slash"></i>
+                      ) : (
+                        <i className="fa-solid fa-eye"></i>
+                      )}
                     </button>
-                    <button className="btn-edit" onClick={() => populateForm(model)}>
-                      Edit
+                    <button
+                      className="btn-edit"
+                      onClick={() => populateForm(model)}
+                      title="Edit Model"
+                      aria-label="Edit Model"
+                    >
+                      <i className="fa-solid fa-pen"></i>
                     </button>
                     {!model.is_active && (
-                      <button className="btn-action" onClick={() => handleActivate(model.id)}>
-                        Activate
+                      <button
+                        className="btn-action"
+                        onClick={() => handleActivate(model.id)}
+                        title="Activate Model"
+                        aria-label="Activate Model"
+                      >
+                        <i className="fa-solid fa-bolt"></i>
                       </button>
                     )}
-                    <button className="btn-delete" onClick={() => handleDelete(model)}>
-                      Delete
+                  </div>
+                  <div className="model-card-actions-right">
+                    <button
+                      className="btn-delete"
+                      onClick={() => handleDelete(model)}
+                      title="Delete Model"
+                      aria-label="Delete Model"
+                    >
+                      <i className="fa-solid fa-trash"></i>
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
 export default ModelsManagement;
+

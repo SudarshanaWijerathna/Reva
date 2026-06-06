@@ -40,7 +40,7 @@
 /* Info Card */
 .contact-info-card {
     background: var(--blue-medium);
-    color: white;
+    color: var(--white);
     padding: 40px;
     border-radius: 32px;
     position: relative;
@@ -66,15 +66,15 @@
 .social-links { display: flex; gap: 16px; margin-top: auto; position: relative; z-index: 2; }
 .social-links a { 
     width: 40px; height: 40px; border-radius: 50%; 
-    background: rgba(255,255,255,0.2); color: white;
+    background: rgba(255,255,255,0.2); color: var(--white);
     display: flex; align-items: center; justify-content: center;
     text-decoration: none; transition: all 0.2s;
 }
-.social-links a:hover { background: white; color: var(--blue-medium); transform: translateY(-3px); }
+.social-links a:hover { background: var(--white); color: var(--blue-medium); transform: translateY(-3px); }
 
 /* Form Card */
 .contact-form-card {
-    background: white;
+    background: var(--white);
     padding: 40px;
     border-radius: 32px;
     box-shadow: 0 14px 40px rgba(0,0,0,0.04);
@@ -87,15 +87,15 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #f0fdf4;
-    color: #166534;
+    background: var(--success-bg-light);
+    color: var(--success-text-light);
     padding: 8px 12px;
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 24px;
     width: fit-content;
-    border: 1px solid #bbf7d0;
+    border: 1px solid var(--success-border-light);
 }
 
 .form-group { margin-bottom: 20px; }
@@ -103,13 +103,13 @@
 
 .contact-input {
     width: 100%; padding: 14px 16px; 
-    border: 2px solid #e2e8f0; border-radius: 12px;
+    border: 2px solid var(--border-color); border-radius: 12px;
     font-size: 15px; outline: none; transition: all 0.3s;
-    background: #fcfcfc; color: var(--text-dark);
+    background: var(--input-disabled-bg); color: var(--text-dark);
     box-sizing: border-box;
 }
 
-.contact-input:focus { border-color: var(--blue-medium); background: white; }
+.contact-input:focus { border-color: var(--blue-medium); background: var(--white); }
 textarea.contact-input { resize: vertical; min-height: 180px; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -118,7 +118,7 @@ textarea.contact-input { resize: vertical; min-height: 180px; }
    ========================================= */
 @media (max-width: 992px) {
     /* Set the background color to match your index mobile style */
-    body { background-color: #f6f0f0 !important; }
+    body { background-color: var(--mobile-page-bg) !important; }
 
     .contact-wrapper {
         padding-top: 30px !important; /* Kills the massive 130px desktop space */

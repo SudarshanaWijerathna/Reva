@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ced7fb;
+        stroke-width: 0px;
+      }
+      .cls-2 {
+        fill: #6b76f7;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <!-- Track lines in light blue -->
+      <rect class="cls-1" x="15" y="26" width="70" height="8" rx="4" />
+      <rect class="cls-1" x="15" y="46" width="70" height="8" rx="4" />
+      <rect class="cls-1" x="15" y="66" width="70" height="8" rx="4" />
+      
+      <!-- Knobs/handles in dark blue -->
+      <circle class="cls-2" cx="35" cy="30" r="12" />
+      <circle class="cls-2" cx="65" cy="50" r="12" />
+      <circle class="cls-2" cx="45" cy="70" r="12" />
+    </g>
+  </g>
+</svg>

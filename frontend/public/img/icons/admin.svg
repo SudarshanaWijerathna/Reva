@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="16 8 69 72">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ced7fb;
+        stroke-width: 0px;
+      }
+      .cls-2 {
+        fill: #6b76f7;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <!-- User Body & Head in Light Blue -->
+      <path class="cls-1" d="M42 22 A12 12 0 1 1 42 46 A12 12 0 1 1 42 22 M18 72 C18 58 28 53 42 53 C56 53 66 58 66 72 L66 77 L18 77 Z" />
+      <!-- Shield in Dark Blue -->
+      <path class="cls-2" d="M68 38 L83 43 L83 58 C83 68 74 76 68 78 C62 76 53 68 53 58 L53 43 Z" />
+    </g>
+  </g>
+</svg>

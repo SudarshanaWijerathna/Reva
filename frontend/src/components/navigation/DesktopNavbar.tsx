@@ -47,8 +47,27 @@ const DesktopNavbar: React.FC = () => {
   const [isSticky, setIsSticky] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  // Check admin status from the auth service
-  const isAdmin = isStoredAdmin();
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  // Check admin status from the auth service only if authenticated
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  const isAdmin = !!token && isStoredAdmin();
 
   // --- MERGED: Uses authService helpers but retains authUpdateKey dependency ---
   useEffect(() => {
@@ -143,6 +162,14 @@ const DesktopNavbar: React.FC = () => {
         </ul>
 
         <div className="nav-actions">
+          <button 
+            onClick={toggleDarkMode} 
+            className="dark-mode-btn" 
+            aria-label="Toggle dark mode"
+            title="Toggle theme"
+          >
+            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+          </button>
           {user ? (
             <div className="header-profile profile-hover-container">
               <div className="profile-info">

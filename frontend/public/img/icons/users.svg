@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="10 20 80 60">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #ced7fb;
+        stroke-width: 0px;
+      }
+      .cls-2 {
+        fill: #6b76f7;
+        stroke-width: 0px;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <!-- Left User (Light Blue) -->
+      <circle class="cls-1" cx="30" cy="40" r="8" />
+      <path class="cls-1" d="M14 72 C14 62, 20 57, 30 57 C40 57, 46 62, 46 72 Z" />
+      
+      <!-- Right User (Light Blue) -->
+      <circle class="cls-1" cx="70" cy="40" r="8" />
+      <path class="cls-1" d="M54 72 C54 62, 60 57, 70 57 C80 57, 86 62, 86 72 Z" />
+      
+      <!-- Center User (Dark Blue - Foreground) -->
+      <circle class="cls-2" cx="50" cy="33" r="10" />
+      <path class="cls-2" d="M30 72 C30 58, 38 52, 50 52 C62 52, 70 58, 70 72 Z" />
+    </g>
+  </g>
+</svg>

@@ -7,7 +7,8 @@ const MobileBottomNav: React.FC = () => {
   const { openAuthModal } = useAuth();
   const [isPredictionPopupOpen, setIsPredictionPopupOpen] = useState<boolean>(false);
   const location = useLocation();
-  const isAdmin = isStoredAdmin();
+  const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+  const isAdmin = !!token && isStoredAdmin();
 
   const isActive = (path: string): string => (location.pathname === path ? 'active' : '');
 
@@ -28,10 +29,18 @@ const MobileBottomNav: React.FC = () => {
         onClick={() => setIsPredictionPopupOpen(false)}
       ></div>
 
-      <Link to="/support" className={`nav-item ${isActive('/support')}`}>
-        <img src="/img/icons/support.svg" alt="Support" className="nav-icon" />
-        <span className="nav-text">Support</span>
-      </Link>
+      {/* --- Conditionally render Admin or Support tab in first slot --- */}
+      {isAdmin ? (
+        <Link to="/admin" className={`nav-item ${isActive('/admin')}`}>
+          <img src="/img/icons/admin.svg" alt="Admin" className="nav-icon" />
+          <span className="nav-text">Admin</span>
+        </Link>
+      ) : (
+        <Link to="/support" className={`nav-item ${isActive('/support')}`}>
+          <img src="/img/icons/support.svg" alt="Support" className="nav-icon" />
+          <span className="nav-text">Support</span>
+        </Link>
+      )}
 
       <div className="nav-item-container">
         <button
@@ -76,17 +85,6 @@ const MobileBottomNav: React.FC = () => {
         <img src="/img/icons/dashboard.svg" alt="Dashboard" className="nav-icon" />
         <span className="nav-text">Dashboard</span>
       </Link>
-
-      {/* --- MERGED: Admin link conditional rendering --- */}
-      {isAdmin && (
-        <Link to="/admin" className={`nav-item ${isActive('/admin')}`}>
-          <i
-            className="fa-solid fa-user-shield nav-icon"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}
-          ></i>
-          <span className="nav-text">Admin</span>
-        </Link>
-      )}
 
       <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />

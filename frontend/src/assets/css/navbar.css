@@ -2,7 +2,7 @@
    1. DESKTOP NAVBAR
    ========================================= */
 .navbar { 
-    background: white; 
+    background: var(--white); 
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); 
     position: absolute; 
     top: 30px; 
@@ -23,7 +23,7 @@
     width: 100%; 
     max-width: none; 
     border-radius: 0; 
-    background: white; 
+    background: var(--white); 
     box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
     animation: slideDown 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; 
 }
@@ -77,13 +77,35 @@
     align-items: center; 
 }
 
+.dark-mode-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-dark);
+    font-size: 18px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.dark-mode-btn:hover {
+    background: var(--blue-lightest);
+    color: var(--blue-medium);
+    transform: rotate(20deg);
+}
+
 .d-nav-item-container { position: relative; }
 .d-prediction-popup { 
     position: absolute; 
     top: 100%; 
     left: 50%; 
     transform: translateX(-50%) translateY(15px); 
-    background: #ffffff; 
+    background: var(--white); 
     box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
     border-radius: 16px; 
     padding: 10px; 
@@ -170,7 +192,7 @@
         position: fixed; 
         top: 0; 
         left: 0; 
-        background-color: #ffffff; 
+        background-color: var(--white); 
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
         z-index: 1001; 
         padding: 15px 24px; 
@@ -196,12 +218,11 @@
     .popup-overlay.show { opacity: 1; visibility: visible; pointer-events: auto; }
     
     .bottom-nav { 
-        position: -webkit-sticky; 
         position: sticky; 
         bottom: 0; 
         left: 0; 
         width: 100%; 
-        background-color: #ffffff; 
+        background-color: var(--white); 
         display: flex; 
         justify-content: space-between; 
         align-items: center; 
@@ -211,10 +232,10 @@
         border-radius: 0 0 30px 30px; 
     }
     
-    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #000000; gap: 5px; flex: 1; padding: 0 4px; border: none; background: transparent; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--black); gap: 5px; flex: 1; padding: 0 4px; border: none; background: transparent; }
     .nav-icon { width: 30px; height: 30px; object-fit: contain; }
     .nav-text { font-size: 9px; margin-top: 2px; font-weight: 400; white-space: nowrap; padding: 2px 8px; border-radius: 20px; transition: background-color 0.3s ease, color 0.3s ease; }
-    .nav-item.active .nav-text { background-color: var(--blue-medium); color: #ffffff; }
+    .nav-item.active .nav-text { background-color: var(--blue-medium); color: var(--white); }
 
     .nav-item-container { flex: 1; display: flex; justify-content: center; position: relative; }
     
@@ -235,7 +256,7 @@
     .prediction-popup.show { opacity: 1; visibility: visible; transform: translateX(-25px) translateY(0); pointer-events: auto; }
     
     .popup-item { display: flex; align-items: center; gap: 16px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
-    .popup-icon-circle { width: 50px; height: 50px; background-color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0; }
+    .popup-icon-circle { width: 50px; height: 50px; background-color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0; }
     .popup-icon-circle img { width: 24px; height: 24px; object-fit: contain; }
-    .popup-label { background-color: #ffffff; color: #000000; padding: 10px 18px; border-radius: 20px; font-size: 9px; font-family: fontRegular, sans-serif; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); white-space: nowrap; }
+    .popup-label { background-color: var(--white); color: var(--black); padding: 10px 18px; border-radius: 20px; font-size: 9px; font-family: fontRegular, sans-serif; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); white-space: nowrap; }
 }

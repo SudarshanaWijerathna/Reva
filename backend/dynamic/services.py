@@ -77,20 +77,15 @@ def make_prediction(
         if model_type not in {"land", "house", "rental"}:
             raise ValueError(f"Unknown model type: {model_type}")
         
-        LSTM_results = get_future_predictions()
+        lstm_results = get_future_predictions() or {}
+        property_key = "housing" if model_type == "house" else model_type
+        property_predictions = lstm_results.get(property_key) or {}
 
-        if model_type == "house":
-            predicted_value = LSTM_results.get("housing").get("next_close")  # Example: Get next close price for housing
-            predicted_sequence = LSTM_results.get("housing").get("next_5_close")  # Example: Get next 5 close price sequence for housing
+        predicted_value = property_predictions.get("next_close")
+        predicted_sequence = property_predictions.get("next_5_close") or []
 
-        elif model_type == "land":
-            predicted_value = LSTM_results.get("land").get("next_close")  # Example: Get next close price for land
-            predicted_sequence = LSTM_results.get("land").get("next_5_close")  # Example: Get next 5 close price sequence for land
-
-        elif model_type == "rental":
-            predicted_value = LSTM_results.get("rental").get("next_close")  # Example: Get next close price for rental
-            predicted_sequence = LSTM_results.get("rental").get("next_5_close")  # Example: Get next 5 close price sequence for rental
-
+        if predicted_value is None:
+            raise ValueError(f"No future prediction available for model type: {model_type}")
         def normalize_number(value: Any) -> float:
             if isinstance(value, bool):
                 raise ValueError("Invalid numeric value")

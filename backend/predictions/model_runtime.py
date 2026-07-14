@@ -34,5 +34,4 @@ def predict_with_active_model(
             "Active models must use an http(s) deployed endpoint."
         )
 
-    """
-    return predict_via_http(model_type, payload)
+    return predict_via_http(model_type, endpoint_url, payload)

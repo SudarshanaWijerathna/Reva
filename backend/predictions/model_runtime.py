@@ -18,7 +18,7 @@ def predict_with_active_model(
     """
     Resolve the active model from the registry and execute a prediction against it.
     """
-    """
+#
     active_model = get_active_model_by_type(db, model_type)
     if not active_model:
         raise ValueError(f"No active model found for model type: {model_type}")

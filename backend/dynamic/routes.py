@@ -132,11 +132,11 @@ def get_prediction_history(
     predictions = get_user_predictions(db, user_id, model_type)
     return predictions
 
-@predictions_router.get(f"/recommendation/{{model_type}}")
+@predictions_router.get("/recommendation/{model_type}")
 def get_recommendation(
     db: Database,
     current_user: CurrentUser,
-    model_type: str = "land"
+    model_type: str,
 ):
     user_id = current_user.get("id")
     if not user_id:

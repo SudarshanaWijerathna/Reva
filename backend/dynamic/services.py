@@ -146,7 +146,7 @@ def get_property_recommendation(
     type_aliases = {"house": "housing"}
     normalized_type = type_aliases.get(normalized_type, normalized_type)
 
-    property_order = ["land", "housing", "rental"]
+    property_order = ["land", "rental", "housing"]
     if normalized_type not in property_order:
         raise ValueError(f"Unknown model type: {model_type}")
 

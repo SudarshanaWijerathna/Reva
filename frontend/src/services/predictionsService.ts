@@ -25,20 +25,18 @@ const getAuthToken = (): string | null => {
   return localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 };
 
-// Helper to make authenticated requests
+// Helper to make requests (attaches auth token if user is logged in, but allows unauthenticated access)
 const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
-  if (!token) {
-    console.warn("No authentication token found - user may not be logged in");
-    throw new Error("User not authenticated. Please login to access predictions.");
-  }
-
-  const headers = {
-    ...options.headers,
-    "Authorization": `Bearer ${token}`,
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
   };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -57,6 +55,7 @@ const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
     throw err;
   }
 };
+
 
 // Get features for a specific model type
 export const getFeatures = async (modelType: string): Promise<Feature[]> => {

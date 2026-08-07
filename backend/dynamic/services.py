@@ -59,7 +59,7 @@ def make_prediction(
     db: Session,
     model_type: str,
     input_features: Dict[str, Any],
-    user_id: int
+    user_id: int | None = None
 ) -> float:
     """Make a prediction for the specified model type."""
     
@@ -83,14 +83,16 @@ def make_prediction(
         )
         predicted_value = float(results["predicted_value"])
 
-        prediction_record = PredictionRecord(
-            user_id=user_id,
-            model_type=model_type,
-            features=input_features,
-            predicted_value=str(predicted_value),
-        )
-        create_prediction_record(db, prediction_record)
+        if user_id:
+            prediction_record = PredictionRecord(
+                user_id=user_id,
+                model_type=model_type,
+                features=input_features,
+                predicted_value=str(predicted_value),
+            )
+            create_prediction_record(db, prediction_record)
         return predicted_value
+
     
     except ValueError as e:
         raise ValueError(f"Prediction validation error: {str(e)}")

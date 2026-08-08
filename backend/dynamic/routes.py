@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.database.database import get_db
-from backend.auth.authentication import get_current_user
+from backend.auth.authentication import get_current_user, get_optional_current_user
 from backend.dynamic.repositories import (
     get_active_features,
     create_feature,
@@ -17,7 +17,8 @@ from backend.dynamic.repositories import (
 )
 from backend.dynamic.services import (
     validate_features,
-    make_prediction
+    make_prediction,
+    get_property_recommendation
 )
 from backend.dynamic.schemas import (
     FeatureDefinition,
@@ -36,22 +37,21 @@ from backend.dynamic.models import (
 # Type aliases
 Database = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[dict, Depends(get_current_user)]
+OptionalCurrentUser = Annotated[dict | None, Depends(get_optional_current_user)]
 
 
 # ============ Features Router ============
 
 features_router = APIRouter(
     prefix="/api/features",
-    tags=["Features"],
-    dependencies=[Depends(get_current_user)]
+    tags=["Features"]
 )
 
 
 @features_router.get("/{model_type}", response_model=list[FeatureOut])
 def get_features(
     model_type: str,
-    db: Database,
-    current_user: CurrentUser
+    db: Database
 ):
     features = get_active_features(db, model_type)
     if not features:
@@ -68,8 +68,7 @@ def get_features(
 
 predictions_router = APIRouter(
     prefix="/api/predictions",
-    tags=["Predictions"],
-    dependencies=[Depends(get_current_user)]
+    tags=["Predictions"]
 )
 
 
@@ -78,18 +77,13 @@ def predict_value(
     model_type: str,
     request: PredictionRequest,
     db: Database,
-    current_user: CurrentUser
+    current_user: OptionalCurrentUser = None
 ):
     print(f"Received prediction request for model type: {model_type} with features: {request.features}")
     try:
-        user_id = current_user.get("id")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid user token"
-            )
+        user_id = current_user.get("id") if current_user else None
         
-        predicted_value = make_prediction(
+        predicted_value, predicted_sequence = make_prediction(
             db=db,
             model_type=model_type,
             input_features=request.features,
@@ -98,6 +92,7 @@ def predict_value(
         print(f"Predicted value: {predicted_value}, for model type: {model_type}")
         return PredictionResponse(
             predicted_value=predicted_value,
+            predicted_sequence=predicted_sequence,
             model_type=model_type
         )
         
@@ -111,6 +106,7 @@ def predict_value(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prediction failed: {str(e)}"
         )
+
 
 
 @predictions_router.get("/history", response_model=list[PredictionRecordOut])
@@ -129,3 +125,25 @@ def get_prediction_history(
     
     predictions = get_user_predictions(db, user_id, model_type)
     return predictions
+
+@predictions_router.get("/recommendation/{model_type}")
+def get_recommendation(
+    db: Database,
+    current_user: CurrentUser,
+    model_type: str,
+):
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user token"
+        )
+    
+    try:
+        recommendation = get_property_recommendation(db, user_id, model_type) # example with land model, can be parameterized
+        return recommendation
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

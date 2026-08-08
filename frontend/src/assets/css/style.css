@@ -1810,3 +1810,168 @@ textarea.contact-input {
 [data-theme="dark"] .hero-reva-image {
     content: url('/img/logo-dark.png');
 }
+
+/* Mobile theme toggle button styling */
+.mobile-theme-toggle-btn {
+    background: rgba(68, 69, 255, 0.08);
+    border: 1px solid rgba(68, 69, 255, 0.15);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: var(--text-dark);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+/* Mobile-only overrides: Hide prediction model selector tabs and stack input forms cleanly */
+@media (max-width: 768px) {
+
+    .model-selector-container {
+        display: none !important;
+    }
+
+    .lp-wrapper {
+        padding-top: 90px !important;
+        width: 94% !important;
+        margin: 0 auto !important;
+    }
+
+    .top-section {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+        min-height: auto !important;
+        margin-bottom: 24px !important;
+    }
+
+    .top-section > .card {
+        padding: 24px 18px !important;
+        border-radius: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .form-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        width: 100% !important;
+    }
+
+    .form-col {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        width: 100% !important;
+    }
+
+    .lp-wrapper .input-group {
+        width: 100% !important;
+    }
+
+    .lp-wrapper .input-group label {
+        font-size: 13px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .lp-wrapper .input-field,
+    .input-field {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        font-size: 15px !important;
+        min-height: 48px !important;
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+    }
+
+    .lp-wrapper .checkbox-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .lp-wrapper .checkbox-item {
+        padding: 12px 10px 12px 38px !important;
+        font-size: 13px !important;
+        border-radius: 14px !important;
+    }
+
+    .hero-card {
+        order: 2 !important;
+        padding: 24px 18px !important;
+        text-align: center !important;
+    }
+
+    .hero-image img {
+        width: 160px !important;
+        margin: 0 auto !important;
+    }
+
+    .hero-title {
+        font-size: 1.5rem !important;
+        text-align: center !important;
+    }
+
+    .hero-desc {
+        text-align: center !important;
+        font-size: 14px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .analytics-section {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 18px !important;
+    }
+
+    .prediction-box,
+    .chart-container {
+        padding: 20px 16px !important;
+        border-radius: 20px !important;
+    }
+
+    /* Market Data Explorer Mobile Overrides: Stack map & details card vertically */
+    .map-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 18px !important;
+        width: 100% !important;
+    }
+
+    .map-visual {
+        width: 100% !important;
+        min-height: 340px !important;
+        height: 340px !important;
+        border-radius: 20px !important;
+    }
+
+    .details-card {
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 20px 16px !important;
+        border-radius: 20px !important;
+        box-sizing: border-box !important;
+    }
+
+    .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .detail-item {
+        padding: 12px 14px !important;
+        border-radius: 14px !important;
+    }
+
+    .detail-image {
+        min-height: 140px !important;
+        margin-top: 14px !important;
+        border-radius: 16px !important;
+    }
+}
+
+

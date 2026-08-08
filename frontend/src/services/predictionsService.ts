@@ -17,7 +17,14 @@ export interface PredictionRequest {
 
 export interface PredictionResponse {
   predicted_value: number;
+  predicted_sequence: number[];
   model_type: string;
+}
+
+export interface RecommendationResponse {
+  model_type: string;
+  recommendation: string;
+  action_index?: number | null;
 }
 
 // Get access token from localStorage or sessionStorage
@@ -25,20 +32,18 @@ const getAuthToken = (): string | null => {
   return localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
 };
 
-// Helper to make authenticated requests
+// Helper to make requests (attaches auth token if user is logged in, but allows unauthenticated access)
 const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
-  if (!token) {
-    console.warn("No authentication token found - user may not be logged in");
-    throw new Error("User not authenticated. Please login to access predictions.");
-  }
-
-  const headers = {
-    ...options.headers,
-    "Authorization": `Bearer ${token}`,
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
   };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -58,6 +63,7 @@ const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   }
 };
 
+
 // Get features for a specific model type
 export const getFeatures = async (modelType: string): Promise<Feature[]> => {
   return fetchWithAuth(`/api/features/${modelType}`);
@@ -73,4 +79,11 @@ export const makePrediction = async (
     method: "POST",
     body: JSON.stringify(payload),
   });
+};
+
+// Get recommendation for a specific model type
+export const getRecommendation = async (
+  modelType: string
+): Promise<RecommendationResponse> => {
+  return fetchWithAuth(`/api/predictions/recommendation/${modelType}`);
 };

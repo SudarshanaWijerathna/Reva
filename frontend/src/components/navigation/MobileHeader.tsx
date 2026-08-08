@@ -47,6 +47,24 @@ const MobileHeader: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogout, setShowLogout] = useState<boolean>(false);
 
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   // --- MERGED: Uses authService helpers but retains authUpdateKey dependency ---
   useEffect(() => {
     const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
@@ -110,12 +128,30 @@ const MobileHeader: React.FC = () => {
   }, [showLogout]);
 
   const renderAuthSection = () => {
+    const iconClass = darkMode ? "fa-solid fa-sun" : "fa-solid fa-moon";
+    const iconColor = darkMode ? "#fbbf24" : "var(--primary-dark)";
+
+    const themeToggleButton = (
+      <button
+        type="button"
+        onClick={toggleDarkMode}
+        className="mobile-theme-toggle-btn"
+        aria-label="Toggle theme"
+        title="Toggle Light/Dark Theme"
+      >
+        <i className={iconClass} style={{ color: iconColor }}></i>
+      </button>
+    );
+
+
+
+
     if (user) {
       return (
-        // Added the class 'mobile-auth-container' so our smart click detector knows what to look for
-        <div className="mobile-auth-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          
-          {/* Inline Logout Button (Slides out smoothly to the left) */}
+        <div className="mobile-auth-container" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {themeToggleButton}
+
+          {/* Inline Logout Button */}
           <div style={{
             position: 'absolute',
             right: '100%', 
@@ -123,7 +159,7 @@ const MobileHeader: React.FC = () => {
             opacity: showLogout ? 1 : 0,
             visibility: showLogout ? 'visible' : 'hidden',
             transform: showLogout ? 'translateX(0)' : 'translateX(10px)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', // Snappier animation
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             pointerEvents: showLogout ? 'auto' : 'none', 
             zIndex: 999
           }}>
@@ -136,8 +172,8 @@ const MobileHeader: React.FC = () => {
                 cursor: 'pointer', 
                 margin: 0, 
                 whiteSpace: 'nowrap', 
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)', // Subtle shadow
-                backgroundColor: '#ffffff00' // Ensures it blocks any background elements
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                backgroundColor: '#ffffff00'
               }}
             >
               Logout
@@ -159,8 +195,7 @@ const MobileHeader: React.FC = () => {
               zIndex: 999 
             }}
           >
-            {/* --- MERGED: Retains the UI formatting for the first name --- */}
-            <span style={{ fontWeight: 600, fontSize: '14px', color: '#000020' }}>
+            <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--primary-dark)' }}>
               {user.name.split(' ')[0]} 
             </span>
             <img 
@@ -176,23 +211,8 @@ const MobileHeader: React.FC = () => {
 
     return (
       <div className="auth-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <button 
-          onClick={() => openAuthModal('signup')} 
-          className="btn-outline" 
-          style={{ 
-            padding: '0 16px', 
-            fontSize: '13px',
-            height: '36px',
-            width: '90px',
-            boxSizing: 'border-box',
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            lineHeight: 1
-          }}
-        >
-          Sign Up
-        </button>
+        {themeToggleButton}
+
         <button 
           onClick={() => openAuthModal('login')} 
           className="btn-primary" 
@@ -214,6 +234,7 @@ const MobileHeader: React.FC = () => {
       </div>
     );
   };
+
 
   return (
     <>

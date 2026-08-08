@@ -180,6 +180,26 @@
 .bar-value { font-size: 11px; font-weight: bold; color: var(--primary-dark); margin-bottom: 6px; opacity: 0; transform: translateY(5px); transition: all 0.2s; }
 .bar-group:hover .bar-value { opacity: 1; transform: translateY(0); }
 
+.forecast-row { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; grid-column: 1 / -1; }
+.forecast-container { height: 100%; }
+.forecast-chart { width: 100%; height: 260px; }
+.forecast-svg { width: 100%; height: 100%; }
+.forecast-line { fill: none; stroke: var(--blue-medium); stroke-width: 3; }
+.forecast-area { fill: url(#forecastGradient); opacity: 0.35; }
+.forecast-point { fill: var(--blue-darkest); stroke: #ffffff; stroke-width: 2; }
+.forecast-axis { stroke: #e2e8f0; stroke-width: 1; }
+.forecast-grid { stroke: #eef2ff; stroke-width: 1; }
+.forecast-label { fill: #94a3b8; font-size: 12px; }
+.forecast-value { fill: var(--text-dark); font-size: 12px; font-weight: 600; }
+
+.recommendation-card { align-items: center; justify-content: center; text-align: center; gap: 14px; }
+.recommendation-label { font-size: 36px; font-family: fontExtraBold; letter-spacing: 2px; padding: 18px 24px; border-radius: 16px; width: 100%; }
+.recommendation-subtitle { margin: 0; font-size: 13px; color: var(--text-gray); }
+.rec-buy { color: #067a5a; background: rgba(0, 200, 151, 0.15); border: 1px solid rgba(0, 200, 151, 0.4); }
+.rec-hold { color: #2f3bbf; background: rgba(68, 69, 255, 0.12); border: 1px solid rgba(68, 69, 255, 0.35); }
+.rec-sell { color: #b42318; background: rgba(242, 79, 79, 0.12); border: 1px solid rgba(242, 79, 79, 0.35); }
+.rec-unavailable { color: #6b7280; background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.4); }
+
 /* --- MAP EXPLORER STYLES --- */
 .map-explorer-section { margin-bottom: 80px; }
 .map-section-header { text-align: center; margin-bottom: 40px; }
@@ -235,6 +255,7 @@
   .lp-wrapper { padding-top: 120px; }
   .top-section { grid-template-columns: 1fr; }
   .analytics-section { grid-template-columns: 1fr; }
+  .forecast-row { grid-template-columns: 1fr; }
   .map-grid { grid-template-columns: 1fr; }
 }
 

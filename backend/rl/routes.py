@@ -4,7 +4,7 @@ from backend.database.database import get_db
 from backend.auth.routes import user_dependency, Database
 from backend.portfolio.service import calculate_portfolio
 
-from backend.rl.prediction_prices import get_data, generate_state_price_signals
+from backend.rl.prediction_prices import get_price_inputs, generate_state_price_signals
 from backend.rl.sentiment_agg import aggregate_sentiment_features
 from backend.rl.recommendation_api import create_state_vector, get_recommendation_for_user
 
@@ -22,15 +22,11 @@ def get_property_signales(
     db: Database
 ):
     try:
-        curr_land_price, curr_housing_price, future_land_price, current_rental_price, future_housing_price_3m, future_rental_price = get_data()
-        signals = generate_state_price_signals(
-            current_land_price=curr_land_price,
-            current_housing_price=curr_housing_price,
-            future_land_price=future_land_price,
-            monthly_rent=current_rental_price,
-            future_house_price_3m=future_housing_price_3m,
-    )
-        return signals
+        inputs = get_price_inputs()
+        signals = generate_state_price_signals(inputs)
+        # Provenance travels with the signals so a caller can see which series each
+        # one came from, and whether a forecast or realised momentum was used.
+        return {**signals, "sources": inputs.get("sources", {})}
     except Exception as e:
         print(f"Error in get_property_signales: {str(e)}")
         return []

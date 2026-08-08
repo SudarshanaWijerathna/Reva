@@ -1,5 +1,7 @@
 
 import csv
+import logging
+import os
 from collections import Counter
 from functools import lru_cache
 from pathlib import Path
@@ -218,6 +220,8 @@ def validate_builtin_rental_features(input_features: Dict[str, Any]) -> None:
 
 # ============ Prediction Services ============
 
+logger = logging.getLogger(__name__)
+
 # The LSTM series are market-level indices. Their absolute scale does not match
 # the per-property models, so they are only ever consumed as ratios within a
 # single series - never as prices.
@@ -227,6 +231,19 @@ LSTM_SERIES_KEYS = {"house": "housing", "land": "land", "rental": "rental"}
 # treated as a broken series rather than a signal.
 MIN_GROWTH_FACTOR = 0.5
 MAX_GROWTH_FACTOR = 2.5
+
+
+def _lstm_index_enabled(model_type: str) -> bool:
+    """
+    Kill switch for the LSTM forecast path, per asset or globally.
+
+    Set ``LSTM_INDEX_ENABLED=false`` to disable every forecast, or
+    ``HOUSE_LSTM_INDEX_ENABLED=false`` for one asset. Disabling only flattens the
+    forecast path; the per-property price from the ML model is unaffected.
+    """
+    specific = os.getenv(f"{model_type.upper()}_LSTM_INDEX_ENABLED")
+    raw = specific if specific is not None else os.getenv("LSTM_INDEX_ENABLED", "true")
+    return raw.strip().lower() in ("true", "1", "yes", "on")
 
 
 def _to_number(value: Any) -> float:
@@ -252,10 +269,14 @@ def _lstm_growth_factors(model_type: str, steps: int = 5) -> list[float]:
     if not series_key:
         return []
 
+    if not _lstm_index_enabled(model_type):
+        logger.info("LSTM index disabled for '%s' by configuration.", model_type)
+        return []
+
     try:
         lstm_results = get_future_predictions() or {}
     except Exception as exc:
-        print(f"LSTM index unavailable for '{model_type}': {exc}")
+        logger.warning("LSTM index unavailable for '%s': %s", model_type, exc)
         return []
 
     series = lstm_results.get(series_key) or {}
@@ -282,9 +303,11 @@ def _lstm_growth_factors(model_type: str, steps: int = 5) -> list[float]:
 
     factors = [value / base for value in path]
     if any(factor < MIN_GROWTH_FACTOR or factor > MAX_GROWTH_FACTOR for factor in factors):
-        print(
-            f"LSTM index for '{model_type}' produced implausible growth factors "
-            f"{[round(f, 4) for f in factors]}; ignoring the forecast path."
+        logger.warning(
+            "LSTM index for '%s' produced implausible growth factors %s; "
+            "ignoring the forecast path.",
+            model_type,
+            [round(factor, 4) for factor in factors],
         )
         return []
     return factors

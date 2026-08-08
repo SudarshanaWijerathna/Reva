@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 from backend.core.cache_service import get_current_prices
+from backend.predictions.diagnostics import report_signal
 # Global, runtime-editable feature boundaries.
 # Update these values directly or via ``set_feature_boundaries``.
 LAND_TREND_BOUNDS: Tuple[float, float] = (-0.10, 0.15)
@@ -89,11 +90,20 @@ def generate_state_price_signals(
 		else 0.0
 	)
 
-	return {
+	signals = {
 		"land_trend": _clip(land_trend_raw, LAND_TREND_BOUNDS),
 		"rental_yield": _clip(rental_yield_raw, RENTAL_YIELD_BOUNDS),
 		"housing_signal": _clip(housing_signal_raw, HOUSING_SIGNAL_BOUNDS),
 	}
+
+	# Observation only - report_signal never alters a value. A signal that is
+	# clipped on every call is a constant, and the agent cannot learn from it.
+	if not test:
+		report_signal("land_trend", land_trend_raw, signals["land_trend"], LAND_TREND_BOUNDS)
+		report_signal("rental_yield", rental_yield_raw, signals["rental_yield"], RENTAL_YIELD_BOUNDS)
+		report_signal("housing_signal", housing_signal_raw, signals["housing_signal"], HOUSING_SIGNAL_BOUNDS)
+
+	return signals
 
 
 def _clip(value: float, bounds: Tuple[float, float]) -> float:

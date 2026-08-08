@@ -1,0 +1,185 @@
+{
+  "_comment": [
+    "Canonical payloads for the prediction stack, shared by",
+    "scripts/capture_prediction_baseline.py and tests/test_prediction_contract.py.",
+    "",
+    "Land payloads deliberately omit 'location_text'. ml/land_service/feature_engineering.py",
+    "only calls Nominatim when BOTH location_text and district are present, so leaving it out",
+    "keeps these fixtures offline and deterministic.",
+    "",
+    "Districts: the land model's cat_maps only contain Colombo, Gampaha and Kalutara, and",
+    "time_calibration.adjust_price raises for any district missing from the LVI table.",
+    "'out_of_coverage' cases record that boundary; Phase 3 turns them into low-confidence",
+    "estimates instead of errors."
+  ],
+  "land": {
+    "in_coverage": [
+      {
+        "id": "land_colombo_15p_full_utilities",
+        "land_size": 15.0,
+        "district": "Colombo",
+        "main_road": true,
+        "electricity": true,
+        "clear_deed": true,
+        "water": true,
+        "bank_loan": false,
+        "near_town": true,
+        "distance_to_town_m": 800.0,
+        "period": "2025 H2"
+      },
+      {
+        "id": "land_colombo_40p_full_utilities",
+        "land_size": 40.0,
+        "district": "Colombo",
+        "main_road": true,
+        "electricity": true,
+        "clear_deed": true,
+        "water": true,
+        "bank_loan": false,
+        "near_town": true,
+        "distance_to_town_m": 800.0,
+        "period": "2025 H2"
+      },
+      {
+        "id": "land_gampaha_20p_basic",
+        "land_size": 20.0,
+        "district": "Gampaha",
+        "main_road": false,
+        "electricity": true,
+        "clear_deed": true,
+        "water": false,
+        "bank_loan": false,
+        "near_town": false,
+        "distance_to_town_m": 0.0,
+        "period": "2025 H2"
+      },
+      {
+        "id": "land_kalutara_10p_basic",
+        "land_size": 10.0,
+        "district": "Kalutara",
+        "main_road": true,
+        "electricity": true,
+        "clear_deed": true,
+        "water": true,
+        "bank_loan": false,
+        "near_town": false,
+        "distance_to_town_m": 0.0,
+        "period": "2025 H2"
+      }
+    ],
+    "out_of_coverage": [
+      {
+        "id": "land_ampara_15p_not_in_lvi",
+        "land_size": 15.0,
+        "district": "Ampara",
+        "main_road": true,
+        "electricity": true,
+        "clear_deed": true,
+        "water": true,
+        "bank_loan": false,
+        "near_town": false,
+        "distance_to_town_m": 0.0,
+        "period": "2025 H2"
+      }
+    ]
+  },
+  "house": {
+    "in_coverage": [
+      {
+        "id": "house_nugegoda_1500sqft_3b2b",
+        "house_sqft": 1500.0,
+        "land_sqft": 2400.0,
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "lat": 6.8649,
+        "lon": 79.8997,
+        "district": "colombo",
+        "sub_location": "nugegoda",
+        "posted_year": 2025,
+        "posted_month": 6,
+        "description": "3 bedroom house on 15ft main road, 2km to town, water and electricity available."
+      },
+      {
+        "id": "house_nugegoda_3000sqft_5b3b",
+        "house_sqft": 3000.0,
+        "land_sqft": 4800.0,
+        "bedrooms": 5,
+        "bathrooms": 3,
+        "lat": 6.8649,
+        "lon": 79.8997,
+        "district": "colombo",
+        "sub_location": "nugegoda",
+        "posted_year": 2025,
+        "posted_month": 6,
+        "description": "5 bedroom house on 15ft main road, 2km to town, water and electricity available."
+      },
+      {
+        "id": "house_panadura_1500sqft_3b2b",
+        "house_sqft": 1500.0,
+        "land_sqft": 2400.0,
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "lat": 6.7133,
+        "lon": 79.9026,
+        "district": "kalutara",
+        "sub_location": "panadura",
+        "posted_year": 2025,
+        "posted_month": 6,
+        "description": "3 bedroom house on 15ft main road, 2km to town, water and electricity available."
+      },
+      {
+        "id": "house_nugegoda_1500sqft_no_description",
+        "house_sqft": 1500.0,
+        "land_sqft": 2400.0,
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "lat": 6.8649,
+        "lon": 79.8997,
+        "district": "colombo",
+        "sub_location": "nugegoda",
+        "posted_year": 2025,
+        "posted_month": 6
+      }
+    ]
+  },
+  "rental": {
+    "in_coverage": [
+      {
+        "id": "rental_nugegoda_house_1500sqft_3b",
+        "property_type": "House",
+        "location": "Nugegoda",
+        "district": "Colombo",
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "floor_area_sqft": 1500.0,
+        "furnishing_status": "unfurnished",
+        "posted_year": 2025,
+        "posted_month": 6
+      },
+      {
+        "id": "rental_nugegoda_house_3000sqft_5b_furnished",
+        "property_type": "House",
+        "location": "Nugegoda",
+        "district": "Colombo",
+        "bedrooms": 5,
+        "bathrooms": 3,
+        "floor_area_sqft": 3000.0,
+        "furnishing_status": "furnished",
+        "posted_year": 2025,
+        "posted_month": 6
+      },
+      {
+        "id": "rental_colombo3_apartment_1200sqft_2b",
+        "property_type": "Apartment",
+        "location": "Colombo 3",
+        "district": "Colombo",
+        "bedrooms": 2,
+        "bathrooms": 2,
+        "floor_area_sqft": 1200.0,
+        "furnishing_status": "furnished",
+        "posted_year": 2025,
+        "posted_month": 6
+      }
+    ]
+  }
+}

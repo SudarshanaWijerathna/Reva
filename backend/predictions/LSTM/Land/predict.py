@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 from importlib import import_module
 import joblib
+from backend.predictions.diagnostics import check_scaler_domain
 from backend.predictions.LSTM.Land.thresholds import time_steps
 import os
 
@@ -60,6 +61,7 @@ def predict_next_close_price(model, scaler, df=None, csv_path=None):
 
     # scale
     last_60_scaled = scaler.transform(last_60_days)
+    check_scaler_domain("land", last_60_scaled)
 
     # reshape for LSTM
     X_input = last_60_scaled.reshape(1, time_steps, 1)
@@ -86,6 +88,7 @@ def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
 
     last_60_days = df["close"].tail(time_steps).to_numpy()
     last_60_scaled = scaler.transform(last_60_days.reshape(-1, 1))
+    check_scaler_domain("land", last_60_scaled)
 
     predictions = []
 

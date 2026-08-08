@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import MapExplorer from '../../components/MapExplorer';
-import type { RecommendationResponse } from '../../services/predictionsService';
+import type { PredictionResponse, RecommendationResponse } from '../../services/predictionsService';
 import { getRecommendation, makePrediction } from '../../services/predictionsService';
 import '../../assets/css/landprice.css';
 
@@ -28,7 +28,7 @@ const LandPrice: React.FC = () => {
     distance_to_town_m: '',
     period: '2025 H2',
   });
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PredictionResponse | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');

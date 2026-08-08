@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import MapExplorer from '../../components/MapExplorer';
-import type { Feature, RecommendationResponse } from '../../services/predictionsService';
+import type { Feature, PredictionResponse, RecommendationResponse } from '../../services/predictionsService';
 import { getFeatures, getRecommendation, makePrediction } from '../../services/predictionsService';
 import '../../assets/css/landprice.css';
 
@@ -17,7 +17,7 @@ const HousePrice: React.FC = () => {
   /* -------------------- STATE -------------------- */
   const [features, setFeatures] = useState<Feature[]>([]);
   const [form, setForm] = useState<Record<string, any>>({});
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PredictionResponse | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [featuresLoading, setFeaturesLoading] = useState(true);

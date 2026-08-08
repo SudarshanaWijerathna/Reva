@@ -22,10 +22,12 @@ apscheduler
 google-genai
 protobuf
 
-# ===== ML Model Inference =====
+# ===== ML Model Inference / local model service runtime =====
 numpy
 pandas
+scipy
 joblib
+# Pinned: the LSTM scalers in backend/predictions/LSTM were pickled with 1.6.1.
 scikit-learn==1.6.1
 lightgbm
 catboost

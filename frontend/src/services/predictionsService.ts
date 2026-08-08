@@ -9,6 +9,7 @@ export interface Feature {
   model_type: "house" | "rental" | "land";
   required: boolean;
   active: boolean;
+  options?: string[] | null;
 }
 
 export interface PredictionRequest {
@@ -19,6 +20,7 @@ export interface PredictionResponse {
   predicted_value: number;
   predicted_sequence: number[];
   model_type: string;
+  details?: Record<string, any>;
 }
 
 export interface RecommendationResponse {

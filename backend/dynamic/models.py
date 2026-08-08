@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict, Any, Optional
 
 
@@ -23,6 +23,7 @@ class FeatureOut(BaseModel):
     model_type: str
     required: bool
     active: bool
+    options: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,6 +49,7 @@ class PredictionResponse(BaseModel):
     predicted_value: float
     predicted_sequence: list[float]
     model_type: str
+    details: Dict[str, Any] = Field(default_factory=dict)
 
 
 class PredictionRecordOut(BaseModel):

@@ -16,6 +16,7 @@ from backend.dynamic.repositories import (
     get_user_predictions
 )
 from backend.dynamic.services import (
+    get_builtin_features_for_model,
     validate_features,
     make_prediction,
     get_property_recommendation
@@ -55,6 +56,9 @@ def get_features(
 ):
     features = get_active_features(db, model_type)
     if not features:
+        builtin_features = get_builtin_features_for_model(model_type)
+        if builtin_features:
+            return builtin_features
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No features found for model type: {model_type}"
@@ -83,17 +87,20 @@ def predict_value(
     try:
         user_id = current_user.get("id") if current_user else None
         
-        predicted_value, predicted_sequence = make_prediction(
+        prediction_result = make_prediction(
             db=db,
             model_type=model_type,
             input_features=request.features,
             user_id=user_id
         )
+        predicted_value = float(prediction_result["predicted_value"])
+        predicted_sequence = [float(value) for value in prediction_result.get("predicted_sequence") or []]
         print(f"Predicted value: {predicted_value}, for model type: {model_type}")
         return PredictionResponse(
             predicted_value=predicted_value,
             predicted_sequence=predicted_sequence,
-            model_type=model_type
+            model_type=model_type,
+            details=prediction_result.get("details") or {},
         )
         
     except ValueError as e:

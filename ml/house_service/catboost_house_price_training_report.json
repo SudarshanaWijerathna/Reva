@@ -1,0 +1,195 @@
+{
+  "feature_extraction_version": "house_description_v1",
+  "target_column": "price_per_sqft_capped",
+  "datasets": [
+    "D:\\Learning\\Projects\\REVA\\Reva\\data\\processed\\cleaned_22_23_house_catboost_ready.csv",
+    "D:\\Learning\\Projects\\REVA\\Reva\\data\\processed\\cleaned_25_house_catboost_ready.csv"
+  ],
+  "train_rows": 54134,
+  "validation_rows": 3354,
+  "validation_policy": "Hold out the latest rows from cleaned_25_house_catboost_ready.csv by posted year/month/day order.",
+  "accepted_model": "enhanced_with_index",
+  "accepted_reason": "Accepted enhanced_with_index including description_value_index; validation MAE improved by 5.3360% versus baseline.",
+  "results": {
+    "baseline": {
+      "features": [
+        "house_sqft_capped",
+        "land_sqft_capped",
+        "bedrooms",
+        "bathrooms",
+        "lat",
+        "lon",
+        "district",
+        "sub_location",
+        "posted_year",
+        "posted_month"
+      ],
+      "categorical_columns": [
+        "district",
+        "sub_location"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 2399.8969237779806,
+          "rmse": 4082.2320281169928,
+          "mape": 14.58957156457585,
+          "median_ape": 10.09093019339851
+        },
+        "validation": {
+          "mae": 4204.734141114743,
+          "rmse": 7327.93348910932,
+          "mape": 20.819802666983517,
+          "median_ape": 14.422651998169023
+        },
+        "best_iteration": 1199
+      }
+    },
+    "enhanced_with_index": {
+      "features": [
+        "house_sqft_capped",
+        "land_sqft_capped",
+        "bedrooms",
+        "bathrooms",
+        "lat",
+        "lon",
+        "district",
+        "sub_location",
+        "posted_year",
+        "posted_month",
+        "road_width_ft",
+        "road_width_missing",
+        "mentions_main_road",
+        "mentions_carpet_road",
+        "mentions_private_lane",
+        "water_available",
+        "electricity_available",
+        "solar_power_available",
+        "hot_water_available",
+        "brand_new",
+        "fully_furnished",
+        "air_conditioned",
+        "cctv",
+        "servant_room",
+        "pantry",
+        "garden",
+        "parking_spaces",
+        "parking_spaces_missing",
+        "distance_to_town_km",
+        "distance_to_town_km_missing",
+        "distance_to_hospital_km",
+        "distance_to_hospital_km_missing",
+        "distance_to_school_km",
+        "distance_to_school_km_missing",
+        "distance_to_supermarket_km",
+        "distance_to_supermarket_km_missing",
+        "distance_to_bus_or_rail_km",
+        "distance_to_bus_or_rail_km_missing",
+        "mentions_school",
+        "mentions_hospital",
+        "mentions_supermarket",
+        "mentions_bank",
+        "mentions_highway",
+        "mentions_junction",
+        "utility_score",
+        "road_access_score",
+        "service_access_score",
+        "quality_score",
+        "description_value_index",
+        "house_quality_tier"
+      ],
+      "categorical_columns": [
+        "district",
+        "sub_location",
+        "house_quality_tier"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 2274.1901857993926,
+          "rmse": 3891.7566482829648,
+          "mape": 13.905853147845068,
+          "median_ape": 9.691990187698435
+        },
+        "validation": {
+          "mae": 3980.370605862797,
+          "rmse": 7098.713844692664,
+          "mape": 19.66096151082424,
+          "median_ape": 13.101967465590972
+        },
+        "best_iteration": 1197
+      }
+    },
+    "enhanced_without_index": {
+      "features": [
+        "house_sqft_capped",
+        "land_sqft_capped",
+        "bedrooms",
+        "bathrooms",
+        "lat",
+        "lon",
+        "district",
+        "sub_location",
+        "posted_year",
+        "posted_month",
+        "road_width_ft",
+        "road_width_missing",
+        "mentions_main_road",
+        "mentions_carpet_road",
+        "mentions_private_lane",
+        "water_available",
+        "electricity_available",
+        "solar_power_available",
+        "hot_water_available",
+        "brand_new",
+        "fully_furnished",
+        "air_conditioned",
+        "cctv",
+        "servant_room",
+        "pantry",
+        "garden",
+        "parking_spaces",
+        "parking_spaces_missing",
+        "distance_to_town_km",
+        "distance_to_town_km_missing",
+        "distance_to_hospital_km",
+        "distance_to_hospital_km_missing",
+        "distance_to_school_km",
+        "distance_to_school_km_missing",
+        "distance_to_supermarket_km",
+        "distance_to_supermarket_km_missing",
+        "distance_to_bus_or_rail_km",
+        "distance_to_bus_or_rail_km_missing",
+        "mentions_school",
+        "mentions_hospital",
+        "mentions_supermarket",
+        "mentions_bank",
+        "mentions_highway",
+        "mentions_junction",
+        "utility_score",
+        "road_access_score",
+        "service_access_score",
+        "quality_score",
+        "house_quality_tier"
+      ],
+      "categorical_columns": [
+        "district",
+        "sub_location",
+        "house_quality_tier"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 2294.4903475439737,
+          "rmse": 3930.2221085059077,
+          "mape": 13.996139118796028,
+          "median_ape": 9.689702092452158
+        },
+        "validation": {
+          "mae": 3996.3256897487827,
+          "rmse": 7153.770819701836,
+          "mape": 19.689982842494533,
+          "median_ape": 13.051037262128432
+        },
+        "best_iteration": 1193
+      }
+    }
+  }
+}

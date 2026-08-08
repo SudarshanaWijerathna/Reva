@@ -1,0 +1,539 @@
+{
+  "schema_version": "rental_features_v1",
+  "model_variant": "catboost_rental_price_v1",
+  "generated_at": "2026-05-25T14:04:46",
+  "dataset": "D:\\Learning\\Projects\\REVA\\Reva\\data\\features\\rental_features_v1.csv",
+  "target_column": "monthly_rent_lkr",
+  "training_target_column": "log_monthly_rent_lkr",
+  "target_inverse_transform": "expm1",
+  "features": [
+    "property_type",
+    "district",
+    "location",
+    "furnishing_status",
+    "source",
+    "bedrooms",
+    "bathrooms",
+    "floor_area_sqft",
+    "land_perches",
+    "floor_number",
+    "car_parking_spaces",
+    "deposit_months",
+    "advance_months",
+    "lease_term_months",
+    "posted_year",
+    "posted_month",
+    "amenity_count",
+    "amenity_24_hour_security",
+    "amenity_3_phase_electricity",
+    "amenity_ac_rooms",
+    "amenity_attached_toilets",
+    "amenity_backup_generator",
+    "amenity_balcony",
+    "amenity_bbq_area",
+    "amenity_beachfront_sea_view",
+    "amenity_brand_new",
+    "amenity_business_center",
+    "amenity_cable_sat_tv",
+    "amenity_cafe_restaurant",
+    "amenity_central_ac",
+    "amenity_club_house",
+    "amenity_fiber_internet",
+    "amenity_fire_detection",
+    "amenity_fully_furnished",
+    "amenity_garage",
+    "amenity_garbage_removal",
+    "amenity_gated_community",
+    "amenity_gym",
+    "amenity_home_security_system",
+    "amenity_hot_water",
+    "amenity_internet",
+    "amenity_jogging_track",
+    "amenity_kids_play_area",
+    "amenity_laundry",
+    "amenity_lawn_garden",
+    "amenity_lifts",
+    "amenity_luxury_specs",
+    "amenity_maids_room",
+    "amenity_maids_toilet",
+    "amenity_on_site_parking",
+    "amenity_outdoor_garden",
+    "amenity_overhead_water_storage",
+    "amenity_pet_friendly",
+    "amenity_private_entrance",
+    "amenity_private_pool",
+    "amenity_roof_top_garden",
+    "amenity_separate_kitchen",
+    "amenity_serviced_apartment",
+    "amenity_sport_facilities",
+    "amenity_swimming_pool",
+    "amenity_waterfront_riverside",
+    "is_short_term",
+    "has_description",
+    "description_length",
+    "feature_anomaly_count"
+  ],
+  "categorical_columns": [
+    "property_type",
+    "district",
+    "location",
+    "furnishing_status",
+    "source"
+  ],
+  "train_rows": 28224,
+  "validation_rows": 7103,
+  "temporal_test_rows": 2500,
+  "split_policy": "Hold out posted_year == 2026 for final temporal testing; deterministic hash split of remaining rows with validation_fraction=0.2.",
+  "accepted": true,
+  "accepted_reason": "Accepted CatBoost: validation MAE improved by 51.85% over property_type_source_median; train/validation MAE ratio 1.224.",
+  "results": {
+    "global_median": {
+      "features": [],
+      "metrics": {
+        "train": {
+          "mae": 235159.1367984694,
+          "rmse": 699094.8931605108,
+          "mape": 225.5468456412979,
+          "median_ape": 77.985689958066,
+          "r2": -0.056003056675901774
+        },
+        "validation": {
+          "mae": 238096.28495002116,
+          "rmse": 686613.8180971815,
+          "mape": 225.88862939496696,
+          "median_ape": 79.53733924022134,
+          "r2": -0.05934017208633402
+        },
+        "temporal_test": {
+          "mae": 173570.79840000003,
+          "rmse": 656304.1560800942,
+          "mape": 60.88815553872069,
+          "median_ape": 41.17647058823566,
+          "r2": -0.044753073934563625
+        }
+      }
+    },
+    "property_type_median": {
+      "features": [
+        "property_type"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 194590.83152636053,
+          "rmse": 664082.4514117223,
+          "mape": 91.55397272593515,
+          "median_ape": 51.99999999999994,
+          "r2": 0.04712282509355603
+        },
+        "validation": {
+          "mae": 199125.62053210515,
+          "rmse": 650575.1622322707,
+          "mape": 91.9828909896076,
+          "median_ape": 52.72727272727283,
+          "r2": 0.04894568461203941
+        },
+        "temporal_test": {
+          "mae": 202132.75218725833,
+          "rmse": 657587.9699784011,
+          "mape": 75.67775353263644,
+          "median_ape": 65.7142857142858,
+          "r2": -0.04884440978721094
+        }
+      }
+    },
+    "property_type_source_median": {
+      "features": [
+        "property_type",
+        "source_file"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 174807.95340844672,
+          "rmse": 627954.7931703844,
+          "mape": 76.24295297537302,
+          "median_ape": 44.99999999999999,
+          "r2": 0.1479802233655485
+        },
+        "validation": {
+          "mae": 176850.67061880816,
+          "rmse": 614136.0771133937,
+          "mape": 78.12658081884335,
+          "median_ape": 45.45454545454547,
+          "r2": 0.15250023938243673
+        },
+        "temporal_test": {
+          "mae": 173570.79840000003,
+          "rmse": 656304.1560800942,
+          "mape": 60.88815553872069,
+          "median_ape": 41.17647058823566,
+          "r2": -0.044753073934563625
+        }
+      }
+    },
+    "catboost": {
+      "features": [
+        "property_type",
+        "district",
+        "location",
+        "furnishing_status",
+        "source",
+        "bedrooms",
+        "bathrooms",
+        "floor_area_sqft",
+        "land_perches",
+        "floor_number",
+        "car_parking_spaces",
+        "deposit_months",
+        "advance_months",
+        "lease_term_months",
+        "posted_year",
+        "posted_month",
+        "amenity_count",
+        "amenity_24_hour_security",
+        "amenity_3_phase_electricity",
+        "amenity_ac_rooms",
+        "amenity_attached_toilets",
+        "amenity_backup_generator",
+        "amenity_balcony",
+        "amenity_bbq_area",
+        "amenity_beachfront_sea_view",
+        "amenity_brand_new",
+        "amenity_business_center",
+        "amenity_cable_sat_tv",
+        "amenity_cafe_restaurant",
+        "amenity_central_ac",
+        "amenity_club_house",
+        "amenity_fiber_internet",
+        "amenity_fire_detection",
+        "amenity_fully_furnished",
+        "amenity_garage",
+        "amenity_garbage_removal",
+        "amenity_gated_community",
+        "amenity_gym",
+        "amenity_home_security_system",
+        "amenity_hot_water",
+        "amenity_internet",
+        "amenity_jogging_track",
+        "amenity_kids_play_area",
+        "amenity_laundry",
+        "amenity_lawn_garden",
+        "amenity_lifts",
+        "amenity_luxury_specs",
+        "amenity_maids_room",
+        "amenity_maids_toilet",
+        "amenity_on_site_parking",
+        "amenity_outdoor_garden",
+        "amenity_overhead_water_storage",
+        "amenity_pet_friendly",
+        "amenity_private_entrance",
+        "amenity_private_pool",
+        "amenity_roof_top_garden",
+        "amenity_separate_kitchen",
+        "amenity_serviced_apartment",
+        "amenity_sport_facilities",
+        "amenity_swimming_pool",
+        "amenity_waterfront_riverside",
+        "is_short_term",
+        "has_description",
+        "description_length",
+        "feature_anomaly_count"
+      ],
+      "categorical_columns": [
+        "property_type",
+        "district",
+        "location",
+        "furnishing_status",
+        "source"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 69557.7455365466,
+          "rmse": 220037.2007843906,
+          "mape": 28.537423561049163,
+          "median_ape": 19.486108859610418,
+          "r2": 0.8953871247210321
+        },
+        "validation": {
+          "mae": 85148.90541252919,
+          "rmse": 359035.1830191765,
+          "mape": 32.04555228924188,
+          "median_ape": 21.118891378670927,
+          "r2": 0.7103427652652476
+        },
+        "best_iteration": 1395,
+        "temporal_test": {
+          "mae": 155497.0097509145,
+          "rmse": 554554.605841575,
+          "mape": 58.79754064730982,
+          "median_ape": 41.39302508347752,
+          "r2": 0.25408046338811097
+        }
+      }
+    },
+    "lightgbm_benchmark": {
+      "features": [
+        "property_type",
+        "district",
+        "location",
+        "furnishing_status",
+        "source",
+        "bedrooms",
+        "bathrooms",
+        "floor_area_sqft",
+        "land_perches",
+        "floor_number",
+        "car_parking_spaces",
+        "deposit_months",
+        "advance_months",
+        "lease_term_months",
+        "posted_year",
+        "posted_month",
+        "amenity_count",
+        "amenity_24_hour_security",
+        "amenity_3_phase_electricity",
+        "amenity_ac_rooms",
+        "amenity_attached_toilets",
+        "amenity_backup_generator",
+        "amenity_balcony",
+        "amenity_bbq_area",
+        "amenity_beachfront_sea_view",
+        "amenity_brand_new",
+        "amenity_business_center",
+        "amenity_cable_sat_tv",
+        "amenity_cafe_restaurant",
+        "amenity_central_ac",
+        "amenity_club_house",
+        "amenity_fiber_internet",
+        "amenity_fire_detection",
+        "amenity_fully_furnished",
+        "amenity_garage",
+        "amenity_garbage_removal",
+        "amenity_gated_community",
+        "amenity_gym",
+        "amenity_home_security_system",
+        "amenity_hot_water",
+        "amenity_internet",
+        "amenity_jogging_track",
+        "amenity_kids_play_area",
+        "amenity_laundry",
+        "amenity_lawn_garden",
+        "amenity_lifts",
+        "amenity_luxury_specs",
+        "amenity_maids_room",
+        "amenity_maids_toilet",
+        "amenity_on_site_parking",
+        "amenity_outdoor_garden",
+        "amenity_overhead_water_storage",
+        "amenity_pet_friendly",
+        "amenity_private_entrance",
+        "amenity_private_pool",
+        "amenity_roof_top_garden",
+        "amenity_separate_kitchen",
+        "amenity_serviced_apartment",
+        "amenity_sport_facilities",
+        "amenity_swimming_pool",
+        "amenity_waterfront_riverside",
+        "is_short_term",
+        "has_description",
+        "description_length",
+        "feature_anomaly_count"
+      ],
+      "categorical_columns": [
+        "property_type",
+        "district",
+        "location",
+        "furnishing_status",
+        "source"
+      ],
+      "metrics": {
+        "train": {
+          "mae": 52419.38873092092,
+          "rmse": 171126.58532556333,
+          "mape": 21.269134032799318,
+          "median_ape": 14.925151349821238,
+          "r2": 0.9367256219529561
+        },
+        "validation": {
+          "mae": 85375.88896494718,
+          "rmse": 385268.3809444865,
+          "mape": 31.50718397609129,
+          "median_ape": 19.670876631851087,
+          "r2": 0.6664683140212795
+        },
+        "temporal_test": {
+          "mae": 238091.03306859412,
+          "rmse": 663007.6535451473,
+          "mape": 131.044815006018,
+          "median_ape": 40.242331750500725,
+          "r2": -0.06620430634333019
+        }
+      }
+    }
+  },
+  "validation_segment_metrics": {
+    "property_type": {
+      "Annex": {
+        "rows": 324,
+        "mae": 8634.408329893831,
+        "rmse": 13352.293459962273,
+        "mape": 45.920881519079316,
+        "median_ape": 36.85036477505121,
+        "r2": 0.791719684348235
+      },
+      "Apartment": {
+        "rows": 2165,
+        "mae": 84331.39101894418,
+        "rmse": 182546.9342538093,
+        "mape": 29.72340426631852,
+        "median_ape": 19.11735052255995,
+        "r2": 0.6373602822722741
+      },
+      "Building": {
+        "rows": 320,
+        "mae": 351526.95160419674,
+        "rmse": 1138163.5241627933,
+        "mape": 60.45977765368114,
+        "median_ape": 33.98429113293056,
+        "r2": 0.492214304590158
+      },
+      "Factory": {
+        "rows": 13,
+        "mae": 228215.17552716503,
+        "rmse": 413980.15694568557,
+        "mape": 43.04430684294208,
+        "median_ape": 25.711656699294384,
+        "r2": 0.8592215770609244
+      },
+      "Hotel": {
+        "rows": 25,
+        "mae": 531197.2869626498,
+        "rmse": 1048512.3216536721,
+        "mape": 73.76700060889962,
+        "median_ape": 37.16851531141999,
+        "r2": 0.09082690694789419
+      },
+      "House": {
+        "rows": 3025,
+        "mae": 37076.41730504325,
+        "rmse": 125199.32292839202,
+        "mape": 26.636274071057375,
+        "median_ape": 19.08460193694991,
+        "r2": 0.7536918008426987
+      },
+      "Office space": {
+        "rows": 492,
+        "mae": 216494.32607528465,
+        "rmse": 478569.8635257171,
+        "mape": 38.01293011086334,
+        "median_ape": 26.983720005626267,
+        "r2": 0.8855011309360888
+      },
+      "Other Commercial": {
+        "rows": 24,
+        "mae": 126367.52025495023,
+        "rmse": 229663.77572328807,
+        "mape": 68.8279831022503,
+        "median_ape": 44.381665292306415,
+        "r2": 0.06881585539744761
+      },
+      "Portion": {
+        "rows": 396,
+        "mae": 3229.8648712933723,
+        "rmse": 6907.894078293117,
+        "mape": 27.635364883686876,
+        "median_ape": 20.437223910169024,
+        "r2": 0.12966531722019325
+      },
+      "Restaurant": {
+        "rows": 21,
+        "mae": 286404.25108380796,
+        "rmse": 595778.8181141478,
+        "mape": 40.54735974584097,
+        "median_ape": 32.59265558107424,
+        "r2": 0.5746349796907217
+      },
+      "Room": {
+        "rows": 61,
+        "mae": 3735.830798305241,
+        "rmse": 6049.090514994655,
+        "mape": 36.17798141193333,
+        "median_ape": 25.78316657045176,
+        "r2": 0.13592735249626653
+      },
+      "Shop space": {
+        "rows": 127,
+        "mae": 195540.53766744712,
+        "rmse": 1081517.7681696943,
+        "mape": 53.9131388156669,
+        "median_ape": 31.890772587439635,
+        "r2": 0.23015107806096302
+      },
+      "Villa": {
+        "rows": 18,
+        "mae": 150766.01568680405,
+        "rmse": 193060.83631263507,
+        "mape": 60.67268571657429,
+        "median_ape": 30.014608547053918,
+        "r2": 0.6463187004989794
+      },
+      "Warehouse": {
+        "rows": 70,
+        "mae": 398741.18912357173,
+        "rmse": 1058213.9575354112,
+        "mape": 38.75012475747933,
+        "median_ape": 28.525752756740324,
+        "r2": 0.6754146647586516
+      }
+    },
+    "source_file": {
+      "apartment_rentals_properties.csv": {
+        "rows": 1286,
+        "mae": 76604.78343885622,
+        "rmse": 195136.3018013759,
+        "mape": 29.271463105968305,
+        "median_ape": 20.286785325233296,
+        "r2": 0.5201654801576949
+      },
+      "commercial_property_rentals_properties.csv": {
+        "rows": 780,
+        "mae": 181165.58389458084,
+        "rmse": 815196.8684765463,
+        "mape": 50.028530463259294,
+        "median_ape": 30.781706607530563,
+        "r2": 0.43264716388749114
+      },
+      "house_rentals_properties.csv": {
+        "rows": 2752,
+        "mae": 26607.493859079124,
+        "rmse": 98760.42780807558,
+        "mape": 25.37394181052031,
+        "median_ape": 18.73300726070135,
+        "r2": 0.6371245329287645
+      },
+      "rental_details_lankapropertyweb.csv": {
+        "rows": 1501,
+        "mae": 191602.85796975374,
+        "rmse": 462739.1474715596,
+        "mape": 34.88598013565938,
+        "median_ape": 20.608362612617366,
+        "r2": 0.8054644807697293
+      },
+      "room_&_annex_rentals_properties.csv": {
+        "rows": 784,
+        "mae": 5318.948076870585,
+        "rmse": 8707.741903306533,
+        "mape": 36.685278761085435,
+        "median_ape": 27.25962471638764,
+        "r2": 0.5119242748404621
+      }
+    }
+  },
+  "error_calibration": {
+    "absolute_error_p50": 19010.279921245878,
+    "absolute_error_p80": 88220.64178990596,
+    "absolute_error_p90": 179811.13680275765,
+    "relative_error_p50": 0.2111889137867093,
+    "relative_error_p80": 0.43567708949979345,
+    "relative_error_p90": 0.6155375008528419
+  }
+}

@@ -66,8 +66,7 @@ def _artifact_digests() -> Dict[str, str]:
         "lstm_housing_scaler": REPO_ROOT / "backend" / "predictions" / "LSTM" / "Housing" / "scaler.joblib",
         "lstm_land_model": REPO_ROOT / "backend" / "predictions" / "LSTM" / "Land" / "my_model.keras",
         "lstm_land_scaler": REPO_ROOT / "backend" / "predictions" / "LSTM" / "Land" / "scaler.joblib",
-        "lstm_rental_model": REPO_ROOT / "backend" / "predictions" / "LSTM" / "Rental" / "my_model.keras",
-        "lstm_rental_scaler": REPO_ROOT / "backend" / "predictions" / "LSTM" / "Rental" / "scaler.joblib",
+        "market_index_dataset": REPO_ROOT / "backend" / "predictions" / "LSTM" / "datasets" / "cbsl_market_index.csv",
     }
     digests = {}
     for name, path in artifacts.items():
@@ -76,26 +75,44 @@ def _artifact_digests() -> Dict[str, str]:
 
 
 def _lstm_scaler_domains() -> Dict[str, Any]:
-    """Record where each LSTM's live window lands inside its scaler range."""
+    """Record where each series' live window lands inside its scaler range, plus staleness."""
     import joblib
     import pandas as pd
 
     lstm_root = REPO_ROOT / "backend" / "predictions" / "LSTM"
-    series = {"housing": ("Housing", "HousingDF.csv"), "land": ("Land", "LandDF.csv"), "rental": ("Rental", "RentalDF.csv")}
+    dataset = lstm_root / "datasets" / "cbsl_market_index.csv"
+    series = {"housing": ("Housing", "houses"), "land": ("Land", "lands"), "rental": ("Rental", "houses")}
 
     domains: Dict[str, Any] = {}
-    for name, (folder, csv_name) in series.items():
+    for name, (folder, column) in series.items():
         try:
-            scaler = joblib.load(lstm_root / folder / "scaler.joblib")
-            frame = pd.read_csv(lstm_root / "datasets" / csv_name)
-            scaled = scaler.transform(frame["close"].tail(60).to_numpy().reshape(-1, 1))
+            with (lstm_root / folder / "manifest.json").open("r", encoding="utf-8") as handle:
+                manifest = json.load(handle)
+
+            owner = folder
+            if manifest.get("is_proxy"):
+                owner = {"houses": "Housing", "lands": "Land"}[manifest["proxy_for"]]
+                with (lstm_root / owner / "manifest.json").open("r", encoding="utf-8") as handle:
+                    owner_manifest = json.load(handle)
+            else:
+                owner_manifest = manifest
+
+            scaler = joblib.load(lstm_root / owner / "scaler.joblib")
+            frame = pd.read_csv(dataset)
+            values = frame[["month", column]].dropna()[column].to_numpy()
+            lookback = int(owner_manifest["time_steps"])
+            scaled = scaler.transform(values[-lookback:].reshape(-1, 1))
+
             domains[name] = {
                 "scaled_min": round(float(scaled.min()), 6),
                 "scaled_max": round(float(scaled.max()), 6),
                 "in_domain": bool(scaled.min() >= -0.25 and scaled.max() <= 1.25),
+                "series_end": manifest.get("series_end"),
+                "is_proxy": bool(manifest.get("is_proxy", False)),
+                "latest_value": round(float(values[-1]), 4),
             }
         except Exception as exc:
-            domains[name] = {"error": str(exc)}
+            domains[name] = {"error": f"{type(exc).__name__}: {exc}"}
     return domains
 
 

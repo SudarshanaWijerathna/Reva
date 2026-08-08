@@ -227,10 +227,15 @@ logger = logging.getLogger(__name__)
 # single series - never as prices.
 LSTM_SERIES_KEYS = {"house": "housing", "land": "land", "rental": "rental"}
 
-# A forecast that implies less than half or more than 2.5x the current value is
-# treated as a broken series rather than a signal.
+# Fallback plausibility band, used only when a series ships no manifest bound.
+# Per-series bounds derived from realised volatility are far tighter and are
+# preferred; see max_plausible_monthly_move in each LSTM manifest.
 MIN_GROWTH_FACTOR = 0.5
 MAX_GROWTH_FACTOR = 2.5
+
+# Beyond this the published index is too old to extrapolate across, so the
+# forecast path is dropped rather than projected over a gap.
+MAX_INDEX_STALENESS_MONTHS = int(os.getenv("MAX_INDEX_STALENESS_MONTHS", "12"))
 
 
 def _lstm_index_enabled(model_type: str) -> bool:
@@ -259,57 +264,93 @@ def _to_number(value: Any) -> float:
 
 def _lstm_growth_factors(model_type: str, steps: int = 5) -> list[float]:
     """
-    Return unitless step-over-step growth factors from the LSTM index.
+    Return unitless growth factors from the market index.
 
-    Each factor is ``index[step] / index[now]``, so the caller can rescale any
-    absolute price onto the forecast trajectory. Returns an empty list when the
-    index is unavailable or outside the plausible range.
+    Each factor is ``index[step] / index[latest_published]``, so the caller can
+    rescale any absolute price onto the forecast trajectory. Anchoring on the last
+    published value rather than on the first forecast is deliberate: it keeps the
+    model's jump out of the last actual visible to the plausibility check below,
+    instead of normalising it away.
+
+    Returns an empty list - meaning "no trend information" - when the index is
+    unavailable, stale, or implies a move the series has never made.
     """
     series_key = LSTM_SERIES_KEYS.get(model_type)
     if not series_key:
         return []
 
     if not _lstm_index_enabled(model_type):
-        logger.info("LSTM index disabled for '%s' by configuration.", model_type)
+        logger.info("Market index disabled for '%s' by configuration.", model_type)
         return []
 
     try:
         lstm_results = get_future_predictions() or {}
     except Exception as exc:
-        logger.warning("LSTM index unavailable for '%s': %s", model_type, exc)
+        logger.warning("Market index unavailable for '%s': %s", model_type, exc)
         return []
 
     series = lstm_results.get(series_key) or {}
-    raw_path = series.get("next_5_close") or []
-    raw_base = series.get("next_close")
+    if series.get("error"):
+        logger.warning("Market index for '%s' reported an error: %s", model_type, series["error"])
+        return []
+
+    staleness = series.get("staleness_months")
+    if staleness is not None and int(staleness) > MAX_INDEX_STALENESS_MONTHS:
+        logger.warning(
+            "Market index for '%s' ends %s (%s months ago); refusing to extrapolate "
+            "across the gap. Refresh it with scripts/build_market_index.py.",
+            model_type,
+            series.get("series_end"),
+            staleness,
+        )
+        return []
 
     path: list[float] = []
-    for item in raw_path[:steps]:
+    for item in (series.get("forecast_path") or series.get("next_5_close") or [])[:steps]:
         try:
             path.append(_to_number(item))
         except (TypeError, ValueError):
             continue
-
     if not path:
         return []
 
+    # Anchor on the last published value; fall back to the first forecast only if
+    # the snapshot predates this field.
     try:
-        base = _to_number(raw_base) if raw_base is not None else path[0]
-    except (TypeError, ValueError):
+        base = _to_number(series["latest_index"])
+    except (KeyError, TypeError, ValueError):
         base = path[0]
-
     if base <= 0:
         return []
 
     factors = [value / base for value in path]
+
+    # Per-step move the series has actually exhibited, from the manifest.
+    limit = series.get("max_plausible_monthly_move")
+    if limit:
+        limit = float(limit)
+        moves = [factors[0] - 1.0] + [
+            factors[i] / factors[i - 1] - 1.0 for i in range(1, len(factors))
+        ]
+        if any(abs(move) > limit for move in moves):
+            logger.warning(
+                "Market index for '%s' implies monthly moves %s beyond the +/-%.4f band this "
+                "series has exhibited; ignoring the forecast path.",
+                model_type,
+                [round(move, 4) for move in moves],
+                limit,
+            )
+            return []
+
     if any(factor < MIN_GROWTH_FACTOR or factor > MAX_GROWTH_FACTOR for factor in factors):
         logger.warning(
-            "LSTM index for '%s' produced implausible growth factors %s; "
+            "Market index for '%s' produced implausible growth factors %s; "
             "ignoring the forecast path.",
             model_type,
             [round(factor, 4) for factor in factors],
         )
         return []
+
     return factors
 
 

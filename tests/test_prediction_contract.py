@@ -202,18 +202,89 @@ class ForwardPricePathTests(unittest.TestCase):
         self.addCleanup(setattr, self.services, "get_future_predictions", original)
 
     def test_ratio_is_applied_to_the_model_price_not_the_index_level(self):
+        """Growth is taken against the last published index value, not the first forecast."""
         self._with_index(
-            {"land": {"next_close": "1,000,000.00", "next_5_close": ["1,000,000.00", "1,010,000.00"]}}
+            {
+                "land": {
+                    "latest_index": 100.0,
+                    "forecast_path": [100.0, 101.0],
+                    "max_plausible_monthly_move": 0.10,
+                    "staleness_months": 3,
+                }
+            }
         )
         path, source = self.services._forward_price_path("land", 5_000_000.0, steps=2)
         self.assertEqual(source, "lstm_index_ratio")
         self.assertAlmostEqual(path[0], 5_000_000.0, places=2)
         self.assertAlmostEqual(path[1], 5_050_000.0, places=2)
 
+    def test_growth_is_measured_from_the_last_actual_not_the_first_forecast(self):
+        """
+        A model that jumps away from the last published value on step one has made
+        its largest error there. Anchoring on the forecast would normalise that
+        jump away; anchoring on the actual keeps it visible to the guards.
+        """
+        self._with_index(
+            {
+                "land": {
+                    "latest_index": 100.0,
+                    "forecast_path": [104.0, 104.5],
+                    "max_plausible_monthly_move": 0.10,
+                    "staleness_months": 3,
+                }
+            }
+        )
+        path, source = self.services._forward_price_path("land", 5_000_000.0, steps=2)
+        self.assertEqual(source, "lstm_index_ratio")
+        self.assertAlmostEqual(path[0], 5_200_000.0, places=2)
+
+    def test_move_beyond_the_series_volatility_band_is_rejected(self):
+        """The real housing case: -5.5% in one month on a 1.05% sd series."""
+        self._with_index(
+            {
+                "housing": {
+                    "latest_index": 176.40,
+                    "forecast_path": [166.71, 166.95, 166.98],
+                    "max_plausible_monthly_move": 0.031409,
+                    "staleness_months": 3,
+                }
+            }
+        )
+        path, source = self.services._forward_price_path("house", 50_000_000.0, steps=3)
+        self.assertEqual(source, "flat_no_index")
+        self.assertEqual(set(path), {50_000_000.0})
+
+    def test_a_stale_index_is_not_extrapolated_across(self):
+        self._with_index(
+            {
+                "land": {
+                    "latest_index": 134.10,
+                    "forecast_path": [135.0, 136.0],
+                    "max_plausible_monthly_move": 0.10,
+                    "staleness_months": 17,
+                    "series_end": "2025-03",
+                }
+            }
+        )
+        path, source = self.services._forward_price_path("land", 4_800_000.0, steps=2)
+        self.assertEqual(source, "flat_no_index")
+        self.assertEqual(path, [4_800_000.0, 4_800_000.0])
+
+    def test_a_failed_series_degrades_to_a_flat_path(self):
+        self._with_index({"housing": {"error": "ScalerDomainError: wrong scaler"}})
+        path, source = self.services._forward_price_path("house", 50_000_000.0, steps=3)
+        self.assertEqual(source, "flat_no_index")
+
     def test_implausible_growth_is_rejected_in_favour_of_a_flat_path(self):
         # A 40x jump is the signature of a scale mismatch, not a forecast.
         self._with_index(
-            {"land": {"next_close": "1,000,000.00", "next_5_close": ["1,000,000.00", "40,000,000.00"]}}
+            {
+                "land": {
+                    "latest_index": 100.0,
+                    "forecast_path": [100.0, 4000.0],
+                    "staleness_months": 3,
+                }
+            }
         )
         path, source = self.services._forward_price_path("land", 5_000_000.0, steps=2)
         self.assertEqual(source, "flat_no_index")
@@ -230,7 +301,14 @@ class ForwardPricePathTests(unittest.TestCase):
         import os
 
         self._with_index(
-            {"land": {"next_close": "1,000,000.00", "next_5_close": ["1,000,000.00", "1,100,000.00"]}}
+            {
+                "land": {
+                    "latest_index": 100.0,
+                    "forecast_path": [100.0, 110.0],
+                    "max_plausible_monthly_move": 0.15,
+                    "staleness_months": 3,
+                }
+            }
         )
         original = os.environ.get("LAND_LSTM_INDEX_ENABLED")
         os.environ["LAND_LSTM_INDEX_ENABLED"] = "false"

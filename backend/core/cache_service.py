@@ -154,36 +154,54 @@ def get_current_prices():
         return {}
     
 def compute_future_predictions():
+    """
+    Snapshot the market index: the latest published value, the forecast path, and
+    the metadata a consumer needs to decide whether to trust either.
+
+    ``latest_index`` matters as much as the forecast. Growth factors must be taken
+    against the last *published* value, not against the first forecast - anchoring
+    on the forecast hides the model's single largest error, the jump from the last
+    actual into step one.
+
+    Values are index points (CBSL Asking Price Index, 2019=100), not prices. Only
+    ratios within one series are meaningful.
+    """
     print("Computing future predictions...")
-    from backend.predictions.LSTM.Land.predict import (
-        predict_next_close_price_from_saved as predict_land_next_close,
-        predict_future_sequence_from_saved as predict_land_sequence,
-    )
-    from backend.predictions.LSTM.Housing.predict import (
-        predict_next_close_price_from_saved as predict_housing_next_close,
-        predict_future_sequence_from_saved as predict_housing_sequence,
-    )
-    from backend.predictions.LSTM.Rental.predict import (
-        predict_next_close_price_from_saved as predict_rental_next_close,
-        predict_future_sequence_from_saved as predict_rental_sequence,
-    )
+    from backend.predictions.LSTM.Land import predict as land_index
+    from backend.predictions.LSTM.Housing import predict as housing_index
+    from backend.predictions.LSTM.Rental import predict as rental_index
+    from backend.predictions.LSTM import index_model
 
-    predictions = {
-        "land": {
-            "next_close": predict_land_next_close(),
-            "next_5_close": predict_land_sequence(steps=5),
-        },
-        "housing": {
-            "next_close": predict_housing_next_close(),
-            "next_5_close": predict_housing_sequence(steps=5),
-        },
-        "rental": {
-            "next_close": predict_rental_next_close(),
-            "next_5_close": predict_rental_sequence(steps=5),
-        },
-        "updated_at": datetime.utcnow().isoformat() + "Z",
-    }
+    modules = {"land": land_index, "housing": housing_index, "rental": rental_index}
+    predictions = {}
 
+    for name, module in modules.items():
+        entry = {}
+        try:
+            manifest = index_model.load_manifest(index_model.resolve_series(name))
+            latest = module.latest_index_value()
+            path = module.predict_future_sequence_raw(steps=5)
+
+            entry = {
+                "next_close": index_model.format_value(path[0]),
+                "next_5_close": [index_model.format_value(value) for value in path],
+                "latest_index": latest,
+                "forecast_path": path,
+                "series_end": manifest.get("series_end"),
+                "staleness_months": module.staleness_months(),
+                "max_plausible_monthly_move": manifest.get("max_plausible_monthly_move"),
+                "is_proxy": bool(index_model.load_manifest(name).get("is_proxy", False)),
+                "units": "index",
+            }
+        except Exception as exc:
+            # A failed series must not take the whole snapshot down; consumers
+            # degrade to a flat path when the forecast is absent.
+            logger.warning("Index forecast failed for '%s': %s", name, exc)
+            entry = {"error": f"{type(exc).__name__}: {exc}", "units": "index"}
+
+        predictions[name] = entry
+
+    predictions["updated_at"] = datetime.utcnow().isoformat() + "Z"
     return predictions
 
 

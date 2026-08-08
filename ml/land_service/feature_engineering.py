@@ -1,32 +1,13 @@
-# backend/ml/land/feature_engineering.py
+# ml/land_service/feature_engineering.py
 
-from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
-from functools import lru_cache
+
+from ml.land_service.geocoding import resolve as resolve_location
 
 # ---------------------------------
 # CONSTANTS
 # ---------------------------------
 COLOMBO_COORDS = (6.9271, 79.8612)
-SRI_LANKA_SUFFIX = "Sri Lanka"
-
-# ---------------------------------
-# GEOCODER (singleton)
-# ---------------------------------
-_geolocator = Nominatim(user_agent="reva_land_app", timeout=5)
-
-
-@lru_cache(maxsize=256)
-def geocode_location(query: str):
-    """
-    Cached geocoding to avoid repeated API calls
-    and Nominatim rate-limit issues.
-    """
-    try:
-        return _geolocator.geocode(query)
-    except Exception:
-        return None
-
 
 # ---------------------------------
 # FEATURE ENGINEERING
@@ -44,19 +25,16 @@ def derive_features(user_input: dict) -> dict:
     district = user_input.get("district", "").strip()
     location_text = user_input.get("location_text", "").strip()
 
-    # ---------- Geocoding ----------
-    lat, lon = COLOMBO_COORDS
-    geo_res = "district_fallback"
-    mpl = district or "Unknown"
+    # ---------- Location resolution ----------
+    # Resolved from the shipped gazetteer first; see ml/land_service/geocoding.py
+    # for why a live geocoder is not on this path by default.
+    located = resolve_location(location_text, district)
+    lat, lon = located.lat, located.lon
 
-    if location_text and district:
-        query = f"{location_text}, {district}, {SRI_LANKA_SUFFIX}"
-        loc = geocode_location(query)
-
-        if loc:
-            lat, lon = loc.latitude, loc.longitude
-            geo_res = "exact"
-            mpl = location_text
+    # The model's geo_resolution category was trained on two values only, so the
+    # richer precision detail is reported separately rather than fed to the model.
+    geo_res = "exact" if located.is_precise else "district_fallback"
+    mpl = location_text if (location_text and located.is_precise) else (district or "Unknown")
 
     # ---------- Distance calculations ----------
     dist_colombo = geodesic((lat, lon), COLOMBO_COORDS).km
@@ -127,3 +105,9 @@ def derive_features(user_input: dict) -> dict:
     }
 
     return features
+
+
+def derive_features_with_geo(user_input: dict) -> tuple[dict, dict]:
+    """``derive_features`` plus the location provenance, for API responses."""
+    located = resolve_location(user_input.get("location_text"), user_input.get("district"))
+    return derive_features(user_input), located.as_dict()

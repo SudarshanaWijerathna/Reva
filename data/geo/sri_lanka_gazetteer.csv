@@ -1,0 +1,97 @@
+district,location,lat,lon,precision,observations,source
+colombo,angoda,6.775085,79.965432,locality,182,reva_house_listings_2022_2023_median
+colombo,athurugiriya,6.872319,80.000388,locality,2474,reva_house_listings_2022_2023_median
+colombo,avissawella,6.954329,80.204577,locality,49,reva_house_listings_2022_2023_median
+colombo,battaramulla,6.898382,79.917841,locality,1176,reva_house_listings_2022_2023_median
+colombo,boralesgamuwa,6.823355,79.909025,locality,761,reva_house_listings_2022_2023_median
+colombo,colombo 1,6.87587,79.870379,locality,4,reva_house_listings_2022_2023_median
+colombo,colombo 10,6.927704,79.866084,locality,184,reva_house_listings_2022_2023_median
+colombo,colombo 11,6.939042,79.860483,locality,5,reva_house_listings_2022_2023_median
+colombo,colombo 12,6.938636,79.860917,locality,36,reva_house_listings_2022_2023_median
+colombo,colombo 13,6.948766,79.860483,locality,30,reva_house_listings_2022_2023_median
+colombo,colombo 14,6.94476,79.868021,locality,41,reva_house_listings_2022_2023_median
+colombo,colombo 15,6.965477,79.87084,locality,65,reva_house_listings_2022_2023_median
+colombo,colombo 2,6.919933,79.854027,locality,17,reva_house_listings_2022_2023_median
+colombo,colombo 3,6.898934,79.853767,locality,63,reva_house_listings_2022_2023_median
+colombo,colombo 4,6.896134,79.857147,locality,41,reva_house_listings_2022_2023_median
+colombo,colombo 5,6.888795,79.866302,locality,266,reva_house_listings_2022_2023_median
+colombo,colombo 6,6.874658,79.860483,locality,194,reva_house_listings_2022_2023_median
+colombo,colombo 7,6.911665,79.864568,locality,68,reva_house_listings_2022_2023_median
+colombo,colombo 8,6.91218,79.882883,locality,82,reva_house_listings_2022_2023_median
+colombo,colombo 9,6.936771,79.860781,locality,124,reva_house_listings_2022_2023_median
+colombo,dehiwala,6.830119,79.880083,locality,1250,reva_house_listings_2022_2023_median
+colombo,godagama,7.01986,81.433392,locality,36,reva_house_listings_2022_2023_median
+colombo,hanwella,6.897834,80.081429,locality,59,reva_house_listings_2022_2023_median
+colombo,homagama,6.843276,80.003183,locality,1691,reva_house_listings_2022_2023_median
+colombo,kaduwela,6.940586,79.952269,locality,336,reva_house_listings_2022_2023_median
+colombo,kesbewa,6.77867,79.94725,locality,532,reva_house_listings_2022_2023_median
+colombo,kohuwala,6.862484,79.885498,locality,75,reva_house_listings_2022_2023_median
+colombo,kolonnawa,6.928016,79.890831,locality,344,reva_house_listings_2022_2023_median
+colombo,kottawa,6.841165,79.965432,locality,1708,reva_house_listings_2022_2023_median
+colombo,kotte,7.462917,81.017492,locality,423,reva_house_listings_2022_2023_median
+colombo,maharagama,6.8478,79.921762,locality,881,reva_house_listings_2022_2023_median
+colombo,malabe,6.906079,79.969628,locality,2961,reva_house_listings_2022_2023_median
+colombo,meegoda,6.589361,79.963667,locality,104,reva_house_listings_2022_2023_median
+colombo,moratuwa,6.788071,79.891281,locality,406,reva_house_listings_2022_2023_median
+colombo,mount lavinia,6.822159,79.873177,locality,442,reva_house_listings_2022_2023_median
+colombo,nawala,6.896419,79.888482,locality,242,reva_house_listings_2022_2023_median
+colombo,nugegoda,6.864908,79.899679,locality,1670,reva_house_listings_2022_2023_median
+colombo,padukka,6.845363,80.103772,locality,137,reva_house_listings_2022_2023_median
+colombo,pannipitiya,6.846399,79.948435,locality,540,reva_house_listings_2022_2023_median
+colombo,piliyandala,6.801757,79.922731,locality,8605,reva_house_listings_2022_2023_median
+colombo,rajagiriya,6.909411,79.894254,locality,683,reva_house_listings_2022_2023_median
+colombo,ratmalana,6.818795,79.87102,locality,285,reva_house_listings_2022_2023_median
+colombo,talawatugoda,6.875865,79.939194,locality,3792,reva_house_listings_2022_2023_median
+colombo,wellampitiya,6.866699,81.046553,locality,1335,reva_house_listings_2022_2023_median
+gampaha,delgoda,6.989288,80.014377,locality,150,reva_house_listings_2022_2023_median
+gampaha,divulapitiya,7.230314,80.016474,locality,36,reva_house_listings_2022_2023_median
+gampaha,gampaha city,7.084048,80.009831,locality,721,reva_house_listings_2022_2023_median
+gampaha,ganemulla,7.082719,79.948255,locality,130,reva_house_listings_2022_2023_median
+gampaha,ja ela,7.08576,79.925444,locality,511,reva_house_listings_2022_2023_median
+gampaha,kadawatha,7.004672,79.9542,locality,1034,reva_house_listings_2022_2023_median
+gampaha,kandana,7.04779,79.897035,locality,457,reva_house_listings_2022_2023_median
+gampaha,katunayake,7.172485,79.885348,locality,92,reva_house_listings_2022_2023_median
+gampaha,kelaniya,6.978214,79.911552,locality,277,reva_house_listings_2022_2023_median
+gampaha,kiribathgoda,6.971899,79.94664,locality,233,reva_house_listings_2022_2023_median
+gampaha,minuwangoda,7.184208,79.950048,locality,140,reva_house_listings_2022_2023_median
+gampaha,mirigama,7.227111,80.156766,locality,53,reva_house_listings_2022_2023_median
+gampaha,negombo,7.195547,79.857338,locality,2960,reva_house_listings_2022_2023_median
+gampaha,nittambuwa,7.142364,80.103772,locality,204,reva_house_listings_2022_2023_median
+gampaha,ragama,7.023177,79.907772,locality,359,reva_house_listings_2022_2023_median
+gampaha,seeduwa,7.140678,79.886973,locality,106,reva_house_listings_2022_2023_median
+gampaha,veyangoda,7.166214,80.05587,locality,42,reva_house_listings_2022_2023_median
+gampaha,wattala,6.986013,79.907016,locality,473,reva_house_listings_2022_2023_median
+kalutara,alutgama,7.566667,79.9,locality,18,reva_house_listings_2022_2023_median
+kalutara,bandaragama,6.714407,79.98906,locality,271,reva_house_listings_2022_2023_median
+kalutara,beruwala,6.463204,79.974712,locality,21,reva_house_listings_2022_2023_median
+kalutara,horana,6.724653,80.039946,locality,361,reva_house_listings_2022_2023_median
+kalutara,ingiriya,6.740377,80.162454,locality,17,reva_house_listings_2022_2023_median
+kalutara,kalutara city,6.585395,79.96074,locality,210,reva_house_listings_2022_2023_median
+kalutara,matugama,6.521943,80.113685,locality,58,reva_house_listings_2022_2023_median
+kalutara,panadura,6.752799,79.894931,locality,436,reva_house_listings_2022_2023_median
+kalutara,wadduwa,6.636282,79.952845,locality,59,reva_house_listings_2022_2023_median
+ampara,,7.2917,81.6725,district_centroid,,district_capital
+anuradhapura,,8.3114,80.4037,district_centroid,,district_capital
+badulla,,6.9934,81.055,district_centroid,,district_capital
+batticaloa,,7.7102,81.6924,district_centroid,,district_capital
+colombo,,6.9271,79.8612,district_centroid,,district_capital
+galle,,6.0535,80.221,district_centroid,,district_capital
+gampaha,,7.084,79.9999,district_centroid,,district_capital
+hambantota,,6.1246,81.1185,district_centroid,,district_capital
+jaffna,,9.6615,80.0255,district_centroid,,district_capital
+kalutara,,6.5854,79.9607,district_centroid,,district_capital
+kandy,,7.2906,80.6337,district_centroid,,district_capital
+kegalle,,7.2513,80.3464,district_centroid,,district_capital
+kilinochchi,,9.3803,80.377,district_centroid,,district_capital
+kurunegala,,7.4863,80.3647,district_centroid,,district_capital
+mannar,,8.981,79.9044,district_centroid,,district_capital
+matale,,7.4675,80.6234,district_centroid,,district_capital
+matara,,5.9549,80.555,district_centroid,,district_capital
+monaragala,,6.8728,81.351,district_centroid,,district_capital
+mullaitivu,,9.2671,80.8142,district_centroid,,district_capital
+nuwara eliya,,6.9497,80.7891,district_centroid,,district_capital
+polonnaruwa,,7.9403,81.0188,district_centroid,,district_capital
+puttalam,,8.0362,79.8283,district_centroid,,district_capital
+ratnapura,,6.6828,80.3992,district_centroid,,district_capital
+trincomalee,,8.5874,81.2152,district_centroid,,district_capital
+vavuniya,,8.7514,80.4971,district_centroid,,district_capital

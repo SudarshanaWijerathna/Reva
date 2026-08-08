@@ -457,7 +457,13 @@ def make_prediction(
         #    published index value.
         predicted_sequence, sequence_source = _forward_price_path(model_type, predicted_value)
 
+        # Models that already return a ``details`` block (rental) have it merged in
+        # rather than nested, so every consumer reads one flat namespace.
         details: Dict[str, Any] = dict(results)
+        nested_details = details.pop("details", None)
+        if isinstance(nested_details, dict):
+            details.update(nested_details)
+
         details["anchor_adjustment"] = {
             "model_price_at_anchor": round(anchor_value, 2),
             "factor": round(anchor_factor.value, 6),

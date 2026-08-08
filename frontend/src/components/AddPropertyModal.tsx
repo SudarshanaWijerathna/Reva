@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { portfolioService } from '../services/portfolioService';
+import React, { useEffect, useState } from 'react';
+import { portfolioService, type PropertyDetailData } from '../services/portfolioService';
 
 type PropertyType = 'housing' | 'rental' | 'land';
 
@@ -38,13 +38,15 @@ interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPropertyAdded: () => void;
+  initialProperty?: PropertyDetailData | null;
 }
 
-const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, onPropertyAdded }) => {
-  const [activeTab, setActiveTab] = useState<PropertyType>('housing');
+const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, onPropertyAdded, initialProperty }) => {
+  const [activeTab, setActiveTab] = useState<PropertyType>(initialProperty?.property_type || 'housing');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
+  const isEditMode = Boolean(initialProperty);
 
   const [housingForm, setHousingForm] = useState<HousingFormData>({
     location: '',
@@ -77,6 +79,58 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     road_access: '',
   });
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    if (initialProperty) {
+      setActiveTab(initialProperty.property_type);
+      setError('');
+      setSuccess('');
+
+      const baseValues = {
+        location: initialProperty.location || '',
+        purchase_price: initialProperty.purchase_price?.toString() || '',
+        purchase_date: initialProperty.purchase_date || '',
+      };
+
+      if (initialProperty.property_type === 'housing') {
+        setHousingForm({
+          ...baseValues,
+          land_size_perches: initialProperty.land_size_perches?.toString() || '',
+          house_size_sqft: initialProperty.house_size_sqft?.toString() || '',
+          floors: initialProperty.floors?.toString() || '',
+          built_year: initialProperty.built_year?.toString() || '',
+          property_condition: initialProperty.property_condition || 'good',
+        });
+      }
+
+      if (initialProperty.property_type === 'rental') {
+        setRentalForm({
+          ...baseValues,
+          monthly_rent: initialProperty.monthly_rent?.toString() || '',
+          occupancy_status: initialProperty.occupancy_status || 'occupied',
+          lease_start_date: initialProperty.lease_start_date || '',
+          lease_end_date: initialProperty.lease_end_date || '',
+          tenant_type: initialProperty.tenant_type || 'family',
+        });
+      }
+
+      if (initialProperty.property_type === 'land') {
+        setLandFormData({
+          ...baseValues,
+          land_size: initialProperty.land_size?.toString() || '',
+          zoning_type: initialProperty.zoning_type || 'residential',
+          road_access: initialProperty.road_access || '',
+        });
+      }
+      return;
+    }
+
+    resetForm();
+  }, [initialProperty, isOpen]);
+
   const handleHousingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setHousingForm({ ...housingForm, [e.target.name]: e.target.value });
   };
@@ -107,7 +161,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     return true;
   };
 
-  const handleAddHousing = async () => {
+  const handleSubmitHousing = async () => {
     setError("");
     setSuccess("");
 
@@ -135,8 +189,13 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         property_condition: housingForm.property_condition,
       };
 
-      await portfolioService.createHousingProperty(payload);
-      setSuccess('Housing property added successfully!');
+      if (isEditMode && initialProperty) {
+        await portfolioService.updateHousingProperty(initialProperty.property_id, payload);
+        setSuccess('Housing property updated successfully!');
+      } else {
+        await portfolioService.createHousingProperty(payload);
+        setSuccess('Housing property added successfully!');
+      }
       
       setTimeout(() => {
         resetForm();
@@ -150,7 +209,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     }
   };
 
-  const handleAddRental = async () => {
+  const handleSubmitRental = async () => {
     setError("");
     setSuccess("");
 
@@ -178,8 +237,13 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         tenant_type: rentalForm.tenant_type,
       };
 
-      await portfolioService.createRentalProperty(payload);
-      setSuccess('Rental property added successfully!');
+      if (isEditMode && initialProperty) {
+        await portfolioService.updateRentalProperty(initialProperty.property_id, payload);
+        setSuccess('Rental property updated successfully!');
+      } else {
+        await portfolioService.createRentalProperty(payload);
+        setSuccess('Rental property added successfully!');
+      }
       
       setTimeout(() => {
         resetForm();
@@ -193,7 +257,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     }
   };
 
-  const handleAddLand = async () => {
+  const handleSubmitLand = async () => {
     setError("");
     setSuccess("");
 
@@ -219,8 +283,13 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         road_access: landForm.road_access,
       };
 
-      await portfolioService.createLandProperty(payload);
-      setSuccess('Land property added successfully!');
+      if (isEditMode && initialProperty) {
+        await portfolioService.updateLandProperty(initialProperty.property_id, payload);
+        setSuccess('Land property updated successfully!');
+      } else {
+        await portfolioService.createLandProperty(payload);
+        setSuccess('Land property added successfully!');
+      }
       
       setTimeout(() => {
         resetForm();
@@ -316,7 +385,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           top: 0,
           backgroundColor: '#fff',
         }}>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>Add New Property</h2>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{isEditMode ? 'Edit Property' : 'Add New Property'}</h2>
           <button
             onClick={onClose}
             style={{
@@ -342,6 +411,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
+              disabled={isEditMode && initialProperty?.property_type !== tab}
               style={{
                 padding: '12px 16px',
                 border: 'none',
@@ -350,6 +420,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                 fontSize: '14px',
                 fontWeight: '500',
                 color: activeTab === tab ? '#2563eb' : '#666',
+                opacity: isEditMode && initialProperty?.property_type !== tab ? 0.5 : 1,
                 borderBottom: activeTab === tab ? '2px solid #2563eb' : 'none',
                 borderRadius: '0',
                 transition: 'all 0.3s ease',
@@ -405,7 +476,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
           {/* Housing Form */}
           {activeTab === 'housing' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAddHousing(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitHousing(); }}>
               <div style={{ display: 'grid', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
@@ -585,7 +656,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                     marginTop: '8px',
                   }}
                 >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>Adding...</> : 'Add Property'}
+                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
                 </button>
               </div>
             </form>
@@ -593,7 +664,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
           {/* Rental Form */}
           {activeTab === 'rental' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAddRental(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitRental(); }}>
               <div style={{ display: 'grid', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
@@ -769,7 +840,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                     marginTop: '8px',
                   }}
                 >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>Adding...</> : 'Add Property'}
+                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
                 </button>
               </div>
             </form>
@@ -777,7 +848,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
           {/* Land Form */}
           {activeTab === 'land' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleAddLand(); }}>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitLand(); }}>
               <div style={{ display: 'grid', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
@@ -914,7 +985,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                     marginTop: '8px',
                   }}
                 >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>Adding...</> : 'Add Property'}
+                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
                 </button>
               </div>
             </form>

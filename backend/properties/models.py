@@ -6,12 +6,23 @@ class PropertyBase(BaseModel):
     purchase_price: float
     purchase_date: date
 
+
+class PropertyDetail(PropertyBase):
+    property_id: int
+    property_type: str
+    status: str
+    created_at: date
+
 class HousingCreate(PropertyBase):
     land_size_perches: float
     house_size_sqft: float
     floors: int
     built_year: int
     property_condition: str
+
+
+class HousingUpdate(HousingCreate):
+    pass
 
 class RentalCreate(PropertyBase):
     monthly_rent: float
@@ -20,8 +31,16 @@ class RentalCreate(PropertyBase):
     lease_end_date: date
     tenant_type: str
 
+
+class RentalUpdate(RentalCreate):
+    pass
+
 class LandCreate(PropertyBase):
     land_size: float
     zoning_type: str
     road_access: str
+
+
+class LandUpdate(LandCreate):
+    pass
 

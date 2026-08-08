@@ -13,6 +13,29 @@ export interface PropertyData {
   status: string;
 }
 
+export interface PropertyDetailData {
+  property_id: number;
+  property_type: "housing" | "rental" | "land";
+  created_at: string;
+  location: string;
+  purchase_price: number;
+  purchase_date: string;
+  status: string;
+  land_size_perches?: number;
+  house_size_sqft?: number;
+  floors?: number;
+  built_year?: number;
+  property_condition?: string;
+  monthly_rent?: number;
+  occupancy_status?: string;
+  lease_start_date?: string;
+  lease_end_date?: string;
+  tenant_type?: string;
+  land_size?: number;
+  zoning_type?: string;
+  road_access?: string;
+}
+
 export interface PortfolioSummary {
   portfolio_value: number;
   total_investment: number;
@@ -106,6 +129,10 @@ export const portfolioService = {
     return fetchWithAuth("/portfolio/insights");
   },
 
+  async getPropertyDetails(propertyId: number): Promise<PropertyDetailData> {
+    return fetchWithAuth(`/properties/${propertyId}`);
+  },
+
   /**
    * Add a new housing property
    */
@@ -158,6 +185,67 @@ export const portfolioService = {
     return fetchWithAuth("/properties/land", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+
+  async updateHousingProperty(
+    propertyId: number,
+    data: {
+      location: string;
+      purchase_price: number;
+      purchase_date: string;
+      land_size_perches: number;
+      house_size_sqft: number;
+      floors: number;
+      built_year: number;
+      property_condition: string;
+    }
+  ): Promise<any> {
+    return fetchWithAuth(`/properties/housing/${propertyId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateRentalProperty(
+    propertyId: number,
+    data: {
+      location: string;
+      purchase_price: number;
+      purchase_date: string;
+      monthly_rent: number;
+      occupancy_status: string;
+      lease_start_date: string;
+      lease_end_date: string;
+      tenant_type: string;
+    }
+  ): Promise<any> {
+    return fetchWithAuth(`/properties/rental/${propertyId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateLandProperty(
+    propertyId: number,
+    data: {
+      location: string;
+      purchase_price: number;
+      purchase_date: string;
+      land_size: number;
+      zoning_type: string;
+      road_access: string;
+    }
+  ): Promise<any> {
+    return fetchWithAuth(`/properties/land/${propertyId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteProperty(propertyId: number, propertyType: "housing" | "rental" | "land"): Promise<any> {
+    return fetchWithAuth(`/properties/${propertyType}/${propertyId}`, {
+      method: "DELETE",
     });
   },
 };

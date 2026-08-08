@@ -170,6 +170,8 @@ def create_access_token(email:str, user_id: int, expires_delta: timedelta):
 
 
 
+oauth2_bearer_optional = OAuth2PasswordBearer(tokenUrl='auth/token', auto_error=False)
+
 def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try: 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -180,5 +182,19 @@ def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         return {"email": email, "id": user_id}
     except JWTError:
         raise HTTPException(status_code=401, detail="Could not validate user") 
-    
+
+def get_optional_current_user(token: Annotated[str | None, Depends(oauth2_bearer_optional)] = None):
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if email is None or user_id is None:
+            return None
+        return {"email": email, "id": user_id}
+    except JWTError:
+        return None
+
 user_dependency = Annotated[dict, Depends(get_current_user)]
+

@@ -17,7 +17,14 @@ export interface PredictionRequest {
 
 export interface PredictionResponse {
   predicted_value: number;
+  predicted_sequence: number[];
   model_type: string;
+}
+
+export interface RecommendationResponse {
+  model_type: string;
+  recommendation: string;
+  action_index?: number | null;
 }
 
 // Get access token from localStorage or sessionStorage
@@ -72,4 +79,11 @@ export const makePrediction = async (
     method: "POST",
     body: JSON.stringify(payload),
   });
+};
+
+// Get recommendation for a specific model type
+export const getRecommendation = async (
+  modelType: string
+): Promise<RecommendationResponse> => {
+  return fetchWithAuth(`/api/predictions/recommendation/${modelType}`);
 };

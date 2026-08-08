@@ -66,7 +66,7 @@ async def login_for_access_token(form_data:Annotated[OAuth2PasswordRequestForm, 
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=401, detail="Validation Unsuccessful")
-    token = create_access_token(user.email, user.id, timedelta(minutes=20))
+    token = create_access_token(user.email, user.id, timedelta(minutes=60))
     return{'access_token': token, 'token_type': 'bearer'}
 
 
@@ -103,7 +103,7 @@ def google_auth(google_token: GoogleToken, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    app_token = create_access_token(user.email, user.id, timedelta(minutes=20))
+    app_token = create_access_token(user.email, user.id, timedelta(minutes=60))
     full_name = google_user["full_name"] or (profile.full_name if profile else None)
 
     return GoogleAuthResponse(

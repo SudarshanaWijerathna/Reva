@@ -17,7 +17,8 @@ from backend.dynamic.repositories import (
 )
 from backend.dynamic.services import (
     validate_features,
-    make_prediction
+    make_prediction,
+    get_property_recommendation
 )
 from backend.dynamic.schemas import (
     FeatureDefinition,
@@ -82,7 +83,7 @@ def predict_value(
     try:
         user_id = current_user.get("id") if current_user else None
         
-        predicted_value = make_prediction(
+        predicted_value, predicted_sequence = make_prediction(
             db=db,
             model_type=model_type,
             input_features=request.features,
@@ -91,6 +92,7 @@ def predict_value(
         print(f"Predicted value: {predicted_value}, for model type: {model_type}")
         return PredictionResponse(
             predicted_value=predicted_value,
+            predicted_sequence=predicted_sequence,
             model_type=model_type
         )
         
@@ -123,3 +125,25 @@ def get_prediction_history(
     
     predictions = get_user_predictions(db, user_id, model_type)
     return predictions
+
+@predictions_router.get("/recommendation/{model_type}")
+def get_recommendation(
+    db: Database,
+    current_user: CurrentUser,
+    model_type: str,
+):
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user token"
+        )
+    
+    try:
+        recommendation = get_property_recommendation(db, user_id, model_type) # example with land model, can be parameterized
+        return recommendation
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

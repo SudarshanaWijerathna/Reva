@@ -23,3 +23,7 @@ langgraph
 langchain_core
 langchain-community
 langchain-google-genai
+langchain
+
+# ===== ML dependencies =====
+mlflow

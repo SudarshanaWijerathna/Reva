@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import MapExplorer from '../../components/MapExplorer';
-import type { Feature } from '../../services/predictionsService';
-import { getFeatures, makePrediction } from '../../services/predictionsService';
+import type { Feature, PredictionResponse, RecommendationResponse } from '../../services/predictionsService';
+import { getFeatures, getRecommendation, makePrediction } from '../../services/predictionsService';
+import '../../assets/css/landprice.css';
 
 const PERIODS = [
   '2022 H1', '2022 H2',
@@ -16,7 +17,8 @@ const HousePrice: React.FC = () => {
   /* -------------------- STATE -------------------- */
   const [features, setFeatures] = useState<Feature[]>([]);
   const [form, setForm] = useState<Record<string, any>>({});
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PredictionResponse | null>(null);
+  const [recommendation, setRecommendation] = useState<RecommendationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [featuresLoading, setFeaturesLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -56,6 +58,7 @@ const HousePrice: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     setResult(null);
+    setRecommendation(null);
     setError('');
 
     try {
@@ -77,6 +80,13 @@ const HousePrice: React.FC = () => {
 
       const data = await makePrediction('house', payload);
       setResult(data);
+
+      try {
+        const rec = await getRecommendation('house');
+        setRecommendation(rec);
+      } catch {
+        setRecommendation({ model_type: 'house', recommendation: 'unavailable' });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Prediction failed');
     } finally {
@@ -92,13 +102,57 @@ const HousePrice: React.FC = () => {
   };
 
   /* -------------------- FIXED MOCK BAR DATA -------------------- */
+  const parseNumber = (value: unknown) => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return parseFloat(value.replace(/,/g, ''));
+    return 0;
+  };
+
   const getBasePrice = () => {
     if (!result || !result.predicted_value) return 0;
-    const val = result.predicted_value;
-    return typeof val === 'string' ? parseFloat(val.replace(/,/g, '')) : val;
+    return parseNumber(result.predicted_value);
   };
 
   const basePrice = getBasePrice();
+
+  const getRecommendationLabel = () => {
+    const label = (recommendation?.recommendation || 'unavailable').toString().toLowerCase();
+    if (label === 'buy') return { text: 'BUY', tone: 'buy' };
+    if (label === 'sell') return { text: 'SELL', tone: 'sell' };
+    if (label === 'hold') return { text: 'HOLD', tone: 'hold' };
+    return { text: 'UNAVAILABLE', tone: 'unavailable' };
+  };
+
+  const recommendationLabel = getRecommendationLabel();
+
+  const getForecastSeries = () => {
+    if (!result) return [];
+    const sequence = Array.isArray(result.predicted_sequence) ? result.predicted_sequence : [];
+    const cleaned = sequence.map(parseNumber).filter(value => Number.isFinite(value));
+    if (cleaned.length === 5) return cleaned;
+    if (basePrice > 0) {
+      return Array.from({ length: 5 }, (_, idx) => basePrice * (1 + (idx + 1) * 0.015));
+    }
+    return [];
+  };
+
+  const forecastSeries = getForecastSeries();
+  const forecastLabels = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'];
+  const forecastMin = forecastSeries.length ? Math.min(...forecastSeries) : 0;
+  const forecastMax = forecastSeries.length ? Math.max(...forecastSeries) : 1;
+  const forecastRange = forecastMax - forecastMin || 1;
+  const chartWidth = 560;
+  const chartHeight = 240;
+  const chartPadding = { left: 36, right: 20, top: 20, bottom: 30 };
+  const forecastPoints = forecastSeries.map((value, idx) => {
+    const x = chartPadding.left + (idx * (chartWidth - chartPadding.left - chartPadding.right)) / (forecastSeries.length - 1 || 1);
+    const y = chartPadding.top + (1 - (value - forecastMin) / forecastRange) * (chartHeight - chartPadding.top - chartPadding.bottom);
+    return { x, y };
+  });
+  const linePath = forecastPoints.map((point, idx) => `${idx === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ');
+  const areaPath = forecastPoints.length
+    ? `${linePath} L ${forecastPoints[forecastPoints.length - 1].x} ${chartHeight - chartPadding.bottom} L ${forecastPoints[0].x} ${chartHeight - chartPadding.bottom} Z`
+    : '';
 
   const barData = result
     ? PERIODS.map((p, i) => ({
@@ -292,6 +346,80 @@ const HousePrice: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {forecastSeries.length > 0 && (
+                <div className="forecast-row">
+                  <div className="chart-container forecast-container">
+                    <div className="chart-header">
+                      <div style={{ fontWeight: 600, fontSize: '18px' }}>
+                        Future price forecast
+                      </div>
+                      <i className="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div className="forecast-chart">
+                      <svg
+                        className="forecast-svg"
+                        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                        role="img"
+                        aria-label="Future price forecast"
+                      >
+                        <defs>
+                          <linearGradient id="forecastGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#4445ff" stopOpacity="0.35" />
+                            <stop offset="100%" stopColor="#d0d7ff" stopOpacity="0.05" />
+                          </linearGradient>
+                        </defs>
+                        <g className="forecast-grid">
+                          {[0.25, 0.5, 0.75].map((ratio) => (
+                            <line
+                              key={ratio}
+                              x1={chartPadding.left}
+                              x2={chartWidth - chartPadding.right}
+                              y1={chartPadding.top + (chartHeight - chartPadding.top - chartPadding.bottom) * ratio}
+                              y2={chartPadding.top + (chartHeight - chartPadding.top - chartPadding.bottom) * ratio}
+                            />
+                          ))}
+                        </g>
+                        <line
+                          className="forecast-axis"
+                          x1={chartPadding.left}
+                          y1={chartHeight - chartPadding.bottom}
+                          x2={chartWidth - chartPadding.right}
+                          y2={chartHeight - chartPadding.bottom}
+                        />
+                        <path className="forecast-area" d={areaPath} />
+                        <path className="forecast-line" d={linePath} />
+                        {forecastPoints.map((point, idx) => (
+                          <g key={forecastLabels[idx]}>
+                            <circle className="forecast-point" cx={point.x} cy={point.y} r="4" />
+                            <text className="forecast-value" x={point.x} y={point.y - 10} textAnchor="middle">
+                              {Math.round(forecastSeries[idx] / 1000)}k
+                            </text>
+                            <text className="forecast-label" x={point.x} y={chartHeight - 8} textAnchor="middle">
+                              {forecastLabels[idx]}
+                            </text>
+                          </g>
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="chart-container recommendation-card">
+                    <div className="chart-header">
+                      <div style={{ fontWeight: 600, fontSize: '18px' }}>
+                        Recommendation
+                      </div>
+                      <i className="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div className={`recommendation-label rec-${recommendationLabel.tone}`}>
+                      {recommendationLabel.text}
+                    </div>
+                    <p className="recommendation-subtitle">
+                      Based on your latest prediction signals.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

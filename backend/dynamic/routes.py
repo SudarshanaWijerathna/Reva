@@ -101,6 +101,9 @@ def predict_value(
             predicted_sequence=predicted_sequence,
             model_type=model_type,
             details=prediction_result.get("details") or {},
+            unit=prediction_result.get("unit"),
+            total_value=prediction_result.get("total_value"),
+            confidence=prediction_result.get("confidence"),
         )
         
     except ValueError as e:

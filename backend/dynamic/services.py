@@ -14,6 +14,7 @@ from backend.dynamic.repositories import (
 from backend.dynamic.schemas import FeatureDefinition, PredictionRecord
 from backend.predictions.model_runtime import predict_with_active_model
 from backend.core.cache_service import get_future_predictions, get_reccomendations
+from backend.predictions import market_index
 from ml.rental_service.feature_schema import RENTAL_FEATURE_DEFINITIONS
 
 # ============ Feature Validation Services ============
@@ -227,15 +228,51 @@ logger = logging.getLogger(__name__)
 # single series - never as prices.
 LSTM_SERIES_KEYS = {"house": "housing", "land": "land", "rental": "rental"}
 
-# Fallback plausibility band, used only when a series ships no manifest bound.
-# Per-series bounds derived from realised volatility are far tighter and are
-# preferred; see max_plausible_monthly_move in each LSTM manifest.
+# API model type -> market-index asset name.
+MODEL_TYPE_TO_ASSET = {"house": "house", "land": "land", "rental": "rental"}
+
+# Confidence in the *price*, which is the model's output moved by the index.
+#
+# A stale index does not make the price wrong - the anchor factor falls back to
+# exactly 1.0, which is the naive forecast, and the backtest says naive is the
+# best available method anyway. It does mean the price is quoted at the model's
+# anchor rather than at today, so it costs one step of confidence rather than
+# collapsing the answer. "degraded" is reserved for a failure of the model itself.
+CONFIDENCE_ORDER = ["high", "medium", "low"]
+
+# Default unit per model type, used when a model does not declare its own.
+DEFAULT_UNITS = {"land": "LKR_per_perch", "house": "LKR_total", "rental": "LKR_per_month"}
+
+# Fallback plausibility band for the forecast path, used only when a series
+# ships no manifest bound. Per-series bounds derived from realised volatility
+# are far tighter and are preferred; see max_plausible_monthly_move in each
+# LSTM manifest.
 MIN_GROWTH_FACTOR = 0.5
 MAX_GROWTH_FACTOR = 2.5
 
-# Beyond this the published index is too old to extrapolate across, so the
-# forecast path is dropped rather than projected over a gap.
+# Beyond this the published index is too old to project across, so the forecast
+# path is dropped rather than extended over the gap.
 MAX_INDEX_STALENESS_MONTHS = int(os.getenv("MAX_INDEX_STALENESS_MONTHS", "12"))
+
+
+def _step_down(level: str) -> str:
+    position = CONFIDENCE_ORDER.index(level)
+    return CONFIDENCE_ORDER[min(position + 1, len(CONFIDENCE_ORDER) - 1)]
+
+
+def _combined_confidence(model_confidence: str | None, index_confidence: str | None) -> str:
+    """
+    Compose the model's coverage confidence with the index's.
+
+    The model's coverage leads, because it determines whether the price is about
+    this property at all. An index that could not supply a time adjustment costs
+    one step; a proxy or approximated month costs nothing, since those shift the
+    factor slightly rather than removing it.
+    """
+    level = model_confidence if model_confidence in CONFIDENCE_ORDER else "medium"
+    if index_confidence == "degraded":
+        level = _step_down(level)
+    return level
 
 
 def _lstm_index_enabled(model_type: str) -> bool:
@@ -398,19 +435,43 @@ def make_prediction(
         if model_type not in {"land", "house", "rental"}:
             raise ValueError(f"Unknown model type: {model_type}")
 
-        # The per-property model owns the price level.
+        # 1. The per-property model owns the price level, at its own anchor period.
         results = predict_with_active_model(
             db=db,
             model_type=model_type,
             payload=input_features,
         )
-        predicted_value = float(results["predicted_value"])
+        anchor_value = float(results["predicted_value"])
 
-        # The LSTM index owns the forward trajectory, applied as a ratio.
+        # 2. The index moves that level from the model's anchor to today. A
+        #    degraded factor is exactly 1.0, so an unusable index leaves the
+        #    model's own number untouched rather than distorting it.
+        asset = MODEL_TYPE_TO_ASSET[model_type]
+        anchor_factor = market_index.growth_factor(
+            asset,
+            anchor_period=input_features.get("period") if model_type == "land" else None,
+        )
+        predicted_value = anchor_value * anchor_factor.value
+
+        # 3. The forecast supplies the forward path, as a ratio against the last
+        #    published index value.
         predicted_sequence, sequence_source = _forward_price_path(model_type, predicted_value)
 
         details: Dict[str, Any] = dict(results)
+        details["anchor_adjustment"] = {
+            "model_price_at_anchor": round(anchor_value, 2),
+            "factor": round(anchor_factor.value, 6),
+            "applied": bool(anchor_factor.is_usable and anchor_factor.value != 1.0),
+            **anchor_factor.as_dict(),
+        }
         details["sequence_source"] = sequence_source
+        details["market_index"] = market_index.describe(asset)
+
+        confidence = _combined_confidence(results.get("confidence"), anchor_factor.confidence)
+        details["confidence_inputs"] = {
+            "model_coverage": results.get("confidence"),
+            "index": anchor_factor.confidence,
+        }
 
         if user_id:
             prediction_record = PredictionRecord(
@@ -421,12 +482,21 @@ def make_prediction(
             )
             create_prediction_record(db, prediction_record)
 
-        return {
+        payload_out = {
             "predicted_value": predicted_value,
             "predicted_sequence": predicted_sequence,
             "model_type": model_type,
+            "confidence": confidence,
+            "unit": results.get("unit") or DEFAULT_UNITS.get(model_type),
             "details": details,
         }
+        if results.get("total_value") is not None:
+            # Land is quoted per perch; the whole-plot figure travels alongside it
+            # and is moved by the same anchor factor.
+            payload_out["total_value"] = round(
+                float(results["total_value"]) * anchor_factor.value, 2
+            )
+        return payload_out
 
     except ValueError as e:
         raise ValueError(f"Prediction validation error: {str(e)}")

@@ -79,14 +79,54 @@ class LandContractTests(PredictionContractMixin, unittest.TestCase):
             f"price must be non-decreasing. Got {prices}.",
         )
 
-    def test_district_outside_lvi_table_currently_raises(self):
+    def test_district_outside_the_lvi_table_returns_a_low_confidence_estimate(self):
         """
-        Documents today's boundary. Phase 3 replaces this with a low-confidence
-        estimate; when that lands, this test flips to asserting the new response.
+        A district the LVI table does not name used to raise and fail the whole
+        request. It now falls back to the table's 'All Others*' row and says so.
         """
         payload = _strip_id(_payloads("land", "out_of_coverage")[0])
-        with self.assertRaises(ValueError):
-            self.predict(payload)
+        response = self.predict(payload)
+
+        self.assert_response_contract(response, "land_out_of_coverage")
+        self.assertEqual(response["confidence"], "low")
+
+        coverage = response["details"]["coverage"]
+        self.assertTrue(coverage["used_fallback_lvi_row"])
+        self.assertFalse(coverage["district_in_model_vocabulary"])
+        self.assertIn("All Others", coverage["note"])
+        self.assertEqual(response["details"]["calibration"]["matched_district"], "All Others*")
+
+    def test_confidence_tiers_track_actual_coverage(self):
+        payload = _strip_id(_payloads("land")[0])
+        expected = {
+            "Colombo": "high",   # in the model vocabulary and the LVI table
+            "Kandy": "medium",   # in the LVI table only
+            "Ampara": "low",     # in neither
+        }
+        for district, level in expected.items():
+            with self.subTest(district=district):
+                response = self.predict({**payload, "district": district})
+                self.assertEqual(response["confidence"], level)
+
+    def test_land_reports_per_perch_and_whole_plot_values(self):
+        payload = _strip_id(_payloads("land")[0])
+        response = self.predict(payload)
+
+        self.assertEqual(response["unit"], "LKR_per_perch")
+        self.assertIsNotNone(response["total_value"])
+        self.assertAlmostEqual(
+            float(response["total_value"]),
+            float(response["predicted_value"]) * float(payload["land_size"]),
+            delta=1.0,
+            msg="total_value must be the per-perch price times the plot size.",
+        )
+
+    def test_a_larger_plot_has_a_larger_total_even_if_the_rate_falls(self):
+        """Per-perch rates fall with plot size; the total must still rise."""
+        by_id = {item["id"]: _strip_id(item) for item in _payloads("land")}
+        small = self.predict(by_id["land_colombo_15p_full_utilities"])
+        large = self.predict(by_id["land_colombo_40p_full_utilities"])
+        self.assertGreater(float(large["total_value"]), float(small["total_value"]))
 
 
 class HouseContractTests(PredictionContractMixin, unittest.TestCase):

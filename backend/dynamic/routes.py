@@ -139,15 +139,10 @@ def get_prediction_history(
 @predictions_router.get("/recommendation/{model_type}")
 def get_recommendation(
     db: Database,
-    current_user: CurrentUser,
     model_type: str,
+    current_user: OptionalCurrentUser = None,
 ):
-    user_id = current_user.get("id")
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid user token"
-        )
+    user_id = current_user.get("id") if current_user else None
     
     try:
         recommendation = get_property_recommendation(db, user_id, model_type) # example with land model, can be parameterized

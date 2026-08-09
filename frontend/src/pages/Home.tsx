@@ -2,6 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import '../assets/css/navbar.css';
+import { API_BASE_URL } from '../config/api';
+
+interface ReviewItem {
+  id: number;
+  name: string;
+  email: string;
+  rating: number;
+  comment: string;
+  avatar_url?: string | null;
+  created_at?: string;
+}
+
+// Initials Avatar generator
+const generateInitialsAvatar = (name: string): string => {
+  const initials = (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'U';
+
+  const colors = ['#4445ff', '#00C897', '#fbbf24', '#e11d48', '#9c27b0'];
+  const charCode = (name || '').charCodeAt(0) || 0;
+  const bgColor = colors[charCode % colors.length];
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${bgColor}"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="40px" font-weight="bold">${initials}</text></svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 
 const Home: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
@@ -25,14 +56,78 @@ const Home: React.FC = () => {
   // Mobile Review Carousel
   const [activeReviewIdx, setActiveReviewIdx] = useState<number>(0);
 
-  const mobileReviews = [
-    { name: "Sarah Perera", stars: 5, text: "Surprising accuracy for my plot in Kandy!", img: "https://i.pravatar.cc/150?img=68" },
-    { name: "Nimal Fernando", stars: 5, text: "The rental predictions for Colombo 7 are spot on. Saved me a lot of time!", img: "https://i.pravatar.cc/150?img=11" },
-    { name: "K. Jayasuriya", stars: 4, text: "Very helpful interface. Love how it maps the urban influence.", img: "https://i.pravatar.cc/150?img=32" },
-    { name: "Amani Silva", stars: 5, text: "Used this to cross-check my property valuation. The AI is impressive.", img: "https://i.pravatar.cc/150?img=44" },
-    { name: "Priyantha Liyanage", stars: 5, text: "Fantastic tool for quick insights. The privacy features are highly appreciated.", img: "https://i.pravatar.cc/150?img=15" },
-    { name: "Dilini Perera", stars: 4, text: "Really smooth UI and the predictions are very close to market rates.", img: "https://i.pravatar.cc/150?img=5" }
-  ];
+  // Dynamic Reviews & Form state
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>('');
+  const [guestName, setGuestName] = useState<string>('');
+  const [guestEmail, setGuestEmail] = useState<string>('');
+
+  // Check auth state
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  const userEmail = localStorage.getItem('user_email') || sessionStorage.getItem('user_email');
+  const isLoggedIn = !!token && !!userEmail;
+
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reviews`);
+      if (res.ok) {
+        const data = await res.json();
+        setReviews(data);
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewComment.trim()) return;
+
+    if (!isLoggedIn && (!guestName.trim() || !guestEmail.trim())) {
+      alert('Please provide your name and email to submit a review.');
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/reviews`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: guestName,
+          email: guestEmail,
+          rating: reviewRating,
+          comment: reviewComment,
+        }),
+      });
+
+      if (res.ok) {
+        setReviewComment('');
+        setGuestName('');
+        setGuestEmail('');
+        setReviewRating(5);
+        await fetchReviews();
+      } else {
+        const errData = await res.json();
+        alert(errData.detail || 'Failed to submit review');
+      }
+    } catch (err) {
+      console.error('Submit review error:', err);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   // Handle Window Resizing
   useEffect(() => {
@@ -69,12 +164,12 @@ const Home: React.FC = () => {
   }, [isMobile, isLoading]);
 
   useEffect(() => {
-    if (!isMobile) return;
+    if (!isMobile || reviews.length === 0) return;
     const interval = setInterval(() => {
-      setActiveReviewIdx((prev) => (prev + 1) % mobileReviews.length);
-    }, 3000);
+      setActiveReviewIdx((prev) => (prev + 1) % reviews.length);
+    }, 4000);
     return () => clearInterval(interval);
-  }, [isMobile, mobileReviews.length]);
+  }, [isMobile, reviews.length]);
 
   return (
     <Layout>
@@ -228,36 +323,93 @@ const Home: React.FC = () => {
               <div className="m-feedback-grid">
                 <div className="m-feedback-form-card">
                   <h4>Leave a Review</h4>
-                  <textarea className="m-reva-input" placeholder="Your experience..."></textarea>
-                  <div className="m-form-bottom-row">
-                      <div className="m-star-rating">
-                        <input type="radio" id="star5m" name="ratingm" value="5"/><label htmlFor="star5m">★</label>
-                        <input type="radio" id="star4m" name="ratingm" value="4"/><label htmlFor="star4m">★</label>
-                        <input type="radio" id="star3m" name="ratingm" value="3"/><label htmlFor="star3m">★</label>
-                        <input type="radio" id="star2m" name="ratingm" value="2"/><label htmlFor="star2m">★</label>
-                        <input type="radio" id="star1m" name="ratingm" value="1"/><label htmlFor="star1m">★</label>
+                  <form onSubmit={handleReviewSubmit}>
+                    {!isLoggedIn && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                        <input
+                          type="text"
+                          className="m-reva-input"
+                          style={{ height: '36px', padding: '0 12px' }}
+                          placeholder="Your Name"
+                          value={guestName}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          required
+                        />
+                        <input
+                          type="email"
+                          className="m-reva-input"
+                          style={{ height: '36px', padding: '0 12px' }}
+                          placeholder="Your Email"
+                          value={guestEmail}
+                          onChange={(e) => setGuestEmail(e.target.value)}
+                          required
+                        />
                       </div>
-                      <button className="m-btn-submit">Submit</button>
-                  </div>
+                    )}
+                    <textarea
+                      className="m-reva-input"
+                      placeholder="Your experience..."
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      required
+                    ></textarea>
+                    <div className="m-form-bottom-row" style={{ marginTop: '10px' }}>
+                      <div className="m-star-rating">
+                        {[5, 4, 3, 2, 1].map((star) => (
+                          <React.Fragment key={star}>
+                            <input
+                              type="radio"
+                              id={`star${star}m`}
+                              name="ratingm"
+                              value={star}
+                              checked={reviewRating === star}
+                              onChange={() => setReviewRating(star)}
+                            />
+                            <label htmlFor={`star${star}m`}>★</label>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      <button type="submit" className="m-btn-submit" disabled={isSubmittingReview}>
+                        {isSubmittingReview ? 'Submitting...' : 'Submit'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
 
                 <div className="m-reviews-list">
-                  {mobileReviews.map((review, idx) => (
-                      <div key={idx} className={`m-review-card ${activeReviewIdx === idx ? 'active' : ''}`}>
-                        <div className="m-review-avatar"><img src={review.img} alt={review.name} /></div>
+                  {reviews.length === 0 ? (
+                    <div style={{ padding: '15px', color: 'var(--text-gray)', fontSize: '13px' }}>
+                      No reviews yet. Be the first to leave a review!
+                    </div>
+                  ) : (
+                    reviews.map((review, idx) => (
+                      <div
+                        key={review.id}
+                        className={`m-review-card ${activeReviewIdx === idx ? 'active' : ''}`}
+                      >
+                        <div className="m-review-avatar">
+                          <img
+                            src={review.avatar_url || generateInitialsAvatar(review.name)}
+                            alt={review.name}
+                          />
+                        </div>
                         <div className="m-review-content">
                           <div className="m-review-header">
-                              <h4>{review.name}</h4>
-                              <div className="m-review-stars">
-                                  {[...Array(5)].map((_, starIdx) => (
-                                      <i key={starIdx} className={starIdx < review.stars ? "fa-solid fa-star" : "fa-regular fa-star"}></i>
-                                  ))}
-                              </div>
+                            <h4>{review.name}</h4>
+                            <div className="m-review-stars">
+                              {[...Array(5)].map((_, starIdx) => (
+                                <i
+                                  key={starIdx}
+                                  className={starIdx < review.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'}
+                                ></i>
+                              ))}
+                            </div>
                           </div>
-                          <p>{review.text}</p>
+                          <p>{review.comment}</p>
                         </div>
                       </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             </section>
@@ -387,43 +539,93 @@ const Home: React.FC = () => {
                     <div className="feedback-form-card-d">
                         <h2>Leave a Review</h2>
                         <p>How accurate were the predictions?</p>
-                        <form onSubmit={(e) => e.preventDefault()}>
+                        <form onSubmit={handleReviewSubmit}>
+                            {!isLoggedIn && (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+                                <div className="form-group-d" style={{ marginBottom: 0 }}>
+                                  <label>Your Name</label>
+                                  <input
+                                    type="text"
+                                    className="reva-input-d"
+                                    placeholder="John Doe"
+                                    value={guestName}
+                                    onChange={(e) => setGuestName(e.target.value)}
+                                    required
+                                  />
+                                </div>
+                                <div className="form-group-d" style={{ marginBottom: 0 }}>
+                                  <label>Your Email</label>
+                                  <input
+                                    type="email"
+                                    className="reva-input-d"
+                                    placeholder="john@example.com"
+                                    value={guestEmail}
+                                    onChange={(e) => setGuestEmail(e.target.value)}
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            )}
                             <div className="star-rating-d">
-                                <input type="radio" id="star5" name="rating" value="5" /><label htmlFor="star5" title="5 stars">★</label>
-                                <input type="radio" id="star4" name="rating" value="4" /><label htmlFor="star4" title="4 stars">★</label>
-                                <input type="radio" id="star3" name="rating" value="3" /><label htmlFor="star3" title="3 stars">★</label>
-                                <input type="radio" id="star2" name="rating" value="2" /><label htmlFor="star2" title="2 stars">★</label>
-                                <input type="radio" id="star1" name="rating" value="1" /><label htmlFor="star1" title="1 star">★</label>
+                                {[5, 4, 3, 2, 1].map((star) => (
+                                  <React.Fragment key={star}>
+                                    <input
+                                      type="radio"
+                                      id={`star${star}`}
+                                      name="rating"
+                                      value={star}
+                                      checked={reviewRating === star}
+                                      onChange={() => setReviewRating(star)}
+                                    />
+                                    <label htmlFor={`star${star}`} title={`${star} stars`}>★</label>
+                                  </React.Fragment>
+                                ))}
                             </div>
                             <div className="form-group-d">
                                 <label>Your Comment</label>
-                                <textarea className="reva-input-d" placeholder="Tell us about your experience with Rēva..."></textarea>
+                                <textarea
+                                  className="reva-input-d"
+                                  placeholder="Tell us about your experience with Rēva..."
+                                  value={reviewComment}
+                                  onChange={(e) => setReviewComment(e.target.value)}
+                                  required
+                                ></textarea>
                             </div>
-                            <button type="submit" className="btn-primary" style={{width: '100%'}}>Submit Review</button>
+                            <button type="submit" className="btn-primary" style={{width: '100%'}} disabled={isSubmittingReview}>
+                              {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                            </button>
                         </form>
                     </div>
 
-                    <div className="reviews-list-d">
-                        <div className="review-card-d">
-                            <div className="review-avatar-d"><img src="https://i.pravatar.cc/150?img=68" alt="User Avatar" /></div>
-                            <div className="review-content-d">
-                                <h4>Sarah Perera</h4>
+                    <div className="reviews-list-d" style={{ maxHeight: '520px', overflowY: 'auto', paddingRight: '6px' }}>
+                        {reviews.length === 0 ? (
+                          <div style={{ padding: '24px', color: 'var(--text-gray)', background: '#fff', borderRadius: '20px' }}>
+                            No reviews yet. Be the first to leave a review!
+                          </div>
+                        ) : (
+                          reviews.map((review) => (
+                            <div className="review-card-d" key={review.id}>
+                              <div className="review-avatar-d">
+                                <img
+                                  src={review.avatar_url || generateInitialsAvatar(review.name)}
+                                  alt={`${review.name} Avatar`}
+                                />
+                              </div>
+                              <div className="review-content-d">
+                                <h4>{review.name}</h4>
                                 <div className="review-stars-d">
-                                    <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
+                                  {[...Array(5)].map((_, starIdx) => (
+                                    <i
+                                      key={starIdx}
+                                      className={starIdx < review.rating ? "fa-solid fa-star" : "fa-regular fa-star"}
+                                    ></i>
+                                  ))}
                                 </div>
-                                <p>I was surprised by how accurate the land prediction was for my plot in Kandy. It matched the bank valuation almost perfectly.</p>
+                                <p>{review.comment}</p>
+                              </div>
                             </div>
-                        </div>
-                        <div className="review-card-d">
-                            <div className="review-avatar-d"><img src="https://i.pravatar.cc/150?img=11" alt="User Avatar" /></div>
-                            <div className="review-content-d">
-                                <h4>Kamal De Silva</h4>
-                                <div className="review-stars-d">
-                                    <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-regular fa-star"></i>
-                                </div>
-                                <p>Great tool for getting a quick rental estimate. The interface is very clean and easy to use.</p>
-                            </div>
-                        </div>
+                          ))
+                        )}
                     </div>
                 </div>
             </section>

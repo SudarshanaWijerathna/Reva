@@ -130,6 +130,14 @@ const DesktopNavbar: React.FC = () => {
     }
   };
 
+  const handleProtectedAskRevaNavigation = (e: React.MouseEvent) => {
+    const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+    if (!token) {
+      e.preventDefault(); 
+      openAuthModal('login', '/askreva'); 
+    }
+  };
+
   return (
     <nav className={`navbar ${isSticky ? 'sticky' : ''}`} id="mainNavbar">
       <div className="nav-container">
@@ -146,18 +154,15 @@ const DesktopNavbar: React.FC = () => {
             <Link to="/dashboard" onClick={handleProtectedNavigation}>Dashboard</Link>
           </li>
           
-          <li className={`d-nav-item-container ${isPrediction ? 'selected' : ''}`}>
-            <Link to="#">Prediction <i className="fa-solid fa-chevron-down" style={{ fontSize: '10px' }}></i></Link>
-            <div className="d-prediction-popup">
-              <Link to="/house-price">House price prediction</Link>
-              <Link to="/rental-price">Rental price prediction</Link>
-              <Link to="/land-price">Land price prediction</Link>
-            </div>
+          <li className={isPrediction ? 'selected' : ''}>
+            <Link to="/house-price">Prediction</Link>
           </li>
           
           {/* --- MERGED: Retains specific active states and conditional Admin link --- */}
           <li className={isSupport ? 'selected' : ''}><Link to="/support">Support</Link></li>
-          <li className={isAskReva ? 'selected' : ''}><Link to="/askreva" state={{ from: location.pathname }}>Ask Reva</Link></li>
+          <li className={isAskReva ? 'selected' : ''}>
+            <Link to="/askreva" state={{ from: location.pathname }} onClick={handleProtectedAskRevaNavigation}>Ask Reva</Link>
+          </li>
           {isAdmin && <li className={isAdminPage ? 'selected' : ''}><Link to="/admin">Admin</Link></li>}
         </ul>
 

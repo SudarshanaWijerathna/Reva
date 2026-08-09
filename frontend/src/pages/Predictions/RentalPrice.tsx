@@ -460,7 +460,7 @@ const RentalPrice: React.FC = () => {
               <h2>Market Data Explorer</h2>
               <p>Click anywhere on the map to find nearby records from our database.</p>
             </div>
-            <MapExplorer />
+            <MapExplorer pageType="rental" />
           </section>
 
         </main>

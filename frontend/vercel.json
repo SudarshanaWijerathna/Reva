@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://reva-olaf.onrender.com/:path*"
+      "destination": "https://reva-olaf.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

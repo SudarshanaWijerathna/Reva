@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth.authentication import get_current_user, get_optional_current_user
 from backend.database.database import Base, engine, get_db
-from backend.database.schemas import ChatMessageModel, ChatSessionModel
+from backend.database.schemas import ChatMessageModel, ChatSessionModel, ReviewModel, UserModel
 
 # Routes
 from backend.auth.routes import router as auth_router
@@ -209,6 +209,93 @@ def delete_chat_session(
     db.delete(session)
     db.commit()
     return {"status": "success", "message": "Session deleted"}
+
+
+# ============================================================================================
+# REVIEWS & COMMENTS ENDPOINTS
+# ============================================================================================
+
+class ReviewCreate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    rating: int = 5
+    comment: str
+
+
+@app.get("/reviews")
+def get_reviews(db: Session = Depends(get_db)):
+    reviews = (
+        db.query(ReviewModel)
+        .order_by(ReviewModel.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "email": r.email,
+            "rating": r.rating,
+            "comment": r.comment,
+            "avatar_url": r.avatar_url,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in reviews
+    ]
+
+
+@app.post("/reviews")
+def create_review(
+    review_data: ReviewCreate,
+    db: Session = Depends(get_db),
+    user: Optional[dict] = Depends(get_optional_current_user),
+):
+    if not review_data.comment or not review_data.comment.strip():
+        raise HTTPException(status_code=400, detail="Comment cannot be empty")
+
+    name = None
+    email = None
+    avatar_url = None
+
+    if user:
+        user_db = db.query(UserModel).filter(UserModel.id == user["id"]).first()
+        if user_db:
+            email = user_db.email
+            if user_db.profile and user_db.profile.full_name:
+                name = user_db.profile.full_name
+            else:
+                name = user_db.email.split("@")[0].title()
+        else:
+            email = user.get("email", "")
+            name = email.split("@")[0].title() if email else "Anonymous"
+    else:
+        name = (review_data.name or "").strip()
+        email = (review_data.email or "").strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        if not email:
+            raise HTTPException(status_code=400, detail="Email is required")
+
+    new_review = ReviewModel(
+        name=name,
+        email=email,
+        rating=max(1, min(5, review_data.rating or 5)),
+        comment=review_data.comment.strip(),
+        avatar_url=avatar_url,
+    )
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+
+    return {
+        "id": new_review.id,
+        "name": new_review.name,
+        "email": new_review.email,
+        "rating": new_review.rating,
+        "comment": new_review.comment,
+        "avatar_url": new_review.avatar_url,
+        "created_at": new_review.created_at.isoformat() if new_review.created_at else None,
+    }
+
 
 
 @app.post("/ask")

@@ -155,4 +155,21 @@ class ChatMessageModel(Base):
     extra_data = Column(Text, nullable=True)  # JSON string
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    session = relationship("ChatSessionModel", back_populates="messages")
+    session = relationship("ChatSessionModel", back_populates="messages")
+
+
+# ==============================
+# Review / Comment schemas
+# ==============================
+
+class ReviewModel(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    email = Column(String)
+    rating = Column(Integer, default=5)
+    comment = Column(Text)
+    avatar_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+

@@ -28,27 +28,21 @@ const generateInitialsAvatar = (name: string): string => {
   const charCode = (name || '').charCodeAt(0) || 0;
   const bgColor = colors[charCode % colors.length];
 
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <rect width="100" height="100" fill="${bgColor}" />
-      <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="40px" font-weight="bold">
-        ${initials}
-      </text>
-    </svg>
-  `;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${bgColor}"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="40px" font-weight="bold">${initials}</text></svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
+
 const Home: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
   
-  // Check sessionStorage on initial load.
+  // 1. FIX: Check sessionStorage on initial load. If 'hasSeenHomeLoader' exists, start as FALSE.
   const [isLoading, setIsLoading] = useState<boolean>(
     !sessionStorage.getItem('hasSeenHomeLoader')
   );
   
-  // State for Mobile Horizontal Roadmap
+  // New State for Mobile Horizontal Roadmap
   const [activeRoadmapStep, setActiveRoadmapStep] = useState<number>(0);
 
   // Roadmap Data Array
@@ -62,7 +56,7 @@ const Home: React.FC = () => {
   // Mobile Review Carousel
   const [activeReviewIdx, setActiveReviewIdx] = useState<number>(0);
 
-  // Reviews state & Form state
+  // Dynamic Reviews & Form state
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
   const [reviewRating, setReviewRating] = useState<number>(5);
@@ -142,22 +136,27 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle Loading Screen & Scroll Lock
+  // 2. FIX: Handle Loading Screen & Scroll Lock with 3-second timer
   useEffect(() => {
+    // If the user has already seen the loader, ensure scrolling is unlocked and do nothing else
     if (!isLoading) {
         document.body.style.overflow = 'auto';
         return;
     }
 
+    // Lock the scroll while the loader is showing on mobile
     if (isMobile) {
       document.body.style.overflow = 'hidden';
     }
 
+    // Set the timer to clear the loading state after 3000ms (3 seconds)
     const timer = setTimeout(() => {
         setIsLoading(false);
+        // Leave a breadcrumb so they don't see it again this session!
         sessionStorage.setItem('hasSeenHomeLoader', 'true');
     }, 3000);
 
+    // Cleanup function in case the user navigates away before the timer finishes
     return () => {
         clearTimeout(timer);
         document.body.style.overflow = 'auto';
@@ -197,99 +196,124 @@ const Home: React.FC = () => {
       )}
 
       {isMobile ? (
+        /* =========================================
+           MOBILE VIEW (Exact match to index.html)
+           ========================================= */
         <>
-            {/* HERO SECTION */}
-            <section className="section-card">
-              <div className="hero-box">
-                <div className="hero-text-content">
-                  <h1 className="hero-title">Your Real Estate Virtual Assistant</h1>
-                  <p className="hero-subtext">Start for free and get intelligent AI-driven insights for smarter property decisions.</p>
-                  <Link to="/house-price" className="hero-cta-btn"><i className="fa-solid fa-bolt"></i> Explore AI Engine</Link>
-                </div>
-              </div>
-            </section>
-
-            {/* SERVICES SECTION */}
-            <section className="section-card">
-              <div className="section-header">
-                <h2>Our Predictions Services</h2>
-                <p>AI-driven predictions tailored to your real estate needs.</p>
-              </div>
-              <div className="prediction-cards-container">
-                <div className="m-card-custom m-card-blue">
-                  <div className="m-card-content">
-                    <img src="/img/housing.png" alt="Housing" className="m-card-img" />
-                    <h3>Housing Price Prediction</h3>
-                    <p>Accurate price estimates for buying or selling houses using deep market data.</p>
-                    <Link to="/house-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
-                  </div>
-                </div>
-                <div className="m-card-custom m-card-dark flex-row-reverse">
-                  <div className="m-card-content">
-                    <img src="/img/rentals.png" alt="Rentals" className="m-card-img" />
-                    <h3>Rental Price Prediction</h3>
-                    <p>Find fair rental rates for apartments, houses, and commercial properties.</p>
-                    <Link to="/rental-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
-                  </div>
-                </div>
-                <div className="m-card-custom m-card-dark">
-                  <div className="m-card-content">
-                    <img src="/img/lands.png" alt="Lands" className="m-card-img" />
-                    <h3>Land Price Prediction</h3>
-                    <p>Evaluate land values based on location, zoning, and historical trends.</p>
-                    <Link to="/land-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* HOW IT WORKS SECTION */}
-            <section className="section-card bg-light">
-              <div className="section-header">
-                <h2>How Rēva Works</h2>
-                <p>A simple, data-driven approach to real estate intelligence.</p>
-              </div>
-              
-              <div className="m-roadmap-container">
-                <div className="m-roadmap-content">
-                  <div className="m-roadmap-step active">
-                    <div className="m-roadmap-icon">
-                      <img src={roadmapSteps[activeRoadmapStep].icon} alt={roadmapSteps[activeRoadmapStep].alt} />
+            <div className="mobile-welcome-banner">
+                <section className="reva-hero-content">
+                    <div className="reva-hero-text">
+                        <h1>Rēva</h1>
+                        <h1>Intelligent Real Estate Virtual Assistant</h1>
                     </div>
-                    <h3>{roadmapSteps[activeRoadmapStep].title}</h3>
-                    <p>{roadmapSteps[activeRoadmapStep].text}</p>
-                  </div>
-                </div>
+                    <div className="reva-hero-image">
+                        <video
+                          className="overhang-image hero-theme-media hero-theme-media-light"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                        >
+                          <source src="/img/animate_logo_light.webm" type="video/webm" />
+                        </video>
+                        <video
+                          className="overhang-image hero-theme-media hero-theme-media-dark"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                        >
+                          <source src="/img/animate_logo_dark.webm" type="video/webm" />
+                        </video>
+                    </div>
+                </section>
+            </div>
 
-                <div className="m-roadmap-controls">
-                  <button 
-                    className="m-roadmap-btn" 
-                    onClick={() => setActiveRoadmapStep((prev) => (prev > 0 ? prev - 1 : roadmapSteps.length - 1))}
-                    aria-label="Previous step"
-                  >
-                    <i className="fa-solid fa-chevron-left"></i>
-                  </button>
-                  <div className="m-roadmap-indicators">
-                    {roadmapSteps.map((_, idx) => (
-                      <span 
-                        key={idx} 
-                        className={`m-indicator ${activeRoadmapStep === idx ? 'active' : ''}`}
-                        onClick={() => setActiveRoadmapStep(idx)}
-                      ></span>
-                    ))}
+            <div className="prediction-cards">
+                <Link to="/house-price" className="prediction-card">
+                    <div className="prediction-card-icon"><img src="/img/icons/house.svg" alt="Housing" /></div>
+                    <div className="prediction-card-text">
+                        <h3>Housing</h3>
+                        <p>Predict accurate house prices using location, features, and market trends powered by machine learning.</p>
+                    </div>
+                </Link>
+                <Link to="/rental-price" className="prediction-card">
+                    <div className="prediction-card-icon"><img src="/img/icons/rental.svg" alt="Rentals" /></div>
+                    <div className="prediction-card-text">
+                        <h3>Rentals</h3>
+                        <p>Estimate fair rental values instantly based on property details, accessibility, and demand patterns.</p>
+                    </div>
+                </Link>
+                <Link to="/land-price" className="prediction-card">
+                    <div className="prediction-card-icon"><img src="/img/icons/land.svg" alt="Lands" /></div>
+                    <div className="prediction-card-text">
+                        <h3>Lands</h3>
+                        <p>Get data-driven land price predictions using location intelligence, road access, and urban influence.</p>
+                    </div>
+                </Link>
+            </div>
+            
+            <section className="section-card bg-img how-works-section">
+                <div className="section-header">
+                    <h2>How Rēva Works</h2>
+                    <p>Rēva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
+                </div>
+                
+                <div className="m-roadmap-wrapper">
+                    <div className="m-roadmap-nav">
+                        <div className="m-roadmap-line"></div>
+                        {roadmapSteps.map((step, idx) => (
+                            <div 
+                                key={idx} 
+                                className={`m-roadmap-step ${activeRoadmapStep === idx ? 'active' : ''}`}
+                                onClick={() => setActiveRoadmapStep(idx)}
+                            >
+                                <div className="m-roadmap-icon">
+                                    <img src={step.icon} alt={step.alt} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="m-roadmap-content">
+                        {/* The arrow indicator moves dynamically based on the active step */}
+                        <div 
+                            className="m-roadmap-arrow" 
+                            style={{ left: `calc(14.5% + ${activeRoadmapStep * 23.5}%)` }}
+                        ></div>
+                        <h3>{roadmapSteps[activeRoadmapStep].title}</h3>
+                        <p>{roadmapSteps[activeRoadmapStep].text}</p>
+                    </div>
+                </div>
+            </section>
+
+            <div className="intro-points">
+                <p><i className="fa-solid fa-circle-check"></i> Rēva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
+                <p><i className="fa-solid fa-circle-check"></i> Unlock the power of AI to navigate the real estate market with confidence and make smarter decisions for your future.</p>
+            </div>
+            
+            <section className="section-card bg-white">
+              <div className="m-split-layout">
+                <h2>Your Data Stays With You</h2>
+                <p>Rēva is designed with privacy at its core. Your inputs are used only for analysis, never for tracking.</p>
+                
+                <div className="m-trust-box">
+                  <div className="m-trust-item">
+                    <img src="/img/icons/personal.svg" alt="Personal Data" className="m-trust-icon" />
+                    <span>No personal<br/>data shared</span>
                   </div>
-                  <button 
-                    className="m-roadmap-btn" 
-                    onClick={() => setActiveRoadmapStep((prev) => (prev < roadmapSteps.length - 1 ? prev + 1 : 0))}
-                    aria-label="Next step"
-                  >
-                    <i className="fa-solid fa-chevron-right"></i>
-                  </button>
+                  <div className="m-trust-item">
+                    <img src="/img/icons/secure.svg" alt="Secure Processing" className="m-trust-icon" />
+                    <span>Secure<br/>processing</span>
+                  </div>
+                  <div className="m-trust-item">
+                    <img src="/img/icons/tracking.svg" alt="No Tracking" className="m-trust-icon" />
+                    <span>No hidden<br/>tracking</span>
+                  </div>
                 </div>
               </div>
             </section>
 
-            {/* REVIEWS SECTION (MOBILE) */}
             <section className="section-card bg-light">
               <div className="section-header">
                 <h2>Community Feedback</h2>
@@ -391,82 +415,121 @@ const Home: React.FC = () => {
             </section>
         </>
       ) : (
-        /* --- DESKTOP VIEW --- */
-        <div className="home-container">
-            {/* HERO SECTION */}
-            <div className="hero-box-d">
-                <div className="hero-content-d">
-                    <h1 className="hero-title-d">Your Real Estate Virtual Assistant</h1>
-                    <p className="hero-subtext-d">Start for free and get intelligent AI-driven insights for smarter property decisions.</p>
-                    <Link to="/house-price" className="hero-cta-btn-d"><i className="fa-solid fa-bolt"></i> Explore AI Engine</Link>
-                </div>
+        /* =========================================
+           DESKTOP VIEW (Remains robust)
+           ========================================= */
+        <div className="container">
+            <div className="welcome-banner">
+                <section className="reva-hero-content">
+                    <div className="leftside-hero">
+                        <h1>Rēva, <span> Intelligent Real Estate Virtual Assistant</span></h1>
+                        <p>Rēva helps you understand and predict land, housing, and rental prices using AI-driven analysis of location, market trends, and historical data.</p>
+                        <div className="reva-hero-features"></div>
+                    </div>
+                    <div className="rightside-hero">
+                        <video
+                          className="hero-theme-media hero-theme-media-light"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          aria-label="Real estate analysis animation light mode"
+                        >
+                          <source src="/img/animate_logo_light.webm" type="video/webm" />
+                        </video>
+                        <video
+                          className="hero-theme-media hero-theme-media-dark"
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          aria-label="Real estate analysis animation dark mode"
+                        >
+                          <source src="/img/animate_logo_dark.webm" type="video/webm" />
+                        </video>
+                    </div>
+                </section>
             </div>
 
-            {/* SERVICES SECTION */}
-            <section className="section-card">
-                <div className="section-header">
-                    <h2>Our Predictions Services</h2>
-                    <p>AI-driven predictions tailored to your real estate needs.</p>
-                </div>
-                <div className="prediction-cards-container-d">
-                    <div className="card-custom-d card-blue-d">
-                        <div className="card-content-d">
-                            <img src="/img/housing.png" alt="Housing" className="card-img-d" />
-                            <h3>Housing Price Prediction</h3>
-                            <p>Accurate price estimates for buying or selling houses using deep market data.</p>
-                            <Link to="/house-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
+            <div className="banner-cards">
+                <Link to="/house-price" className="assistant-card">
+                    <div className="assistant-header">
+                        <img src="/img/housing.png" alt="Housing" />
+                        <div className="assistant-text">
+                            <h2>Housing</h2>
+                            <p>Predict accurate house prices using location, features, and market trends powered by machine learning.</p>
                         </div>
                     </div>
-                    <div className="card-custom-d card-dark-d flex-row-reverse">
-                        <div className="card-content-d">
-                            <img src="/img/rentals.png" alt="Rentals" className="card-img-d" />
-                            <h3>Rental Price Prediction</h3>
-                            <p>Find fair rental rates for apartments, houses, and commercial properties.</p>
-                            <Link to="/rental-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
+                </Link>
+                <Link to="/rental-price" className="assistant-card">
+                    <div className="assistant-header">
+                        <img src="/img/rentals.png" alt="Rentals" />
+                        <div className="assistant-text">
+                            <h2>Rentals</h2>
+                            <p>Estimate fair rental values instantly based on property details, accessibility, and demand patterns.</p>
                         </div>
                     </div>
-                    <div className="card-custom-d card-dark-d">
-                        <div className="card-content-d">
-                            <img src="/img/lands.png" alt="Lands" className="card-img-d" />
-                            <h3>Land Price Prediction</h3>
-                            <p>Evaluate land values based on location, zoning, and historical trends.</p>
-                            <Link to="/land-price" className="btn-light">Explore <i className="fa-solid fa-arrow-right"></i></Link>
+                </Link>
+                <Link to="/land-price" className="assistant-card">
+                    <div className="assistant-header">
+                        <img src="/img/lands.png" alt="Lands" />
+                        <div className="assistant-text">
+                            <h2>Lands</h2>
+                            <p>Get data-driven land price predictions using location intelligence, road access, and urban influence.</p>
                         </div>
                     </div>
-                </div>
-            </section>
+                </Link>
+            </div>
 
-            {/* HOW IT WORKS SECTION */}
             <section className="section-card bg-light">
                 <div className="section-header">
                     <h2>How Rēva Works</h2>
-                    <p>A simple, data-driven approach to real estate intelligence.</p>
+                    <p>Rēva combines user input, location intelligence, and machine learning to deliver reliable and transparent real estate insights.</p>
                 </div>
-                <div className="steps-grid-d">
-                    <div className="step-card-d">
-                        <div className="step-icon-d"><img src="/img/icons/keyboard.svg" alt="Keyboard" /></div>
+                <div className="how-reva-steps-desktop">
+                    <div className="how-step-d">
+                        <div className="step-icon-d"><i className="fa-solid fa-keyboard"></i></div>
                         <h3>You Provide Details</h3>
                         <p>Enter property information such as location, type, and size. Rēva uses this context as the foundation for analysis.</p>
                     </div>
-                    <div className="step-card-d">
-                        <div className="step-icon-d"><img src="/img/icons/location.svg" alt="Location" /></div>
+                    <div className="how-step-d">
+                        <div className="step-icon-d"><i className="fa-solid fa-map-location-dot"></i></div>
                         <h3>Location Intelligence</h3>
                         <p>Rēva evaluates accessibility, nearby cities, and urban influence to understand the real value of the location.</p>
                     </div>
-                    <div className="step-card-d">
-                        <div className="step-icon-d"><img src="/img/icons/aipowered.svg" alt="AI Powered" /></div>
+                    <div className="how-step-d">
+                        <div className="step-icon-d"><i className="fa-solid fa-brain"></i></div>
                         <h3>AI-Powered Analysis</h3>
                         <p>Machine learning models analyze market trends and historical patterns to estimate realistic price ranges.</p>
                     </div>
-                    <div className="step-card-d">
-                        <div className="step-icon-d"><img src="/img/icons/insights.svg" alt="Insights" /></div>
+                    <div className="how-step-d">
+                        <div className="step-icon-d"><i className="fa-solid fa-chart-simple"></i></div>
                         <h3>Clear Insights</h3>
                         <p>Rēva presents understandable predictions and insights, helping you make confident real estate decisions.</p>
                     </div>
                 </div>
             </section>
 
-            {/* REVIEWS SECTION (DESKTOP) */}
+            <section className="section-card bg-white">
+                <div className="split-layout-d">
+                    <div className="split-text-d">
+                        <h2>Your Data Stays With You</h2>
+                        <p>Rēva is designed with privacy at its core. Any information you provide is used only to generate predictions and insights — never for tracking, selling, or profiling.</p>
+                        <ul className="trust-points-d">
+                            <li><i className="fa-solid fa-user"></i> No personal data shared with third parties</li>
+                            <li><i className="fa-solid fa-lock"></i> Inputs are processed securely</li>
+                            <li><i className="fa-solid fa-shield-halved"></i> No hidden tracking</li>
+                        </ul>
+                    </div>
+                    <div className="split-image-d trust-visuals-d">
+                        <div className="trust-float-icon-d icon-user"><i className="fa-solid fa-user"></i></div>
+                        <div className="trust-float-icon-d icon-shield"><i className="fa-solid fa-shield-halved"></i></div>
+                        <div className="trust-float-icon-d icon-lock"><i className="fa-solid fa-lock"></i></div>
+                        <img src="/img/privacy.png" alt="Data privacy illustration" className="trust-main-img-d" />
+                    </div>
+                </div>
+            </section>
+
             <section className="section-card bg-light">
                 <div className="section-header">
                     <h2>Community Feedback</h2>

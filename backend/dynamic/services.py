@@ -284,7 +284,9 @@ def _lstm_index_enabled(model_type: str) -> bool:
     forecast path; the per-property price from the ML model is unaffected.
     """
     specific = os.getenv(f"{model_type.upper()}_LSTM_INDEX_ENABLED")
-    raw = specific if specific is not None else os.getenv("LSTM_INDEX_ENABLED", "true")
+    # Forecasts stay disabled until an LSTM beats the naive and drift baselines
+    # for the horizon it claims to support. Current repository backtests do not.
+    raw = specific if specific is not None else os.getenv("LSTM_INDEX_ENABLED", "false")
     return raw.strip().lower() in ("true", "1", "yes", "on")
 
 
@@ -553,6 +555,5 @@ def get_property_recommendation(
     }
     
    
-
 
 

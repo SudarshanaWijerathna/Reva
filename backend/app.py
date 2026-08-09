@@ -10,6 +10,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from backend.database.database import Base, engine
+from backend.database.migrations import ensure_additive_schema
 
 # Routes
 from backend.auth.routes import router as auth_router
@@ -93,6 +94,7 @@ app.add_middleware(
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+ensure_additive_schema(engine)
 
 # Include routers
 app.include_router(authentication_router)

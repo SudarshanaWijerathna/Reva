@@ -10,6 +10,7 @@ omit ``location_text`` so ``derive_features`` never calls Nominatim.
 """
 
 import json
+import os
 import unittest
 from pathlib import Path
 
@@ -234,6 +235,12 @@ class ForwardPricePathTests(unittest.TestCase):
         from backend.dynamic import services
 
         self.services = services
+        original = os.environ.get("LAND_LSTM_INDEX_ENABLED")
+        os.environ["LAND_LSTM_INDEX_ENABLED"] = "true"
+        if original is None:
+            self.addCleanup(os.environ.pop, "LAND_LSTM_INDEX_ENABLED", None)
+        else:
+            self.addCleanup(os.environ.__setitem__, "LAND_LSTM_INDEX_ENABLED", original)
 
     def _with_index(self, series: dict):
         """Patch get_future_predictions inside the services module."""

@@ -33,6 +33,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -66,14 +67,42 @@ class PropertyValuation:
     method: str = "unavailable"
     confidence: str = "low"
     notes: list[str] = field(default_factory=list)
+    lower_value: float | None = None
+    upper_value: float | None = None
+    valuation_as_of: date | None = None
+    valuation_status: str = "legacy"
+    model_version: str | None = None
+    model_anchor: str | None = None
+    index_version: str | None = None
+    index_factor: float | None = None
+    feature_hash: str | None = None
+    market_monthly_rent: float | None = None
+    annual_net_operating_income: float | None = None
+    provenance: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "capital_value": round(self.capital_value, 2) if self.capital_value is not None else None,
+            "estimated_current_value": round(self.capital_value, 2) if self.capital_value is not None else None,
             "monthly_income": round(self.monthly_income, 2) if self.monthly_income is not None else None,
+            "market_monthly_rent": round(self.market_monthly_rent, 2) if self.market_monthly_rent is not None else None,
+            "annual_net_operating_income": round(self.annual_net_operating_income, 2) if self.annual_net_operating_income is not None else None,
+            "value_range": {
+                "lower": round(self.lower_value, 2) if self.lower_value is not None else None,
+                "upper": round(self.upper_value, 2) if self.upper_value is not None else None,
+                "coverage": "indicative_p80",
+            },
+            "valuation_as_of": self.valuation_as_of.isoformat() if self.valuation_as_of else None,
+            "valuation_status": self.valuation_status,
             "valuation_method": self.method,
             "valuation_confidence": self.confidence,
             "valuation_notes": list(self.notes),
+            "model_version": self.model_version,
+            "model_anchor": self.model_anchor,
+            "index_version": self.index_version,
+            "index_factor": self.index_factor,
+            "feature_hash": self.feature_hash,
+            "valuation_provenance": dict(self.provenance),
         }
 
 
@@ -242,8 +271,14 @@ def _value_scraper_fixed(prop) -> PropertyValuation:
     )
 
 
-def _value_hybrid(prop) -> PropertyValuation:
+def _value_hybrid(prop, db=None, valuation_date: date | None = None) -> PropertyValuation:
     """Per-property ML models moved by the index, with a per-property fallback."""
+    from backend.portfolio.valuation_v2 import value_property_v2
+
+    return value_property_v2(PropertyValuation, prop, db=db, valuation_date=valuation_date)
+
+    # Historical implementation retained below for comparison context. Hybrid
+    # now exits through the canonical V2 service above.
     from backend.predictions import market_index
 
     property_type = prop.property_type
@@ -313,11 +348,13 @@ ENGINE_FUNCTIONS = {
 }
 
 
-def value_property(prop, engine: str | None = None) -> PropertyValuation:
+def value_property(prop, engine: str | None = None, db=None, valuation_date: date | None = None) -> PropertyValuation:
     """Value one property with the selected engine, never raising."""
     chosen = (engine or active_engine()).strip().lower()
     function = ENGINE_FUNCTIONS.get(chosen, _value_legacy)
     try:
+        if chosen == HYBRID:
+            return _value_hybrid(prop, db=db, valuation_date=valuation_date)
         return function(prop)
     except Exception as exc:
         logger.warning("Valuation failed for property %s: %s", getattr(prop, "id", "?"), exc)

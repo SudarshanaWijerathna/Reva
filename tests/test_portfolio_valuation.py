@@ -12,6 +12,23 @@ from dataclasses import dataclass
 
 from backend.portfolio import valuation as V
 
+_ORIGINAL_SCRAPER = V._scraper_price
+_ORIGINAL_REDIS_URL = os.environ.get("REDIS_URL")
+
+
+def setUpModule():
+    os.environ["REDIS_URL"] = ""
+    prices = {"land": 4_000_000.0, "housing": 85_000_000.0, "rental": 657_000.0}
+    V._scraper_price = lambda property_type, _location: prices[property_type]
+
+
+def tearDownModule():
+    V._scraper_price = _ORIGINAL_SCRAPER
+    if _ORIGINAL_REDIS_URL is None:
+        os.environ.pop("REDIS_URL", None)
+    else:
+        os.environ["REDIS_URL"] = _ORIGINAL_REDIS_URL
+
 
 @dataclass
 class Land:
@@ -125,13 +142,13 @@ class UnitCorrectnessTests(unittest.TestCase):
 class HybridEngineTests(unittest.TestCase):
     def test_land_is_valued_by_the_model(self):
         valuation = V.value_property(LAND_40, engine=V.HYBRID)
-        self.assertEqual(valuation.method, "model_land")
+        self.assertEqual(valuation.method, "land_avm_x_observed_index")
         self.assertGreater(valuation.capital_value, 0)
 
     def test_land_without_a_recorded_size_falls_back_and_says_so(self):
         sizeless = Prop(9, "land", "Colombo", 1_000_000, land=Land(land_size=0))
         valuation = V.value_property(sizeless, engine=V.HYBRID)
-        self.assertTrue(any("not recorded" in note for note in valuation.notes))
+        self.assertTrue(any("land_size" in note for note in valuation.notes))
 
     def test_housing_falls_back_because_the_schema_lacks_bedrooms(self):
         """
@@ -144,9 +161,10 @@ class HybridEngineTests(unittest.TestCase):
             f"Expected an explanation of the fallback, got {valuation.notes}",
         )
 
-    def test_a_recorded_rent_is_preferred_over_a_model_estimate(self):
+    def test_a_recorded_rent_is_converted_with_the_income_approach(self):
         valuation = V.value_property(RENTAL, engine=V.HYBRID)
-        self.assertEqual(valuation.method, "stored_rent_capitalised")
+        self.assertEqual(valuation.method, "rental_noi_capitalised")
+        self.assertEqual(valuation.monthly_income, RENTAL.rental.monthly_rent)
 
     def test_valuation_never_raises(self):
         broken = Prop(99, "land", None, 0, land=None)

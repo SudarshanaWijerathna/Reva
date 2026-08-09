@@ -21,6 +21,14 @@ const MobileBottomNav: React.FC = () => {
     }
   };
 
+  const handleProtectedAskRevaNavigation = (e: React.MouseEvent) => {
+    const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+    if (!token) {
+      e.preventDefault(); 
+      openAuthModal('login', '/askreva'); 
+    }
+  };
+
   return (
     <nav className="bottom-nav">
       <div
@@ -86,7 +94,12 @@ const MobileBottomNav: React.FC = () => {
         <span className="nav-text">Dashboard</span>
       </Link>
 
-      <Link to="/askreva" state={{ from: location.pathname }} className={`nav-item ${isActive('/askreva')}`}>
+      <Link 
+        to="/askreva" 
+        state={{ from: location.pathname }} 
+        className={`nav-item ${isActive('/askreva')}`}
+        onClick={handleProtectedAskRevaNavigation}
+      >
         <img src="/img/icons/chat.svg" alt="Chat" className="nav-icon" />
         <span className="nav-text">Ask Rēva</span>
       </Link>

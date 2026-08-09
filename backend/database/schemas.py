@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from backend.database.database import Base
 
@@ -125,3 +125,34 @@ class InvestmentPreferences(Base):
     investment_horizon = Column(String)
 
     user = relationship("UserModel", back_populates="preferences")
+
+
+# ==============================
+# Chat Session and Message schemas
+# ==============================
+
+class ChatSessionModel(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    title = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("UserModel")
+    messages = relationship("ChatMessageModel", back_populates="session", cascade="all, delete-orphan", order_by="ChatMessageModel.id")
+
+
+class ChatMessageModel(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, ForeignKey("chat_sessions.id", ondelete="CASCADE"), index=True)
+    sender = Column(String)  # 'user' | 'reva'
+    msg_type = Column(String)  # 'text' | 'prediction_form' | 'prediction_result' | 'graph'
+    content = Column(Text)
+    extra_data = Column(Text, nullable=True)  # JSON string
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    session = relationship("ChatSessionModel", back_populates="messages")

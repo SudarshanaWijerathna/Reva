@@ -1,7 +1,34 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // <-- Added useLocation here
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import '../assets/css/askreva.css'; 
 import { API_BASE_URL } from '../config/api';
+import { useAuth } from '../context/AuthContext';
+
+// --- HELPER FUNCTION: Auto-generate Initials Avatar ---
+const generateInitialsAvatar = (name: string): string => {
+  const initials = name
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'U';
+
+  const colors = ['#4445ff', '#00C897', '#fbbf24', '#e11d48', '#9c27b0'];
+  const charCode = name.charCodeAt(0) || 0;
+  const bgColor = colors[charCode % colors.length];
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="${bgColor}" />
+      <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-size="40px" font-weight="bold">
+        ${initials}
+      </text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
 type BrowserSpeechRecognition = {
   lang: string;
@@ -167,13 +194,28 @@ const PriceGraph: React.FC = () => (
 );
 
 
+interface ChatSessionItem {
+  id: string;
+  title: string;
+  updated_at?: string;
+}
+
 // --- Main Page Component ---
 
 const Askreva: React.FC = () => {
-  const location = useLocation(); // <-- 1. Get location object
-  const from = location.state?.from || '/'; // <-- 2. Determine previous path (default to home if directly visited)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { openAuthModal } = useAuth();
+  const from = location.state?.from || '/';
+
+  const [userName, setUserName] = useState<string>('User');
+  const [userProfileUrl, setUserProfileUrl] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(false);
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -189,6 +231,96 @@ const Askreva: React.FC = () => {
   const suppressClickRef = useRef(false);
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState('');
+
+  const fetchSessions = async () => {
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+      setIsLoadingSessions(true);
+      const res = await fetch(`${API_BASE_URL}/chat/sessions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data);
+      }
+    } catch (err) {
+      console.error('Error fetching chat sessions:', err);
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
+
+  const loadSession = async (sessionId: string) => {
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+      setIsTyping(true);
+      const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setActiveSessionId(sessionId);
+        setMessages(data.messages || []);
+        setIsSidebarOpen(false);
+      }
+    } catch (err) {
+      console.error('Error loading session:', err);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const startNewChat = () => {
+    setActiveSessionId(null);
+    setMessages([]);
+    setIsSidebarOpen(false);
+  };
+
+  const deleteSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.id !== sessionId));
+        if (activeSessionId === sessionId) {
+          startNewChat();
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting session:', err);
+    }
+  };
+
+  // Authentication check (same as Dashboard)
+  useEffect(() => {
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const email = localStorage.getItem('user_email') || sessionStorage.getItem('user_email');
+    const displayName = localStorage.getItem('user_name') || sessionStorage.getItem('user_name');
+    const storedPicture = localStorage.getItem('user_picture') || sessionStorage.getItem('user_picture');
+
+    if (!token || !email) {
+      navigate('/', { replace: true });
+      openAuthModal('login', '/askreva');
+      return;
+    }
+
+    setUserName(
+      displayName || (email ? email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1) : 'User')
+    );
+    setUserProfileUrl(storedPicture || null);
+
+    fetchSessions();
+  }, [navigate, openAuthModal]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -254,25 +386,39 @@ const Askreva: React.FC = () => {
     return 'Speech recognition failed. Please try again.';
   };
 
- const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const newUserMsg: Message = { id: Date.now().toString(), text, sender: 'user', type: 'text' };
     setMessages(prev => [...prev, newUserMsg]);
     setInputValue('');
     if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = 'auto';
     }
     setIsTyping(true);
+
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/ask`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        headers,
+        body: JSON.stringify({
+          message: text,
+          session_id: activeSessionId
+        })
       });
       const data = await response.json();
       
+      if (data.session_id) {
+        setActiveSessionId(data.session_id);
+        fetchSessions();
+      }
+
       const newBotMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: data.reply || "I'm sorry, I encountered an error processing that.",
@@ -282,10 +428,15 @@ const Askreva: React.FC = () => {
       };
       setMessages(prev => [...prev, newBotMsg]);
     } catch (error) {
-
-      // Updated error message to accurately reflect FastAPI
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), text: "Could not connect to the Reva server. Make sure your FastAPI server is running on port 8000.", sender: 'reva', type: 'text' }]);
-      
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: "Could not connect to the Reva server. Make sure your FastAPI server is running on port 8000.",
+          sender: 'reva',
+          type: 'text'
+        }
+      ]);
     } finally {
       setIsTyping(false);
     }
@@ -310,8 +461,6 @@ const Askreva: React.FC = () => {
 
     const recognition = new SpeechRecognition();
 
-    // English-only setup. For Sri Lankan English, test "en-US", "en-GB", and "en-IN"
-    // and keep the one that recognizes your users best.
     recognition.lang = 'en-US';
     recognition.interimResults = true;
     recognition.continuous = true;
@@ -370,7 +519,6 @@ const Askreva: React.FC = () => {
 
     recognitionRef.current = recognition;
 
-    // Small delay prevents users from speaking before the browser is ready.
     speechStartTimerRef.current = window.setTimeout(() => {
       try {
         recognition.start();
@@ -445,8 +593,64 @@ const Askreva: React.FC = () => {
           <h3>Previous Chats</h3>
           <i className="fa-solid fa-xmark" onClick={() => setIsSidebarOpen(false)} style={{ cursor: 'pointer' }}></i>
         </div>
+
+        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-light)' }}>
+          <button
+            onClick={startNewChat}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              background: 'var(--blue-medium)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              transition: '0.2s'
+            }}
+          >
+            <i className="fa-solid fa-plus"></i> New Chat
+          </button>
+        </div>
+
         <ul className="chat-history" id="historyList">
-            {/* Map history here later */}
+          {isLoadingSessions ? (
+            <li style={{ color: 'var(--text-gray)', fontSize: '13px' }}>Loading history...</li>
+          ) : sessions.length === 0 ? (
+            <li style={{ color: 'var(--text-gray)', fontSize: '13px' }}>No previous chats</li>
+          ) : (
+            sessions.map((s) => (
+              <li
+                key={s.id}
+                onClick={() => loadSession(s.id)}
+                style={{
+                  fontWeight: activeSessionId === s.id ? 700 : 400,
+                  background: activeSessionId === s.id ? 'var(--chat-history-hover)' : 'transparent',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                  <i className="fa-regular fa-message" style={{ fontSize: '14px', flexShrink: 0 }}></i>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {s.title}
+                  </span>
+                </div>
+                <i
+                  className="fa-regular fa-trash-can"
+                  onClick={(e) => deleteSession(e, s.id)}
+                  style={{ opacity: 0.6, cursor: 'pointer', fontSize: '13px', marginLeft: '8px' }}
+                  title="Delete session"
+                ></i>
+              </li>
+            ))
+          )}
         </ul>
       </div>
 
@@ -462,7 +666,12 @@ const Askreva: React.FC = () => {
           <img src="/img/icons/chat.svg" alt="Chat" className="chat-icon" />
         </div>
         <div className="header-right">
-          <img src="https://i.pravatar.cc/150?img=11" className="user-avatar" alt="User" />
+          <img
+            src={userProfileUrl || generateInitialsAvatar(userName)}
+            className="user-avatar"
+            alt={`${userName} Profile`}
+            style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+          />
         </div>
       </header>
 

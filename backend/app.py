@@ -1,15 +1,22 @@
+import datetime
+import json
 import os
+import uuid
+from typing import Optional
 
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from backend.database.database import Base, engine
+from backend.auth.authentication import get_current_user, get_optional_current_user
+from backend.database.database import Base, engine, get_db
+from backend.database.schemas import ChatMessageModel, ChatSessionModel
 
 # Routes
 from backend.auth.routes import router as auth_router
@@ -73,6 +80,7 @@ if GEMINI_API_KEY:
 
 class ChatMessage(BaseModel):
     message: str
+    session_id: Optional[str] = None
 
 
 # CORS settings
@@ -108,87 +116,229 @@ app.include_router(rl_router)
 app.include_router(agent_router)
 app.include_router(lstm_router)
 app.include_router(cache_router)
+
+
 @app.on_event("startup")
 def startup_event():
     if ENABLE_SCHEDULER:
         start_scheduler()
 
 
+# ============================================================================================
+# CHAT SESSIONS & PERSISTENCE ENDPOINTS
+# ============================================================================================
+
+@app.get("/chat/sessions")
+def get_user_chat_sessions(
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
+    sessions = (
+        db.query(ChatSessionModel)
+        .filter(ChatSessionModel.user_id == user["id"])
+        .order_by(ChatSessionModel.updated_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": s.id,
+            "title": s.title,
+            "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+        }
+        for s in sessions
+    ]
+
+
+@app.get("/chat/sessions/{session_id}")
+def get_chat_session_details(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
+    session = (
+        db.query(ChatSessionModel)
+        .filter(ChatSessionModel.id == session_id, ChatSessionModel.user_id == user["id"])
+        .first()
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+
+    messages = []
+    for m in session.messages:
+        extra = json.loads(m.extra_data) if m.extra_data else None
+        msg_obj = {
+            "id": str(m.id),
+            "text": m.content,
+            "sender": m.sender,
+            "type": m.msg_type,
+        }
+        if extra:
+            msg_obj["extraData"] = extra
+            if "price" in extra:
+                msg_obj["price"] = extra["price"]
+            if "range" in extra:
+                msg_obj["range"] = extra["range"]
+            if "reasoning" in extra:
+                msg_obj["reasoning"] = extra["reasoning"]
+            if "extracted" in extra:
+                msg_obj["extracted"] = extra["extracted"]
+        messages.append(msg_obj)
+
+    return {
+        "session_id": session.id,
+        "title": session.title,
+        "messages": messages,
+    }
+
+
+@app.delete("/chat/sessions/{session_id}")
+def delete_chat_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
+    session = (
+        db.query(ChatSessionModel)
+        .filter(ChatSessionModel.id == session_id, ChatSessionModel.user_id == user["id"])
+        .first()
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+
+    db.delete(session)
+    db.commit()
+    return {"status": "success", "message": "Session deleted"}
+
+
 @app.post("/ask")
-async def ask_reva_endpoint(chat_request: ChatMessage):
+async def ask_reva_endpoint(
+    chat_request: ChatMessage,
+    db: Session = Depends(get_db),
+    user: Optional[dict] = Depends(get_optional_current_user),
+):
     if not chat_request.message:
         raise HTTPException(status_code=400, detail="No message provided")
 
+    active_session = None
+    if user:
+        if chat_request.session_id:
+            active_session = (
+                db.query(ChatSessionModel)
+                .filter(
+                    ChatSessionModel.id == chat_request.session_id,
+                    ChatSessionModel.user_id == user["id"],
+                )
+                .first()
+            )
+        if not active_session:
+            raw_title = chat_request.message.strip()
+            title = (raw_title[:32] + "...") if len(raw_title) > 32 else raw_title
+            active_session = ChatSessionModel(
+                id=str(uuid.uuid4()),
+                user_id=user["id"],
+                title=title or "New Chat",
+            )
+            db.add(active_session)
+            db.flush()
+
+        db.add(
+            ChatMessageModel(
+                session_id=active_session.id,
+                sender="user",
+                msg_type="text",
+                content=chat_request.message,
+            )
+        )
+        active_session.updated_at = datetime.datetime.utcnow()
+        db.commit()
+
     if chat_session is None:
-        return {
+        response_payload = {
             "reply": "Ask Reva is not configured yet. Please set GEMINI_API_KEY in the backend environment.",
             "type": "text",
         }
+    else:
+        try:
+            response = chat_session.send_message(chat_request.message)
+            reply_text = (response.text or "").strip()
 
-    try:
-        response = chat_session.send_message(chat_request.message)
-        reply_text = (response.text or "").strip()
-
-        if "[TRIGGER_PREDICTION_FORM]" in reply_text:
-            parts = [p.strip() for p in reply_text.split("|")]
-
-            district = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
-            area = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
-            size = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
-            road = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
-            utilities = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
-            missing = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
-
-            if missing and missing != "None":
-                intro_msg = "I can certainly help with that! To give you a precise market estimation, I need just a few more details about the property."
-            else:
-                intro_msg = "I have extracted all the details! Please review the form below and click estimate."
-
-            return {
-                "reply": intro_msg,
-                "type": "prediction_form",
-                "extracted": {
-                    "district": district,
-                    "area": area,
-                    "size": size,
-                    "road": road,
-                    "utilities": utilities,
-                },
-            }
-
-        if "[PREDICTION_RESULT]" in reply_text:
-            try:
+            if "[TRIGGER_PREDICTION_FORM]" in reply_text:
                 parts = [p.strip() for p in reply_text.split("|")]
-                return {
-                    "reply": "Based on current market trends, here is your intelligent prediction:",
-                    "type": "prediction_result",
-                    "price": parts[1],
-                    "range": parts[2],
-                    "reasoning": parts[3],
-                }
-            except Exception:
-                return {
-                    "reply": "Based on current market trends, here is your intelligent prediction:",
-                    "type": "prediction_result",
-                    "price": "LKR 2,500,000",
-                    "range": "2.2M - 2.8M",
-                    "reasoning": "Prices in this zone are seeing steady growth due to high demand and recent infrastructure developments.",
-                }
+                district = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+                area = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+                size = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+                road = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+                utilities = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
+                missing = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
 
-        if "[TRIGGER_GRAPH]" in reply_text:
-            return {
-                "reply": "Here is the historical price trend for this area. As you can see, there has been a steady incline over the last few years.",
-                "type": "graph",
+                intro_msg = (
+                    "I can certainly help with that! To give you a precise market estimation, I need just a few more details about the property."
+                    if missing and missing != "None"
+                    else "I have extracted all the details! Please review the form below and click estimate."
+                )
+
+                response_payload = {
+                    "reply": intro_msg,
+                    "type": "prediction_form",
+                    "extracted": {
+                        "district": district,
+                        "area": area,
+                        "size": size,
+                        "road": road,
+                        "utilities": utilities,
+                    },
+                }
+            elif "[PREDICTION_RESULT]" in reply_text:
+                try:
+                    parts = [p.strip() for p in reply_text.split("|")]
+                    response_payload = {
+                        "reply": "Based on current market trends, here is your intelligent prediction:",
+                        "type": "prediction_result",
+                        "price": parts[1],
+                        "range": parts[2],
+                        "reasoning": parts[3],
+                    }
+                except Exception:
+                    response_payload = {
+                        "reply": "Based on current market trends, here is your intelligent prediction:",
+                        "type": "prediction_result",
+                        "price": "LKR 2,500,000",
+                        "range": "2.2M - 2.8M",
+                        "reasoning": "Prices in this zone are seeing steady growth due to high demand and recent infrastructure developments.",
+                    }
+            elif "[TRIGGER_GRAPH]" in reply_text:
+                response_payload = {
+                    "reply": "Here is the historical price trend for this area. As you can see, there has been a steady incline over the last few years.",
+                    "type": "graph",
+                }
+            else:
+                response_payload = {
+                    "reply": reply_text,
+                    "type": "text",
+                }
+        except Exception as e:
+            print(f"Error connecting to Gemini: {e}")
+            response_payload = {
+                "reply": "I'm having trouble connecting to my brain right now. Please try again later.",
+                "type": "text",
             }
 
-        return {
-            "reply": reply_text,
-            "type": "text",
-        }
+    if user and active_session:
+        extra = {k: v for k, v in response_payload.items() if k not in ("reply", "type")}
+        db.add(
+            ChatMessageModel(
+                session_id=active_session.id,
+                sender="reva",
+                msg_type=response_payload.get("type", "text"),
+                content=response_payload.get("reply", ""),
+                extra_data=json.dumps(extra) if extra else None,
+            )
+        )
+        active_session.updated_at = datetime.datetime.utcnow()
+        db.commit()
 
-    except Exception as e:
-        print(f"Error connecting to Gemini: {e}")
-        return {
-            "reply": "I'm having trouble connecting to my brain right now. Please try again later.",
-            "type": "text",
-        }
+        response_payload["session_id"] = active_session.id
+
+    return response_payload
+

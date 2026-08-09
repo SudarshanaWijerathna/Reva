@@ -1,114 +1,59 @@
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from importlib import import_module
-import joblib
-from backend.predictions.LSTM.Rental.threshold import time_steps
-import os
+"""
+Rental market-index forecasts.
 
-os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
-os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+Thin wrapper over ``backend.predictions.LSTM.index_model``. The shared module
+owns loading, scaling, the scaler-domain guard and the recursive forecast; this
+file exists so the import paths used by ``LSTM/routes.py`` and
+``core/cache_service.py`` keep working.
 
-DATASET_PATH = Path(__file__).resolve().parents[1] / "datasets" / "HousingDF.csv"
-MODEL_PATH = Path(__file__).resolve().parent / "my_model.keras"
-SCALER_PATH = Path(__file__).resolve().parent / "scaler.joblib"
+One step is one month. The series and its time base are declared in
+``manifest.json`` alongside this file.
 
+CBSL publishes no rental index, so this series is a declared proxy onto the
+houses index. The rental CatBoost model still owns the price level; only the
+trend shape is borrowed. ``manifest.json`` records this with ``is_proxy``.
+"""
 
-def _load_rental_df(csv_path=None):
-    path = Path(csv_path) if csv_path else DATASET_PATH
-    return pd.read_csv(path)
+from __future__ import annotations
 
+from backend.predictions.LSTM import index_model
 
-def _load_keras_model(model_file):
-    try:
-        keras_models = import_module("tensorflow.keras.models")
-    except ModuleNotFoundError:
-        keras_models = import_module("keras.models")
-    return keras_models.load_model(model_file)
+SERIES = "rental"
 
 
-def _format_prediction_value(value, decimals=2):
-    return f"{float(value):,.{decimals}f}"
+# -- Raw numeric accessors (preferred) --------------------------------------
+
+def predict_next_close_raw(csv_path=None) -> float:
+    """Next month's index value as a float."""
+    return index_model.predict_next_value(SERIES, csv_path=csv_path)
 
 
-def load_rental_model_and_scaler(model_path=None, scaler_path=None):
-    model_file = Path(model_path) if model_path else MODEL_PATH
-    scaler_file = Path(scaler_path) if scaler_path else SCALER_PATH
-
-    model = _load_keras_model(model_file)
-    scaler = joblib.load(scaler_file)
-
-    return model, scaler
+def predict_future_sequence_raw(csv_path=None, steps: int = 5) -> list[float]:
+    """The next ``steps`` monthly index values as floats."""
+    return index_model.predict_future_values(SERIES, steps=steps, csv_path=csv_path)
 
 
-def predict_next_close_price(model, scaler, df=None, csv_path=None):
-    if df is None:
-        df = _load_rental_df(csv_path)
-
-    if "close" not in df.columns:
-        raise ValueError("CSV/DataFrame must contain a 'close' column")
-
-    if len(df) < time_steps:
-        raise ValueError(f"Need at least {time_steps} rows, found {len(df)}")
-
-    # Use the most recent time_steps close prices
-    last_60_days = df["close"].tail(time_steps).to_numpy().reshape(-1, 1)
-
-    # scale
-    last_60_scaled = scaler.transform(last_60_days)
-
-    # reshape for LSTM
-    X_input = last_60_scaled.reshape(1, time_steps, 1)
-
-    # predict
-    pred = model.predict(X_input, verbose=0)
-
-    # inverse scale
-    pred_actual = scaler.inverse_transform(pred)
-
-    predicted_close = float(pred_actual[0][0])
-    #print("Predicted next close:", _format_prediction_value(predicted_close))
-    return _format_prediction_value(predicted_close)
+def latest_index_value(csv_path=None) -> float:
+    """Most recent published index value."""
+    return index_model.latest_index_value(SERIES, csv_path=csv_path)
 
 
-def predict_next_close_price_from_saved(csv_path=None, model_path=None, scaler_path=None):
-    model, scaler = load_rental_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
-    return predict_next_close_price(model=model, scaler=scaler, df=None, csv_path=csv_path)
+def staleness_months() -> int:
+    """Whole months between the last published value and today."""
+    return index_model.index_staleness_months(SERIES)
 
-def predict_future_sequence(model, scaler, df=None, csv_path=None, steps=10):
 
-    if df is None:
-        df = _load_rental_df(csv_path)
+# -- Legacy string accessors -------------------------------------------------
+# Kept so existing route and cache response shapes are unchanged. ``model_path``
+# and ``scaler_path`` are accepted and ignored: artifacts are now resolved from
+# the series manifest, which is what stopped one series loading another's model.
 
-    last_60_days = df["close"].tail(time_steps).to_numpy()
-    last_60_scaled = scaler.transform(last_60_days.reshape(-1, 1))
+def predict_next_close_price_from_saved(csv_path=None, model_path=None, scaler_path=None) -> str:
+    return index_model.format_value(predict_next_close_raw(csv_path=csv_path))
 
-    predictions = []
 
-    # Initialize current_sequence with the scaled historical data
-    current_sequence = last_60_scaled
-
-    for _ in range(steps):
-        # reshape for model
-        X_input = current_sequence.reshape(1, time_steps, 1)
-
-        # predict next step
-        pred = model.predict(X_input, verbose=0)
-
-        # store prediction
-        predictions.append(pred[0][0])
-
-        # append prediction & remove oldest value
-        current_sequence = np.vstack((current_sequence[1:], pred))
-
-    # inverse scale
-    predictions = np.array(predictions).reshape(-1, 1)
-    predictions = scaler.inverse_transform(predictions)
-    formatted_predictions = [_format_prediction_value(v[0]) for v in predictions]
-    #print(f"Predicted next {steps} close prices:", formatted_predictions)
-
-    return formatted_predictions
-
-def predict_future_sequence_from_saved(csv_path=None, model_path=None, scaler_path=None, steps=10):
-    model, scaler = load_rental_model_and_scaler(model_path=model_path, scaler_path=scaler_path)
-    return predict_future_sequence(model=model, scaler=scaler, df=None, csv_path=csv_path, steps=steps)
+def predict_future_sequence_from_saved(csv_path=None, model_path=None, scaler_path=None, steps: int = 10) -> list[str]:
+    return [
+        index_model.format_value(value)
+        for value in predict_future_sequence_raw(csv_path=csv_path, steps=steps)
+    ]

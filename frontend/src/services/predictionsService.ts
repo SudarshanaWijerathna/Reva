@@ -9,6 +9,7 @@ export interface Feature {
   model_type: "house" | "rental" | "land";
   required: boolean;
   active: boolean;
+  options?: string[] | null;
 }
 
 export interface PredictionRequest {
@@ -16,9 +17,22 @@ export interface PredictionRequest {
 }
 
 export interface PredictionResponse {
+  /**
+   * The model's native unit, named by `unit`: price per perch for land,
+   * total price for house, monthly rent for rental. Use `total_value` for
+   * the whole-plot land figure rather than multiplying here.
+   */
   predicted_value: number;
   predicted_sequence: number[];
   model_type: string;
+  details?: Record<string, any>;
+
+  /** "LKR_per_perch" | "LKR_total" | "LKR_per_month" */
+  unit?: string | null;
+  /** Whole-plot value for land; null for models already quoting a total. */
+  total_value?: number | null;
+  /** "high" | "medium" | "low" — model coverage composed with index freshness. */
+  confidence?: string | null;
 }
 
 export interface RecommendationResponse {

@@ -1,26 +1,56 @@
-# ===== Core API =====
+# ===== Core API / Server =====
 fastapi>=0.95.0
 uvicorn[standard]>=0.18.3
+pydantic>=2.0.0
+typing-extensions>=4.0.0
+python-dotenv
+python-multipart>=0.0.6
+email-validator
+requests
+
+# ===== Database / Auth =====
 SQLAlchemy>=1.4
 psycopg2-binary>=2.9.9
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 argon2-cffi>=21.3.0
-python-multipart>=0.0.6
-typing-extensions>=4.0.0
-python-dotenv
-requests
-email-validator
-google-genai
 
-# ===== Backend integrations used by current routes =====
+# ===== Backend Integrations =====
 pymongo
 redis[hiredis]
 apscheduler
+google-genai
+protobuf
 
-# ===== Agent dependencies =====
+# ===== ML Model Inference / local model service runtime =====
+numpy
+pandas
+scipy
+joblib
+# Pinned: the LSTM scalers in backend/predictions/LSTM were pickled with 1.6.1.
+scikit-learn==1.6.1
+lightgbm
+catboost
+geopy
+tensorflow
+keras
+tf_keras
+
+# ===== Web Scraping / Sentiment Data Collection =====
+beautifulsoup4==4.14.3
+lxml
+newsapi-python
+pytrends
+
+# ===== Sentiment Modeling / Vector Search =====
+torch
+transformers
+sentence-transformers
+chromadb
+
+# ===== Agent Dependencies =====
 langgraph
-langchain_core
+langchain-core
 langchain-community
 langchain-google-genai
 langchain

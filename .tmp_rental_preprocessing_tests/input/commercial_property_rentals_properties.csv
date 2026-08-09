@@ -1,0 +1,2 @@
+ad_title,ad_description,details,slug,title,type,price,timestamp,posted_date,deactivation_date,category,parent_category,location,geo_region,area,is_delivery_free,is_doorstep_delivery,is_dsd_applicable,is_member,is_authorized_dealer,is_featured_member,is_verified,membership_level,member_since,properties,user
+office-1,Clean property with parking,,office-1,office-1,for_rent,"Rs 250,000 /month",,07 May,,Commercial Property Rentals,Property,Colombo 5,,"{'id': 1506, 'name': 'Colombo'}",,,,,,,,,,"{'Property type': 'Office', 'Size': '1,200 sqft'}",

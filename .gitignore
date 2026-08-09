@@ -11,6 +11,7 @@ dist/
 build/
 dataset_house/
 catboost_info/
+.venv
 
 # IDE and Editor files
 .vscode/

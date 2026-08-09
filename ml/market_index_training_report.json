@@ -1,0 +1,124 @@
+{
+  "houses": {
+    "series": "houses",
+    "source": "Central Bank of Sri Lanka, Real Estate Market Analysis (quarterly)",
+    "base_period": "2019=100",
+    "coverage": "Colombo district",
+    "units": "index",
+    "step_unit": "month",
+    "step_days": 30.44,
+    "time_steps": 12,
+    "series_start": "2019-10",
+    "series_end": "2025-03",
+    "observations": 66,
+    "architecture": "LSTM(8) -> Dense(1)",
+    "trainable_parameters": 329,
+    "scaler": {
+      "type": "MinMaxScaler",
+      "feature_range": [
+        0.1,
+        0.9
+      ],
+      "data_min": 99.8,
+      "data_max": 176.4
+    },
+    "live_window_scaled_range": [
+      0.732898,
+      0.9
+    ],
+    "backtest": {
+      "h1m": {
+        "folds": 24,
+        "mape_pct": {
+          "lstm": 1.669,
+          "naive": 0.7408,
+          "drift": 0.7572
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      },
+      "h3m": {
+        "folds": 22,
+        "mape_pct": {
+          "lstm": 2.3231,
+          "naive": 1.7754,
+          "drift": 1.7895
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      },
+      "h6m": {
+        "folds": 19,
+        "mape_pct": {
+          "lstm": 2.8521,
+          "naive": 2.2414,
+          "drift": 2.5618
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      }
+    },
+    "trained_at": "2026-08-08T19:01:10.340975+00:00"
+  },
+  "lands": {
+    "series": "lands",
+    "source": "Central Bank of Sri Lanka, Real Estate Market Analysis (quarterly)",
+    "base_period": "2019=100",
+    "coverage": "Colombo district",
+    "units": "index",
+    "step_unit": "month",
+    "step_days": 30.44,
+    "time_steps": 12,
+    "series_start": "2019-01",
+    "series_end": "2025-03",
+    "observations": 75,
+    "architecture": "LSTM(8) -> Dense(1)",
+    "trainable_parameters": 329,
+    "scaler": {
+      "type": "MinMaxScaler",
+      "feature_range": [
+        0.1,
+        0.9
+      ],
+      "data_min": 91.3,
+      "data_max": 134.5
+    },
+    "live_window_scaled_range": [
+      0.603704,
+      0.9
+    ],
+    "backtest": {
+      "h1m": {
+        "folds": 33,
+        "mape_pct": {
+          "lstm": 3.0945,
+          "naive": 2.3268,
+          "drift": 2.3445
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      },
+      "h3m": {
+        "folds": 31,
+        "mape_pct": {
+          "lstm": 6.983,
+          "naive": 5.1907,
+          "drift": 5.3817
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      },
+      "h6m": {
+        "folds": 28,
+        "mape_pct": {
+          "lstm": 11.2585,
+          "naive": 8.7331,
+          "drift": 8.9973
+        },
+        "best": "naive",
+        "lstm_beats_naive": false
+      }
+    },
+    "trained_at": "2026-08-08T19:05:42.524419+00:00"
+  }
+}

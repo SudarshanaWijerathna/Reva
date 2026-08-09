@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict, Any, Optional
 
 
@@ -23,6 +23,7 @@ class FeatureOut(BaseModel):
     model_type: str
     required: bool
     active: bool
+    options: Optional[list[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -44,10 +45,24 @@ class PredictionRequest(BaseModel):
 
 
 class PredictionResponse(BaseModel):
-    """Schema for prediction response."""
+    """
+    Schema for prediction response.
+
+    ``predicted_value`` keeps each model's native unit - price per perch for land,
+    total price for house and rental - because that is what the model predicts and
+    what the market quotes. ``unit`` names it, and ``total_value`` carries the
+    whole-plot figure for land so a caller never has to know to multiply.
+
+    New fields are optional so existing clients are unaffected.
+    """
     predicted_value: float
     predicted_sequence: list[float]
     model_type: str
+    details: Dict[str, Any] = Field(default_factory=dict)
+
+    unit: Optional[str] = None
+    total_value: Optional[float] = None
+    confidence: Optional[str] = None
 
 
 class PredictionRecordOut(BaseModel):

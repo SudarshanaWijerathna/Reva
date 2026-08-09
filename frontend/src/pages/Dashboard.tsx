@@ -43,8 +43,21 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "housing" | "rental" | "land">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<any>(null);
   const [userName, setUserName] = useState<string>("User");
   const [userProfileUrl, setUserProfileUrl] = useState<string | null>(null);
+
+  const refreshPortfolioData = async () => {
+    const [summaryData, propertiesData, insightData] = await Promise.all([
+      portfolioService.getSummary(),
+      portfolioService.getProperties(),
+      portfolioService.getInsights(),
+    ]);
+
+    setSummary(summaryData);
+    setProperties(propertiesData);
+    setInsight(insightData.insight);
+  };
 
   useEffect(() => {
     const fetchPortfolioData = async () => {
@@ -68,16 +81,7 @@ const Dashboard: React.FC = () => {
         setUserName(displayName || (email ? email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1) : 'User'));
         setUserProfileUrl(storedPicture || null);
 
-        // Fetch all portfolio data in parallel
-        const [summaryData, propertiesData, insightData] = await Promise.all([
-          portfolioService.getSummary(),
-          portfolioService.getProperties(),
-          portfolioService.getInsights(),
-        ]);
-
-        setSummary(summaryData);
-        setProperties(propertiesData);
-        setInsight(insightData.insight);
+        await refreshPortfolioData();
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio data";
         setError(errorMessage);
@@ -100,14 +104,35 @@ const Dashboard: React.FC = () => {
   const handlePropertyAdded = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const [summaryData, propertiesData] = await Promise.all([
-        portfolioService.getSummary(),
-        portfolioService.getProperties(),
-      ]);
-      setSummary(summaryData);
-      setProperties(propertiesData);
+      await refreshPortfolioData();
     } catch (err) {
       console.error("Failed to refresh portfolio data:", err);
+    }
+  };
+
+  const handleEditProperty = async (property: PropertyData) => {
+    try {
+      const detail = await portfolioService.getPropertyDetails(property.property_id);
+      setEditingProperty(detail);
+      setIsAddModalOpen(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load property details';
+      setError(errorMessage);
+    }
+  };
+
+  const handleDeleteProperty = async (property: PropertyData) => {
+    const confirmed = window.confirm(`Delete this ${property.type} property? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await portfolioService.deleteProperty(property.property_id, property.type);
+      await refreshPortfolioData();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete property';
+      setError(errorMessage);
     }
   };
 
@@ -343,8 +368,8 @@ const Dashboard: React.FC = () => {
                             </td>
                             <td>
                               <div className="action-icons">
-                                <button className="btn-icon" title="Edit"><i className="fa-solid fa-pen-to-square"></i></button>
-                                <button className="btn-icon delete" title="Delete"><i className="fa-solid fa-trash-can"></i></button>
+                                <button className="btn-icon" title="Edit" onClick={() => handleEditProperty(property)}><i className="fa-solid fa-pen-to-square"></i></button>
+                                <button className="btn-icon delete" title="Delete" onClick={() => handleDeleteProperty(property)}><i className="fa-solid fa-trash-can"></i></button>
                               </div>
                             </td>
                           </tr>
@@ -406,10 +431,10 @@ const Dashboard: React.FC = () => {
                         {/* Footer Action Icons */}
                         <div className="property-card-actions">
                           <div className="property-card-actions-left">
-                            <button className="btn-icon" title="Edit"><i className="fa-solid fa-pen-to-square"></i></button>
+                            <button className="btn-icon" title="Edit" onClick={() => handleEditProperty(property)}><i className="fa-solid fa-pen-to-square"></i></button>
                           </div>
                           <div className="property-card-actions-right">
-                            <button className="btn-icon delete" title="Delete"><i className="fa-solid fa-trash-can"></i></button>
+                            <button className="btn-icon delete" title="Delete" onClick={() => handleDeleteProperty(property)}><i className="fa-solid fa-trash-can"></i></button>
                           </div>
                         </div>
                       </div>
@@ -425,8 +450,12 @@ const Dashboard: React.FC = () => {
       {/* Add Property Modal */}
       <AddPropertyModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingProperty(null);
+        }}
         onPropertyAdded={handlePropertyAdded}
+        initialProperty={editingProperty}
       />
     </Layout>
   );

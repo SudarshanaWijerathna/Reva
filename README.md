@@ -65,5 +65,6 @@ utils
 
 # Deploy
 - frontend | Root - frontend |npm install ->  npm run dev
-- Backend   | Root- Reva |  uvicorn backend.app:app --reload    
+- Backend   | Root- Reva |  uvicorn backend.app:app --reload
+- ML services | see docs/local_model_services.md
 - WSL | sudo service redis-server start

@@ -2,8 +2,26 @@
 Helpers for invoking externally deployed prediction models.
 """
 
+from urllib.parse import urlparse
 from typing import Any, Dict
 import requests
+
+
+def _resolve_prediction_url(endpoint_url: str) -> str:
+    """
+    Accept either a service base URL or a full /predict endpoint.
+    """
+    normalized = endpoint_url.strip().rstrip("/")
+    parsed = urlparse(normalized)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(
+            f"Invalid model endpoint URL: {endpoint_url}. "
+            "Use an http(s) URL such as http://127.0.0.1:8012/predict."
+        )
+
+    if parsed.path in {"", "/"}:
+        return f"{normalized}/predict"
+    return normalized
 
 
 def _extract_prediction_value(response_payload: Dict[str, Any]) -> float:
@@ -38,9 +56,11 @@ def predict_via_http(model_name: str, endpoint_url: str, payload: Dict[str, Any]
             f"Set it in environment variables to enable {model_name} predictions."
         )
 
+    prediction_url = _resolve_prediction_url(endpoint_url)
+
     try:
         response = requests.post(
-            endpoint_url,
+            prediction_url,
             json={"features": payload},
             timeout=45,
         )
@@ -54,7 +74,7 @@ def predict_via_http(model_name: str, endpoint_url: str, payload: Dict[str, Any]
         raise RuntimeError(f"{model_name} model API returned non-JSON response") from exc
 
     prediction_value = _extract_prediction_value(response_payload)
-    return {
-        "predicted_value": prediction_value,
-        "raw_response": response_payload
-    }
+    normalized_payload = dict(response_payload)
+    normalized_payload["predicted_value"] = prediction_value
+    normalized_payload["raw_response"] = response_payload
+    return normalized_payload

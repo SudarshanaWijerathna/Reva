@@ -37,6 +37,8 @@ apscheduler
 # ===== Land Price ML =====
 pandas
 numpy
+scipy
+catboost
 joblib
 lightgbm
 scikit-learn==1.6.1

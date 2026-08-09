@@ -13,6 +13,13 @@ const PERIODS = [
   '2025 H1', '2025 H2'
 ];
 
+const DEFAULT_SELECT_VALUES: Record<string, string> = {
+  property_type: 'Apartment',
+  location: 'Colombo 5',
+  district: 'Colombo',
+  furnishing_status: 'furnished',
+};
+
 const RentalPrice: React.FC = () => {
   /* -------------------- STATE -------------------- */
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -39,6 +46,12 @@ const RentalPrice: React.FC = () => {
             initialForm[feature.name] = false;
           } else if (feature.data_type === 'int' || feature.data_type === 'float') {
             initialForm[feature.name] = '';
+          } else if (feature.options && feature.options.length > 0) {
+            const preferredValue = DEFAULT_SELECT_VALUES[feature.name];
+            initialForm[feature.name] =
+              preferredValue && feature.options.includes(preferredValue)
+                ? preferredValue
+                : feature.options[0];
           } else {
             initialForm[feature.name] = '';
           }
@@ -182,6 +195,24 @@ const RentalPrice: React.FC = () => {
         </label>
       );
     } else if (feature.data_type === 'string') {
+      if (feature.options && feature.options.length > 0) {
+        return (
+          <div className="input-group" key={feature.name}>
+            <label>{feature.label}</label>
+            <select
+              className="input-field"
+              value={value || ''}
+              onChange={e => handleFormChange(feature.name, e.target.value)}
+            >
+              {feature.options.map(option => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        );
+      }
       return (
         <div className="input-group" key={feature.name}>
           <label>{feature.label}</label>

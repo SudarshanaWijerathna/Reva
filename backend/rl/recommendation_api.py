@@ -4,7 +4,7 @@ from backend.portfolio.service import calculate_portfolio
 from backend.rl.agent_services import get_recommendation
 
 from backend.core.cache_service import get_cached_sentiment, update_sentiment_cache, get_sentiment_history, update_sentiment_history, get_current_prices, update_current_prices
-from backend.rl.prediction_prices import get_data, generate_state_price_signals
+from backend.rl.prediction_prices import get_price_inputs, generate_state_price_signals
 from backend.rl.sentiment_agg import aggregate_sentiment_features
 
 
@@ -20,17 +20,15 @@ def create_state_vector(user, db):
         print(f"Error in get_property_count: {str(e)}")
         counts = {"housing": 0, "rental": 0, "land": 0}
 
-    curr_land_price, curr_housing_price, future_land_price, current_rental_price, future_housing_price_3m, future_rental_price = get_data()
-    signals = generate_state_price_signals(
-        current_land_price=curr_land_price,
-        current_housing_price=curr_housing_price,
-        future_land_price=future_land_price,
-        monthly_rent=current_rental_price,
-        future_house_price_3m=future_housing_price_3m,
-    )
+    signals = generate_state_price_signals(get_price_inputs())
 
     features = aggregate_sentiment_features(debug=False)
 
+    # Known train/serve mismatch, deliberately left in place: the training
+    # environment gave each property block its own signals, while these three are
+    # market-level and identical across blocks. The values are in-distribution, so
+    # this costs information rather than correctness, and changing it means
+    # retraining the DQN.
     state_vector = []
     for property_type in PROPERTY_ORDER:
         sentiment = features.get(property_type, {})
@@ -45,6 +43,9 @@ def create_state_vector(user, db):
             float(signals.get("housing_signal", 0.0)),
         ])
 
+    # Training used cash_in_hand / initial_investment, which ranged 0 to about 3.
+    # A constant 1.0 sits at +1.5 sigma of that - inside the trained range, but it
+    # carries no portfolio information. Wiring it to real cash is a separate change.
     state_vector.append(1.0)
     return state_vector
 

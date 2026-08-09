@@ -1,0 +1,2 @@
+ad_title,ad_description,details,slug,title,type,price,timestamp,posted_date,deactivation_date,category,parent_category,location,geo_region,area,is_delivery_free,is_doorstep_delivery,is_dsd_applicable,is_member,is_authorized_dealer,is_featured_member,is_verified,membership_level,member_since,properties,user
+house-1,Clean property with parking,,house-1,house-1,for_rent,"Rs 95,000 /month",,07 May,,House Rentals,Property,Colombo 5,,"{'id': 1506, 'name': 'Colombo'}",,,,,,,,,,"{'Beds': '2', 'Baths': '1', 'Size': '900 sqft'}",

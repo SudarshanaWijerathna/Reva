@@ -32,9 +32,9 @@ scikit-learn==1.6.1
 lightgbm
 catboost
 geopy
-tensorflow
-keras
-tf_keras
+tensorflow-cpu>=2.15.0
+keras>=3.0.0
+tf_keras>=2.15.0
 
 # ===== Web Scraping / Sentiment Data Collection =====
 beautifulsoup4==4.14.3

@@ -16,9 +16,9 @@ chromadb
 sentence-transformers
 tqdm
 google-genai
-tensorflow
-keras
-tf_keras
+tensorflow-cpu>=2.15.0
+keras>=3.0.0
+tf_keras>=2.15.0
 
 # ===== FastAPI Backend =====
 fastapi>=0.95.0

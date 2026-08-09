@@ -10,8 +10,14 @@ from backend.agent.open_router import call_open_router
 load_dotenv()
 
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
-    
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=os.getenv("GEMINI_API_KEY"))
+
+llm = None
+if GEMINI_API_KEY:
+    try:
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GEMINI_API_KEY)
+    except Exception as e:
+        print(f"Warning: Failed to initialize ChatGoogleGenerativeAI: {e}")
+
 
 def call_llm(prompt: str) -> str:
     #result = llm.invoke([HumanMessage(content=prompt)])

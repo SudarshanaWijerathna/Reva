@@ -59,8 +59,15 @@ const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  // Prevent duplicate /api/api/ paths
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  if (API_BASE_URL.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    cleanEndpoint = cleanEndpoint.substring(4);
+  }
+  const targetUrl = `${API_BASE_URL}${cleanEndpoint}`;
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(targetUrl, {
       ...options,
       headers,
     });
@@ -101,3 +108,4 @@ export const getRecommendation = async (
 ): Promise<RecommendationResponse> => {
   return fetchWithAuth(`/api/predictions/recommendation/${modelType}`);
 };
+

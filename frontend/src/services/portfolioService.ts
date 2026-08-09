@@ -7,8 +7,24 @@ export interface PropertyData {
   type: "housing" | "rental" | "land";
   location: string;
   purchase_price: number;
-  current_value: number;
-  profit: number;
+  purchase_price_per_perch?: number;
+  cost_basis: number;
+  current_value: number | null;
+  estimated_current_value: number | null;
+  profit: number | null;
+  unrealized_capital_gain: number | null;
+  unrealized_gain_pct: number | null;
+  total_return_lkr: number;
+  rental_income_to_date?: number;
+  rental_months_to_date?: number;
+  valuation_as_of: string | null;
+  valuation_status: string;
+  valuation_method: string;
+  valuation_confidence: "high" | "medium" | "low";
+  valuation_notes: string[];
+  value_range: { lower: number | null; upper: number | null; coverage: string };
+  model_anchor: string | null;
+  index_factor: number | null;
   sentiment: string;
   status: string;
 }
@@ -18,7 +34,14 @@ export interface PropertyDetailData {
   property_type: "housing" | "rental" | "land";
   created_at: string;
   location: string;
+  district?: string;
+  locality?: string;
+  latitude?: number;
+  longitude?: number;
   purchase_price: number;
+  purchase_price_per_perch?: number;
+  acquisition_costs?: number;
+  capital_improvements?: number;
   purchase_date: string;
   status: string;
   land_size_perches?: number;
@@ -26,14 +49,38 @@ export interface PropertyDetailData {
   floors?: number;
   built_year?: number;
   property_condition?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  parking_spaces?: number;
+  road_width_ft?: number;
+  water_available?: boolean;
+  electricity_available?: boolean;
+  description?: string;
   monthly_rent?: number;
   occupancy_status?: string;
   lease_start_date?: string;
   lease_end_date?: string;
   tenant_type?: string;
+  property_subtype?: string;
+  floor_area_sqft?: number;
+  furnishing_status?: string;
+  vacancy_rate?: number;
+  monthly_maintenance?: number;
+  monthly_management_fees?: number;
+  annual_rates_taxes?: number;
+  annual_insurance?: number;
+  annual_other_expenses?: number;
+  rental_income_to_date?: number;
+  rental_months_to_date?: number;
   land_size?: number;
   zoning_type?: string;
   road_access?: string;
+  electricity?: boolean;
+  water?: boolean;
+  clear_deed?: boolean;
+  bank_loan?: boolean;
+  near_town?: boolean;
+  distance_to_town_m?: number;
 }
 
 export interface PortfolioSummary {
@@ -41,6 +88,10 @@ export interface PortfolioSummary {
   total_investment: number;
   growth_percentage: number;
   total_profit: number;
+  cost_basis: number;
+  unrealized_capital_gain: number;
+  cumulative_net_rental_income: number;
+  total_return_lkr: number;
   property_mix: {
     housing: number;
     rental: number;
@@ -108,15 +159,7 @@ export const portfolioService = {
     // Filter out property_id if it's included in the response
     if (Array.isArray(data)) {
       return data.map((prop: any) => ({
-        property_id: prop.property_id,
-        created_at: prop.created_at,
-        type: prop.type,
-        location: prop.location,
-        purchase_price: prop.purchase_price,
-        current_value: prop.current_value,
-        profit: prop.profit,
-        sentiment: prop.sentiment,
-        status: prop.status,
+        ...prop,
       }));
     }
     return [];
@@ -136,16 +179,7 @@ export const portfolioService = {
   /**
    * Add a new housing property
    */
-  async createHousingProperty(data: {
-    location: string;
-    purchase_price: number;
-    purchase_date: string;
-    land_size_perches: number;
-    house_size_sqft: number;
-    floors: number;
-    built_year: number;
-    property_condition: string;
-  }): Promise<any> {
+  async createHousingProperty(data: Record<string, unknown>): Promise<any> {
     return fetchWithAuth("/properties/housing", {
       method: "POST",
       body: JSON.stringify(data),
@@ -155,16 +189,7 @@ export const portfolioService = {
   /**
    * Add a new rental property
    */
-  async createRentalProperty(data: {
-    location: string;
-    purchase_price: number;
-    purchase_date: string;
-    monthly_rent: number;
-    occupancy_status: string;
-    lease_start_date: string;
-    lease_end_date: string;
-    tenant_type: string;
-  }): Promise<any> {
+  async createRentalProperty(data: Record<string, unknown>): Promise<any> {
     return fetchWithAuth("/properties/rental", {
       method: "POST",
       body: JSON.stringify(data),
@@ -174,14 +199,7 @@ export const portfolioService = {
   /**
    * Add a new land property
    */
-  async createLandProperty(data: {
-    location: string;
-    purchase_price: number;
-    purchase_date: string;
-    land_size: number;
-    zoning_type: string;
-    road_access: string;
-  }): Promise<any> {
+  async createLandProperty(data: Record<string, unknown>): Promise<any> {
     return fetchWithAuth("/properties/land", {
       method: "POST",
       body: JSON.stringify(data),
@@ -190,16 +208,7 @@ export const portfolioService = {
 
   async updateHousingProperty(
     propertyId: number,
-    data: {
-      location: string;
-      purchase_price: number;
-      purchase_date: string;
-      land_size_perches: number;
-      house_size_sqft: number;
-      floors: number;
-      built_year: number;
-      property_condition: string;
-    }
+    data: Record<string, unknown>
   ): Promise<any> {
     return fetchWithAuth(`/properties/housing/${propertyId}`, {
       method: "PUT",
@@ -209,16 +218,7 @@ export const portfolioService = {
 
   async updateRentalProperty(
     propertyId: number,
-    data: {
-      location: string;
-      purchase_price: number;
-      purchase_date: string;
-      monthly_rent: number;
-      occupancy_status: string;
-      lease_start_date: string;
-      lease_end_date: string;
-      tenant_type: string;
-    }
+    data: Record<string, unknown>
   ): Promise<any> {
     return fetchWithAuth(`/properties/rental/${propertyId}`, {
       method: "PUT",
@@ -228,14 +228,7 @@ export const portfolioService = {
 
   async updateLandProperty(
     propertyId: number,
-    data: {
-      location: string;
-      purchase_price: number;
-      purchase_date: string;
-      land_size: number;
-      zoning_type: string;
-      road_access: string;
-    }
+    data: Record<string, unknown>
   ): Promise<any> {
     return fetchWithAuth(`/properties/land/${propertyId}`, {
       method: "PUT",

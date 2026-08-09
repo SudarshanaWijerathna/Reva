@@ -5,33 +5,58 @@ type PropertyType = 'housing' | 'rental' | 'land';
 
 interface HousingFormData {
   location: string;
+  district: string;
   purchase_price: string;
+  acquisition_costs: string;
+  capital_improvements: string;
   purchase_date: string;
   land_size_perches: string;
   house_size_sqft: string;
   floors: string;
   built_year: string;
   property_condition: string;
+  bedrooms: string;
+  bathrooms: string;
 }
 
 interface RentalFormData {
   location: string;
+  district: string;
   purchase_price: string;
+  acquisition_costs: string;
+  capital_improvements: string;
   purchase_date: string;
   monthly_rent: string;
   occupancy_status: string;
   lease_start_date: string;
   lease_end_date: string;
   tenant_type: string;
+  property_subtype: string;
+  bedrooms: string;
+  bathrooms: string;
+  floor_area_sqft: string;
+  land_size_perches: string;
+  furnishing_status: string;
+  vacancy_rate: string;
+  monthly_maintenance: string;
 }
 
 interface LandFormData {
   location: string;
+  district: string;
   purchase_price: string;
+  acquisition_costs: string;
+  capital_improvements: string;
   purchase_date: string;
   land_size: string;
   zoning_type: string;
   road_access: string;
+  electricity: boolean;
+  water: boolean;
+  clear_deed: boolean;
+  bank_loan: boolean;
+  near_town: boolean;
+  distance_to_town_m: string;
 }
 
 interface AddPropertyModalProps {
@@ -50,33 +75,58 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
   const [housingForm, setHousingForm] = useState<HousingFormData>({
     location: '',
+    district: '',
     purchase_price: '',
+    acquisition_costs: '',
+    capital_improvements: '',
     purchase_date: '',
     land_size_perches: '',
     house_size_sqft: '',
     floors: '',
     built_year: '',
     property_condition: 'good',
+    bedrooms: '',
+    bathrooms: '',
   });
 
   const [rentalForm, setRentalForm] = useState<RentalFormData>({
     location: '',
+    district: '',
     purchase_price: '',
+    acquisition_costs: '',
+    capital_improvements: '',
     purchase_date: '',
     monthly_rent: '',
     occupancy_status: 'occupied',
     lease_start_date: '',
     lease_end_date: '',
     tenant_type: 'family',
+    property_subtype: 'House',
+    bedrooms: '',
+    bathrooms: '',
+    floor_area_sqft: '',
+    land_size_perches: '',
+    furnishing_status: 'unknown',
+    vacancy_rate: '0',
+    monthly_maintenance: '0',
   });
 
   const [landForm, setLandFormData] = useState<LandFormData>({
     location: '',
+    district: '',
     purchase_price: '',
+    acquisition_costs: '',
+    capital_improvements: '',
     purchase_date: '',
     land_size: '',
     zoning_type: 'residential',
     road_access: '',
+    electricity: false,
+    water: false,
+    clear_deed: false,
+    bank_loan: false,
+    near_town: false,
+    distance_to_town_m: '',
   });
 
   useEffect(() => {
@@ -91,7 +141,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
       const baseValues = {
         location: initialProperty.location || '',
-        purchase_price: initialProperty.purchase_price?.toString() || '',
+        district: initialProperty.district || '',
+        purchase_price: initialProperty.property_type === 'land'
+          ? initialProperty.purchase_price_per_perch?.toString() || ''
+          : initialProperty.purchase_price?.toString() || '',
+        acquisition_costs: initialProperty.acquisition_costs?.toString() || '',
+        capital_improvements: initialProperty.capital_improvements?.toString() || '',
         purchase_date: initialProperty.purchase_date || '',
       };
 
@@ -103,6 +158,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           floors: initialProperty.floors?.toString() || '',
           built_year: initialProperty.built_year?.toString() || '',
           property_condition: initialProperty.property_condition || 'good',
+          bedrooms: initialProperty.bedrooms?.toString() || '',
+          bathrooms: initialProperty.bathrooms?.toString() || '',
         });
       }
 
@@ -114,6 +171,14 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           lease_start_date: initialProperty.lease_start_date || '',
           lease_end_date: initialProperty.lease_end_date || '',
           tenant_type: initialProperty.tenant_type || 'family',
+          property_subtype: initialProperty.property_subtype || 'House',
+          bedrooms: initialProperty.bedrooms?.toString() || '',
+          bathrooms: initialProperty.bathrooms?.toString() || '',
+          floor_area_sqft: initialProperty.floor_area_sqft?.toString() || '',
+          land_size_perches: initialProperty.land_size_perches?.toString() || '',
+          furnishing_status: initialProperty.furnishing_status || 'unknown',
+          vacancy_rate: initialProperty.vacancy_rate?.toString() || '0',
+          monthly_maintenance: initialProperty.monthly_maintenance?.toString() || '0',
         });
       }
 
@@ -123,6 +188,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           land_size: initialProperty.land_size?.toString() || '',
           zoning_type: initialProperty.zoning_type || 'residential',
           road_access: initialProperty.road_access || '',
+          electricity: initialProperty.electricity ?? false,
+          water: initialProperty.water ?? false,
+          clear_deed: initialProperty.clear_deed ?? false,
+          bank_loan: initialProperty.bank_loan ?? false,
+          near_town: initialProperty.near_town ?? false,
+          distance_to_town_m: initialProperty.distance_to_town_m?.toString() || '',
         });
       }
       return;
@@ -140,11 +211,14 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
   };
 
   const handleLandChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setLandFormData({ ...landForm, [e.target.name]: e.target.value });
+    const value = e.target instanceof HTMLInputElement && e.target.type === 'checkbox'
+      ? e.target.checked
+      : e.target.value;
+    setLandFormData({ ...landForm, [e.target.name]: value });
   };
 
   const validateForm = (data: any): boolean => {
-    const requiredFields = ['location', 'purchase_price', 'purchase_date'];
+    const requiredFields = ['location', 'district', 'purchase_price', 'purchase_date'];
     
     for (const field of requiredFields) {
       if (!data[field]) {
@@ -167,7 +241,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
     if (!validateForm(housingForm)) return;
 
-    const requiredHousingFields = ['land_size_perches', 'house_size_sqft', 'floors', 'built_year'];
+    const requiredHousingFields = ['land_size_perches', 'house_size_sqft', 'floors', 'built_year', 'bedrooms', 'bathrooms'];
     for (const field of requiredHousingFields) {
       if (!housingForm[field as keyof HousingFormData]) {
         setError(`${field.replace(/_/g, ' ')} is required`);
@@ -180,13 +254,18 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     try {
       const payload = {
         location: housingForm.location,
+        district: housingForm.district,
         purchase_price: parseFloat(housingForm.purchase_price),
+        acquisition_costs: parseFloat(housingForm.acquisition_costs) || 0,
+        capital_improvements: parseFloat(housingForm.capital_improvements) || 0,
         purchase_date: housingForm.purchase_date,
         land_size_perches: parseFloat(housingForm.land_size_perches),
         house_size_sqft: parseFloat(housingForm.house_size_sqft),
         floors: parseInt(housingForm.floors),
         built_year: parseInt(housingForm.built_year),
         property_condition: housingForm.property_condition,
+        bedrooms: parseInt(housingForm.bedrooms),
+        bathrooms: parseInt(housingForm.bathrooms),
       };
 
       if (isEditMode && initialProperty) {
@@ -215,12 +294,16 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
     if (!validateForm(rentalForm)) return;
 
-    const requiredRentalFields = ['monthly_rent', 'lease_start_date', 'lease_end_date'];
+    const requiredRentalFields = ['monthly_rent', 'lease_start_date', 'lease_end_date', 'property_subtype', 'bedrooms', 'bathrooms', 'floor_area_sqft', 'land_size_perches'];
     for (const field of requiredRentalFields) {
       if (!rentalForm[field as keyof RentalFormData]) {
         setError(`${field.replace(/_/g, ' ')} is required`);
         return;
       }
+    }
+    if (rentalForm.lease_end_date < rentalForm.lease_start_date) {
+      setError('Lease end/change date cannot be before the lease start date');
+      return;
     }
 
     setLoading(true);
@@ -228,13 +311,24 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     try {
       const payload = {
         location: rentalForm.location,
+        district: rentalForm.district,
         purchase_price: parseFloat(rentalForm.purchase_price),
+        acquisition_costs: parseFloat(rentalForm.acquisition_costs) || 0,
+        capital_improvements: parseFloat(rentalForm.capital_improvements) || 0,
         purchase_date: rentalForm.purchase_date,
         monthly_rent: parseFloat(rentalForm.monthly_rent),
         occupancy_status: rentalForm.occupancy_status,
         lease_start_date: rentalForm.lease_start_date,
         lease_end_date: rentalForm.lease_end_date,
         tenant_type: rentalForm.tenant_type,
+        property_subtype: rentalForm.property_subtype,
+        bedrooms: parseInt(rentalForm.bedrooms),
+        bathrooms: parseInt(rentalForm.bathrooms),
+        floor_area_sqft: parseFloat(rentalForm.floor_area_sqft),
+        land_size_perches: parseFloat(rentalForm.land_size_perches),
+        furnishing_status: rentalForm.furnishing_status,
+        vacancy_rate: parseFloat(rentalForm.vacancy_rate) || 0,
+        monthly_maintenance: parseFloat(rentalForm.monthly_maintenance) || 0,
       };
 
       if (isEditMode && initialProperty) {
@@ -276,11 +370,20 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     try {
       const payload = {
         location: landForm.location,
+        district: landForm.district,
         purchase_price: parseFloat(landForm.purchase_price),
+        acquisition_costs: parseFloat(landForm.acquisition_costs) || 0,
+        capital_improvements: parseFloat(landForm.capital_improvements) || 0,
         purchase_date: landForm.purchase_date,
         land_size: parseFloat(landForm.land_size),
         zoning_type: landForm.zoning_type,
         road_access: landForm.road_access,
+        electricity: landForm.electricity,
+        water: landForm.water,
+        clear_deed: landForm.clear_deed,
+        bank_loan: landForm.bank_loan,
+        near_town: landForm.near_town,
+        distance_to_town_m: parseFloat(landForm.distance_to_town_m) || null,
       };
 
       if (isEditMode && initialProperty) {
@@ -306,34 +409,67 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
   const resetForm = () => {
     setHousingForm({
       location: '',
+      district: '',
       purchase_price: '',
+      acquisition_costs: '',
+      capital_improvements: '',
       purchase_date: '',
       land_size_perches: '',
       house_size_sqft: '',
       floors: '',
       built_year: '',
       property_condition: 'good',
+      bedrooms: '',
+      bathrooms: '',
     });
     setRentalForm({
       location: '',
+      district: '',
       purchase_price: '',
+      acquisition_costs: '',
+      capital_improvements: '',
       purchase_date: '',
       monthly_rent: '',
       occupancy_status: 'occupied',
       lease_start_date: '',
       lease_end_date: '',
       tenant_type: 'family',
+      property_subtype: 'House',
+      bedrooms: '',
+      bathrooms: '',
+      floor_area_sqft: '',
+      land_size_perches: '',
+      furnishing_status: 'unknown',
+      vacancy_rate: '0',
+      monthly_maintenance: '0',
     });
     setLandFormData({
       location: '',
+      district: '',
       purchase_price: '',
+      acquisition_costs: '',
+      capital_improvements: '',
       purchase_date: '',
       land_size: '',
       zoning_type: 'residential',
       road_access: '',
+      electricity: false,
+      water: false,
+      clear_deed: false,
+      bank_loan: false,
+      near_town: false,
+      distance_to_town_m: '',
     });
     setError("");
     setSuccess("");
+  };
+
+  const valuationInputStyle: React.CSSProperties = {
+    width: '100%', padding: '8px 12px', border: '1px solid #ddd',
+    borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box',
+  };
+  const valuationLabelStyle: React.CSSProperties = {
+    display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333',
   };
 
   if (!isOpen) return null;
@@ -493,8 +629,14 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                       borderRadius: '6px',
                       fontSize: '14px',
                       boxSizing: 'border-box',
-                    }}
-                  />
+                      }}
+                    />
+                  </div>
+
+                <div>
+                  <label style={valuationLabelStyle}>District *</label>
+                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
+                    value={housingForm.district} onChange={handleHousingChange} style={valuationInputStyle} />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -534,6 +676,19 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                         boxSizing: 'border-box',
                       }}
                     />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={valuationLabelStyle}>Acquisition Costs</label>
+                    <input type="number" name="acquisition_costs" placeholder="Legal, stamp and registration costs"
+                      value={housingForm.acquisition_costs} onChange={handleHousingChange} style={valuationInputStyle} />
+                  </div>
+                  <div>
+                    <label style={valuationLabelStyle}>Capital Improvements</label>
+                    <input type="number" name="capital_improvements" placeholder="Major improvements"
+                      value={housingForm.capital_improvements} onChange={handleHousingChange} style={valuationInputStyle} />
                   </div>
                 </div>
 
@@ -619,6 +774,19 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                   </div>
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={valuationLabelStyle}>Bedrooms *</label>
+                    <input type="number" name="bedrooms" min="0" value={housingForm.bedrooms}
+                      onChange={handleHousingChange} style={valuationInputStyle} />
+                  </div>
+                  <div>
+                    <label style={valuationLabelStyle}>Bathrooms *</label>
+                    <input type="number" name="bathrooms" min="0" value={housingForm.bathrooms}
+                      onChange={handleHousingChange} style={valuationInputStyle} />
+                  </div>
+                </div>
+
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Property Condition *</label>
                   <select
@@ -685,6 +853,12 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                   />
                 </div>
 
+                <div>
+                  <label style={valuationLabelStyle}>District *</label>
+                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
+                    value={rentalForm.district} onChange={handleRentalChange} style={valuationInputStyle} />
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
@@ -725,6 +899,52 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                   </div>
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={valuationLabelStyle}>Acquisition Costs</label>
+                    <input type="number" name="acquisition_costs" value={rentalForm.acquisition_costs}
+                      onChange={handleRentalChange} style={valuationInputStyle} />
+                  </div>
+                  <div>
+                    <label style={valuationLabelStyle}>Capital Improvements</label>
+                    <input type="number" name="capital_improvements" value={rentalForm.capital_improvements}
+                      onChange={handleRentalChange} style={valuationInputStyle} />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={valuationLabelStyle}>Property Type *</label>
+                    <select name="property_subtype" value={rentalForm.property_subtype}
+                      onChange={handleRentalChange} style={valuationInputStyle}>
+                      <option value="House">House</option><option value="Apartment">Apartment</option>
+                      <option value="Annex">Annex</option><option value="Office space">Office space</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={valuationLabelStyle}>Furnishing</label>
+                    <select name="furnishing_status" value={rentalForm.furnishing_status}
+                      onChange={handleRentalChange} style={valuationInputStyle}>
+                      <option value="unknown">Unknown</option><option value="furnished">Furnished</option>
+                      <option value="semi-furnished">Semi-furnished</option><option value="unfurnished">Unfurnished</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div><label style={valuationLabelStyle}>Bedrooms *</label>
+                    <input type="number" name="bedrooms" min="0" value={rentalForm.bedrooms} onChange={handleRentalChange} style={valuationInputStyle} /></div>
+                  <div><label style={valuationLabelStyle}>Bathrooms *</label>
+                    <input type="number" name="bathrooms" min="0" value={rentalForm.bathrooms} onChange={handleRentalChange} style={valuationInputStyle} /></div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div><label style={valuationLabelStyle}>Floor Area (sqft) *</label>
+                    <input type="number" name="floor_area_sqft" value={rentalForm.floor_area_sqft} onChange={handleRentalChange} style={valuationInputStyle} /></div>
+                  <div><label style={valuationLabelStyle}>Land Size (perches) *</label>
+                    <input type="number" name="land_size_perches" value={rentalForm.land_size_perches} onChange={handleRentalChange} style={valuationInputStyle} /></div>
+                </div>
+
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Monthly Rent *</label>
                   <input
@@ -743,6 +963,13 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                       boxSizing: 'border-box',
                     }}
                   />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div><label style={valuationLabelStyle}>Expected Vacancy Rate</label>
+                    <input type="number" name="vacancy_rate" min="0" max="1" step="0.01" value={rentalForm.vacancy_rate} onChange={handleRentalChange} style={valuationInputStyle} /></div>
+                  <div><label style={valuationLabelStyle}>Monthly Maintenance</label>
+                    <input type="number" name="monthly_maintenance" min="0" value={rentalForm.monthly_maintenance} onChange={handleRentalChange} style={valuationInputStyle} /></div>
                 </div>
 
                 <div>
@@ -767,7 +994,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Lease Start Date *</label>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Current Rent Starts *</label>
                     <input
                       type="date"
                       name="lease_start_date"
@@ -785,7 +1012,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Lease End Date *</label>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Rent Change Date *</label>
                     <input
                       type="date"
                       name="lease_end_date"
@@ -802,6 +1029,9 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                     />
                   </div>
                 </div>
+                <small style={{ color: '#6b7280' }}>
+                  Rent income is counted by calendar month from the start date through today. When the agreed rent changes, edit this property with the new rent and its new start date; the previous period is retained.
+                </small>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Tenant Type *</label>
@@ -869,13 +1099,19 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                   />
                 </div>
 
+                <div>
+                  <label style={valuationLabelStyle}>District *</label>
+                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
+                    value={landForm.district} onChange={handleLandChange} style={valuationInputStyle} />
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Price per perch *</label>
                     <input
                       type="number"
                       name="purchase_price"
-                      placeholder="LKR"
+                      placeholder="LKR / perch"
                       value={landForm.purchase_price}
                       onChange={handleLandChange}
                       step="0.01"
@@ -888,6 +1124,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                         boxSizing: 'border-box',
                       }}
                     />
+                    <small style={{ display: 'block', marginTop: '4px', color: '#6b7280' }}>
+                      Total land cost: {landForm.purchase_price && landForm.land_size
+                        ? `LKR ${(parseFloat(landForm.purchase_price) * parseFloat(landForm.land_size)).toLocaleString()}`
+                        : 'enter price and land size'}
+                    </small>
                   </div>
 
                   <div>
@@ -907,6 +1148,13 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                       }}
                     />
                   </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div><label style={valuationLabelStyle}>Acquisition Costs</label>
+                    <input type="number" name="acquisition_costs" value={landForm.acquisition_costs} onChange={handleLandChange} style={valuationInputStyle} /></div>
+                  <div><label style={valuationLabelStyle}>Capital Improvements</label>
+                    <input type="number" name="capital_improvements" value={landForm.capital_improvements} onChange={handleLandChange} style={valuationInputStyle} /></div>
                 </div>
 
                 <div>
@@ -968,6 +1216,26 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                     }}
                   />
                 </div>
+
+                <div>
+                  <label style={valuationLabelStyle}>Known Land Features</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                    {[
+                      ['electricity', 'Electricity'], ['water', 'Water'], ['clear_deed', 'Clear deed'],
+                      ['bank_loan', 'Bank loan eligible'], ['near_town', 'Near town'],
+                    ].map(([name, label]) => (
+                      <label key={name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
+                        <input type="checkbox" name={name} checked={Boolean(landForm[name as keyof LandFormData])} onChange={handleLandChange} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {landForm.near_town && (
+                  <div><label style={valuationLabelStyle}>Distance to Town (metres)</label>
+                    <input type="number" name="distance_to_town_m" min="0" value={landForm.distance_to_town_m} onChange={handleLandChange} style={valuationInputStyle} /></div>
+                )}
 
                 <button
                   type="submit"

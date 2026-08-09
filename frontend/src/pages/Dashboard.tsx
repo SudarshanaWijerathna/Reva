@@ -142,7 +142,7 @@ const Dashboard: React.FC = () => {
   );
 
   // Format currency - handle undefined/zero values
-  const formatCurrency = (value: number | undefined): string => {
+  const formatCurrency = (value: number | null | undefined): string => {
     if (value === undefined || value === null || value === 0) {
       return "-";
     }
@@ -153,6 +153,13 @@ const Dashboard: React.FC = () => {
       return `${(value / 1_000).toFixed(1)}K`;
     }
     return value.toFixed(0);
+  };
+
+  const formatValuationDate = (dateStr: string | null): string => {
+    if (!dateStr) return "Date unavailable";
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", {
+      year: "numeric", month: "short", day: "numeric",
+    });
   };
 
   // Format date
@@ -258,9 +265,9 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="fin-card">
-              <div className="fin-label"><i className="fa-solid fa-hand-holding-dollar"></i> Total Profit</div>
+              <div className="fin-label"><i className="fa-solid fa-hand-holding-dollar"></i> Unrealized Gain</div>
               <div className="fin-value">
-                {loading ? "..." : summary ? formatCurrency(summary.total_profit) : "-"}
+                {loading ? "..." : summary ? formatCurrency(summary.unrealized_capital_gain) : "-"}
               </div>
               <div className="fin-sub text-green">Unrealized gains</div>
             </div>
@@ -295,7 +302,7 @@ const Dashboard: React.FC = () => {
             <div className="card-title">
               <div className="card-title-group">
                 <h3>Your Properties</h3>
-                <span className="card-subtitle"><i className="fa-solid fa-circle-info"></i> Valuations estimated using Reva ML models (Data: Oct 2025)</span>
+                <span className="card-subtitle"><i className="fa-solid fa-circle-info"></i> Property-specific estimates adjusted only with observed market indices</span>
               </div>
 
               <select
@@ -331,8 +338,8 @@ const Dashboard: React.FC = () => {
                           <th>Type</th>
                           <th>Location</th>
                           <th>Bought Price</th>
-                          <th>Current Val <i className="fa-solid fa-circle-info info-icon" title="Predicted by Reva AI"></i></th>
-                          <th>Profit</th>
+                          <th>Estimated Value <i className="fa-solid fa-circle-info info-icon" title="Estimated market value at the stated valuation date; this is not a sale guarantee."></i></th>
+                          <th>Unrealized Gain</th>
                           <th>Sentiment</th>
                           <th>Status</th>
                           <th style={{ textAlign: 'right' }}>Actions</th>
@@ -351,9 +358,22 @@ const Dashboard: React.FC = () => {
                             </td>
                             <td>{property.location}</td>
                             <td>{formatCurrency(property.purchase_price)}</td>
-                            <td>{formatCurrency(property.current_value)}</td>
-                            <td className={property.profit >= 0 ? "text-green" : "text-red"}>
-                              {property.profit >= 0 ? "+" : ""}{formatCurrency(property.profit)}
+                            <td title={property.valuation_notes?.join(" ") || property.valuation_method}>
+                              <div>{formatCurrency(property.estimated_current_value ?? property.current_value)}</div>
+                              <small style={{ display: "block", color: "#6b7280", marginTop: 4 }}>
+                                {property.valuation_status === "unavailable"
+                                  ? "Needs more property details"
+                                  : `As of ${formatValuationDate(property.valuation_as_of)} · ${property.valuation_confidence}`}
+                              </small>
+                            </td>
+                            <td className={(property.unrealized_capital_gain ?? property.profit ?? 0) >= 0 ? "text-green" : "text-red"}>
+                              {(property.unrealized_capital_gain ?? property.profit) != null && (property.unrealized_capital_gain ?? property.profit ?? 0) >= 0 ? "+" : ""}
+                              {formatCurrency(property.unrealized_capital_gain ?? property.profit)}
+                              {property.type === "rental" && property.rental_income_to_date != null && (
+                                <small style={{ display: "block", color: "#6b7280", marginTop: 4 }}>
+                                  Rent to date: {formatCurrency(property.rental_income_to_date)}
+                                </small>
+                              )}
                             </td>
                             <td>
                               <div className={`sentiment-box ${getSentimentClass(property.sentiment)}`}>
@@ -410,13 +430,26 @@ const Dashboard: React.FC = () => {
                             <strong className="price-value">{formatCurrency(property.purchase_price)}</strong>
                           </div>
                           <div className="property-card-row">
-                            <span className="property-card-label">Current Val:</span>
-                            <strong className="price-value current-val-text">{formatCurrency(property.current_value)}</strong>
+                            <span className="property-card-label">Estimated Value:</span>
+                            <strong className="price-value current-val-text">{formatCurrency(property.estimated_current_value ?? property.current_value)}</strong>
+                            <small style={{ display: "block", color: "#6b7280" }}>
+                              {property.valuation_status === "unavailable"
+                                ? "Needs more details"
+                                : `As of ${formatValuationDate(property.valuation_as_of)} · ${property.valuation_confidence}`}
+                            </small>
                           </div>
                           <div className="property-card-row">
-                            <span className="property-card-label">Profit:</span>
-                            <span className={property.profit >= 0 ? "text-green" : "text-red"}>
-                              <strong>{property.profit >= 0 ? "+" : ""}{formatCurrency(property.profit)}</strong>
+                            <span className="property-card-label">Unrealized Gain:</span>
+                            <span className={(property.unrealized_capital_gain ?? property.profit ?? 0) >= 0 ? "text-green" : "text-red"}>
+                              <strong>
+                                {(property.unrealized_capital_gain ?? property.profit) != null && (property.unrealized_capital_gain ?? property.profit ?? 0) >= 0 ? "+" : ""}
+                                {formatCurrency(property.unrealized_capital_gain ?? property.profit)}
+                              </strong>
+                              {property.type === "rental" && property.rental_income_to_date != null && (
+                                <small style={{ display: "block", color: "#6b7280", marginTop: 4 }}>
+                                  Rent to date: {formatCurrency(property.rental_income_to_date)}
+                                </small>
+                              )}
                             </span>
                           </div>
                           <div className="property-card-row align-center">

@@ -1,0 +1,86 @@
+# ============================================================
+# Reva — Oracle Cloud Docker Compose
+# ============================================================
+# Usage:
+#   cp .env.oracle.example .env   # fill in your secrets
+#   docker compose up -d --build
+#
+# Services:
+#   postgres  — PostgreSQL 15, data persisted to a named volume
+#   redis     — Redis 7 cache, data persisted to a named volume
+#   backend   — FastAPI app (builds from Dockerfile in repo root)
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: reva_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reva}
+      POSTGRES_USER: ${POSTGRES_USER:-reva_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}   # required — set in .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - reva_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reva_user} -d ${POSTGRES_DB:-reva}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: reva_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    networks:
+      - reva_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ──────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reva_backend
+    restart: unless-stopped
+    env_file:
+      - .env                  # secrets — never commit this file
+    environment:
+      # Wire to the compose postgres and redis services.
+      # These override any DATABASE_URL / REDIS_URL set in .env.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reva_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-reva}
+      REDIS_URL: redis://redis:6379/0
+      PORT: "8000"
+    ports:
+      - "8000:8000"           # Cloudflare Tunnel / Nginx will proxy from outside
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - reva_net
+
+# ── Named Volumes ────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+
+# ── Network ──────────────────────────────────────────────────
+networks:
+  reva_net:
+    driver: bridge

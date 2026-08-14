@@ -27,6 +27,7 @@ catboost_info/
 .env
 .env.local
 .env.*.local
+.env.cloudrun
 
 # Build outputs
 /dist

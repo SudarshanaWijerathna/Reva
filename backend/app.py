@@ -84,12 +84,16 @@ class ChatMessage(BaseModel):
 
 
 # CORS settings
-origins = [
+# Set CORS_ORIGINS in .env as a comma-separated list to override defaults.
+# Example: CORS_ORIGINS=https://reva-front.vercel.app,http://localhost:3000
+_default_origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://reva-front.vercel.app",
     "https://reva-front-nmsdcw7w8-sudarshana-wijerathnas-projects.vercel.app",
 ]
+_cors_env = os.getenv("CORS_ORIGINS", "").strip()
+origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else _default_origins
 
 app.add_middleware(
     CORSMiddleware,
@@ -116,6 +120,13 @@ app.include_router(rl_router)
 app.include_router(agent_router)
 app.include_router(lstm_router)
 app.include_router(cache_router)
+
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    """Lightweight liveness probe used by Docker HEALTHCHECK, Oracle load
+    balancers, and uptime monitors.  Always returns 200 when the app is up."""
+    return {"status": "ok"}
 
 
 @app.on_event("startup")

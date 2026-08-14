@@ -15,6 +15,12 @@ def _build_database_url() -> str:
     """
     Resolve database URL from environment for cloud deployments.
     Falls back to local SQLite for development.
+
+    SSL behaviour (for PostgreSQL connections):
+    - Azure Postgres (`postgres.database.azure.com`) → SSL is forced on automatically.
+    - Any other host → set PGSSLMODE=require in the environment to opt in,
+      or include `?sslmode=require` directly in DATABASE_URL.
+    - Local / SQLite → SSL is not applicable.
     """
     env_url = (os.getenv("DATABASE_URL") or "").strip()
     if env_url:
@@ -37,8 +43,14 @@ def _build_database_url() -> str:
         if env_url.startswith("postgresql://") and "+psycopg2" not in env_url:
             env_url = env_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-        # Azure PostgreSQL typically requires SSL.
+        # Azure PostgreSQL always requires SSL — inject automatically.
         if "postgres.database.azure.com" in env_url and "sslmode=" not in env_url:
+            separator = "&" if "?" in env_url else "?"
+            env_url = f"{env_url}{separator}sslmode=require"
+
+        # Generic opt-in: set PGSSLMODE=require for any other cloud Postgres
+        # (Oracle, Render, Railway, etc.) without touching DATABASE_URL.
+        elif "sslmode=" not in env_url and os.getenv("PGSSLMODE", "").strip().lower() == "require":
             separator = "&" if "?" in env_url else "?"
             env_url = f"{env_url}{separator}sslmode=require"
 
@@ -47,6 +59,7 @@ def _build_database_url() -> str:
     base_dir = Path(__file__).resolve().parent
     db_path = base_dir / "test.db"
     return f"sqlite:///{db_path}"
+
 
 
 SQLALCHEMY_DATABASE_URL = _build_database_url()

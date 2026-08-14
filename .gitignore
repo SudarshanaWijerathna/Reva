@@ -57,6 +57,11 @@ coverage/
 #backend
 # Ignore SQLite DB
 backend/database/test.db
+database.db
+*.db
+*.sqlite
+backend/chat/*.sqlite
+
 
 chroma_store/
 Sentiment/chroma_store/

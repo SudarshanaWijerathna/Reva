@@ -392,14 +392,14 @@ textarea.reva-input-d { min-height: 120px; resize: vertical; padding: 16px; }
 }
 
 .insight-header i {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--blue-medium), #7377ff);
-    color: #ffffff;
+    background: rgba(68, 69, 255, 0.1);
+    color: var(--blue-medium);
 }
 
 .insight-header h4,
@@ -826,43 +826,94 @@ select.input-field {
 }
 
 .lp-wrapper .bar-chart {
-    height: 260px;
+    height: 240px;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 12px;
-    padding-top: 28px;
+    gap: 8px;
+    padding-top: 24px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .lp-wrapper .bar-group {
+    flex: 1 1 0;
+    min-width: 0;
     width: 100%;
-    max-width: 58px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
+    position: relative;
 }
 
 .lp-wrapper .bar {
     width: 100%;
-    border-radius: 16px 16px 6px 6px;
+    max-width: 28px;
+    border-radius: 4px 4px 0 0;
     background: linear-gradient(180deg, #8692ff, var(--blue-medium));
-    box-shadow: 0 14px 24px rgba(68, 69, 255, 0.2);
+    box-shadow: 0 8px 18px rgba(68, 69, 255, 0.18);
+    transition: all 0.25s ease;
+}
+
+.lp-wrapper .bar-group:hover .bar {
+    background: linear-gradient(180deg, #a5b4fc, var(--blue-medium));
+    transform: scaleY(1.04);
+    transform-origin: bottom;
 }
 
 .lp-wrapper .bar-value {
-    margin-bottom: 8px;
-    font-size: 12px;
+    margin-bottom: 6px;
+    font-size: 11px;
     color: var(--primary-dark);
     font-weight: 700;
-    opacity: 1;
-    transform: none;
+    white-space: nowrap;
+    line-height: 1.2;
+    transition: all 0.2s ease;
 }
 
 .lp-wrapper .bar-label {
-    margin-top: 10px;
-    font-size: 11px;
+    margin-top: 8px;
+    font-size: 10.5px;
     color: var(--text-gray);
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    .lp-wrapper .bar-chart {
+        height: 200px;
+        gap: 4px;
+        padding-top: 18px;
+    }
+
+    .lp-wrapper .bar {
+        max-width: 22px;
+        border-radius: 3px 3px 0 0;
+    }
+
+    .lp-wrapper .bar-value {
+        font-size: 9.5px;
+    }
+
+    .lp-wrapper .bar-label {
+        font-size: 9.5px;
+    }
+
+    /* Skip alternating labels on mobile when space is tight (show 1/2 of bars + latest) */
+    .lp-wrapper .bar-group:nth-child(even):not(:last-child) .bar-value,
+    .lp-wrapper .bar-group:nth-child(even):not(:last-child) .bar-label {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    .lp-wrapper .bar-group:hover .bar-value,
+    .lp-wrapper .bar-group:hover .bar-label {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 .error-box {
@@ -2314,7 +2365,7 @@ textarea.contact-input {
     }
 
     .lp-wrapper {
-        padding-top: 70px !important;
+        padding-top: 10px !important;
         padding-bottom: 16px !important;
         width: 94% !important;
         margin: 0 auto !important;
@@ -2494,21 +2545,31 @@ textarea.contact-input {
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
-        margin-top: -8px !important;
-        margin-bottom: 16px !important;
+        margin-top: 0 !important;
+        margin-bottom: 12px !important;
         padding: 0 10px !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
 
     .mobile-prediction-hero .hero-image {
-        margin-bottom: 2px !important;
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
         display: flex !important;
         justify-content: center !important;
+        align-items: center !important;
+        position: relative !important;
+        z-index: 10 !important;
+        overflow: visible !important;
     }
 
     .mobile-prediction-hero .hero-image img {
-        width: 115px !important;
+        width: 120px !important;
         height: auto !important;
+        object-fit: contain !important;
         animation: float 6s ease-in-out infinite !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
 
     .mobile-prediction-hero .hero-title {

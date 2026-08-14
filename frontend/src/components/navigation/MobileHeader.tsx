@@ -197,7 +197,20 @@ const MobileHeader: React.FC = () => {
               zIndex: 999 
             }}
           >
-            <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--primary-dark)' }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '14px',
+                color: 'var(--primary-dark)',
+                maxWidth: '90px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+              }}
+              title={user.name}
+            >
               {user.name.split(' ')[0]} 
             </span>
             <img 

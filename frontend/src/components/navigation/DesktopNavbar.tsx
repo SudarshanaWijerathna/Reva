@@ -183,8 +183,19 @@ const DesktopNavbar: React.FC = () => {
           {user ? (
             <div className="header-profile profile-hover-container">
               <div className="profile-info">
-                {/* --- MERGED: Retains the UI formatting for the first name --- */}
-                <span className="user-name" style={{ fontWeight: 600 }}>
+                <span
+                  className="user-name"
+                  style={{
+                    fontWeight: 600,
+                    maxWidth: '120px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                  }}
+                  title={user.name}
+                >
                   {user.name.split(' ')[0]} 
                 </span>
                 <img

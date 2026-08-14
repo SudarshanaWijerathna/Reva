@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { portfolioService, type PropertyDetailData } from '../services/portfolioService';
+import '../assets/css/dashboard.css';
 
 type PropertyType = 'housing' | 'rental' | 'land';
 
@@ -341,653 +342,426 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
   return (
     <>
       {/* Blur overlay */}
-      <div 
-        className="modal-overlay"
-        onClick={onClose}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 1000,
-        }}
-      />
+      {/* Backdrop */}
+      <div className="property-modal-overlay" onClick={onClose} />
 
-      {/* Modal */}
-      <div
-        className="property-modal"
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-          zIndex: 1001,
-          maxWidth: '500px',
-          width: '90%',
-          maxHeight: '85vh',
-          overflow: 'auto',
-        }}
-      >
+      {/* Modal Card */}
+      <div className="property-modal-card">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px',
-          borderBottom: '1px solid #e8e8e8',
-          position: 'sticky',
-          top: 0,
-          backgroundColor: '#fff',
-        }}>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{isEditMode ? 'Edit Property' : 'Add New Property'}</h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              color: '#666',
-            }}
-          >
-            ✕
+        <div className="property-modal-header">
+          <h2>{isEditMode ? 'Edit Property' : 'Add New Property'}</h2>
+          <button onClick={onClose} className="property-modal-close-btn" aria-label="Close modal">
+            <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
 
         {/* Tabs */}
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid #e8e8e8',
-          padding: '0 20px',
-          gap: '10px',
-        }}>
+        <div className="property-modal-tabs">
           {(['housing', 'rental', 'land'] as PropertyType[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               disabled={isEditMode && initialProperty?.property_type !== tab}
-              style={{
-                padding: '12px 16px',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: activeTab === tab ? '#2563eb' : '#666',
-                opacity: isEditMode && initialProperty?.property_type !== tab ? 0.5 : 1,
-                borderBottom: activeTab === tab ? '2px solid #2563eb' : 'none',
-                borderRadius: '0',
-                transition: 'all 0.3s ease',
-              }}
+              className={`property-modal-tab ${activeTab === tab ? 'active' : ''}`}
             >
-              <i className={`fa-solid ${
-                tab === 'housing' ? 'fa-house' :
-                tab === 'rental' ? 'fa-building' :
-                'fa-tree'
-              }`} style={{ marginRight: '6px' }}></i>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              <img
+                src={
+                  tab === 'housing'
+                    ? '/img/icons/house.svg'
+                    : tab === 'rental'
+                    ? '/img/icons/rental.svg'
+                    : '/img/icons/land.svg'
+                }
+                alt={tab}
+                className="property-tab-svg"
+              />
+              <span>{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
             </button>
           ))}
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '24px' }}>
+        {/* Content Body */}
+        <div className="property-modal-body">
           {/* Error Message */}
           {error && (
-            <div style={{
-              padding: '12px 16px',
-              backgroundColor: '#fce8e6',
-              color: '#d93025',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-            }}>
-              <i className="fa-solid fa-exclamation-circle"></i>
+            <div className="property-modal-alert error">
+              <i className="fa-solid fa-circle-exclamation"></i>
               <span>{error}</span>
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div style={{
-              padding: '12px 16px',
-              backgroundColor: '#e8f5e9',
-              color: '#1b5e20',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-            }}>
-              <i className="fa-solid fa-check-circle"></i>
+            <div className="property-modal-alert success">
+              <i className="fa-solid fa-circle-check"></i>
               <span>{success}</span>
             </div>
           )}
 
           {/* Housing Form */}
           {activeTab === 'housing' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitHousing(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitHousing(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={housingForm.location}
+                  onChange={handleHousingChange}
+                  className="property-form-input"
+                  required
+                />
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Price *</label>
                   <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={housingForm.location}
+                    type="number"
+                    name="purchase_price"
+                    placeholder="LKR"
+                    value={housingForm.purchase_price}
                     onChange={handleHousingChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    step="0.01"
+                    className="property-form-input"
+                    required
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR"
-                      value={housingForm.purchase_price}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={housingForm.purchase_date}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Land Size (Perches) *</label>
-                    <input
-                      type="number"
-                      name="land_size_perches"
-                      placeholder="Perches"
-                      value={housingForm.land_size_perches}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>House Size (Sqft) *</label>
-                    <input
-                      type="number"
-                      name="house_size_sqft"
-                      placeholder="Sqft"
-                      value={housingForm.house_size_sqft}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Floors *</label>
-                    <input
-                      type="number"
-                      name="floors"
-                      placeholder="Number of floors"
-                      value={housingForm.floors}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Built Year *</label>
-                    <input
-                      type="number"
-                      name="built_year"
-                      placeholder="YYYY"
-                      value={housingForm.built_year}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Property Condition *</label>
-                  <select
-                    name="property_condition"
-                    value={housingForm.property_condition}
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
+                  <input
+                    type="date"
+                    name="purchase_date"
+                    value={housingForm.purchase_date}
                     onChange={handleHousingChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="new">New</option>
-                    <option value="good">Good</option>
-                    <option value="need renovation">Need Renovation</option>
-                  </select>
+                    className="property-form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Land Size (Perches) *</label>
+                  <input
+                    type="number"
+                    name="land_size_perches"
+                    placeholder="Perches"
+                    value={housingForm.land_size_perches}
+                    onChange={handleHousingChange}
+                    step="0.01"
+                    className="property-form-input"
+                    required
+                  />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
+                <div className="property-form-group">
+                  <label className="property-form-label">House Size (Sqft) *</label>
+                  <input
+                    type="number"
+                    name="house_size_sqft"
+                    placeholder="Sqft"
+                    value={housingForm.house_size_sqft}
+                    onChange={handleHousingChange}
+                    step="0.01"
+                    className="property-form-input"
+                    required
+                  />
+                </div>
               </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Floors *</label>
+                  <input
+                    type="number"
+                    name="floors"
+                    placeholder="Number of floors"
+                    value={housingForm.floors}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                    required
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">Built Year *</label>
+                  <input
+                    type="number"
+                    name="built_year"
+                    placeholder="YYYY"
+                    value={housingForm.built_year}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Property Condition *</label>
+                <select
+                  name="property_condition"
+                  value={housingForm.property_condition}
+                  onChange={handleHousingChange}
+                  className="property-form-select"
+                  required
+                >
+                  <option value="new">New</option>
+                  <option value="good">Good</option>
+                  <option value="need renovation">Need Renovation</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>{isEditMode ? 'Saving...' : 'Adding...'}</span>
+                  </>
+                ) : (
+                  <span>{isEditMode ? 'Save Changes' : 'Add Property'}</span>
+                )}
+              </button>
             </form>
           )}
 
           {/* Rental Form */}
           {activeTab === 'rental' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitRental(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={rentalForm.location}
-                    onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitRental(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={rentalForm.location}
+                  onChange={handleRentalChange}
+                  className="property-form-input"
+                  required
+                />
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR"
-                      value={rentalForm.purchase_price}
-                      onChange={handleRentalChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={rentalForm.purchase_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Monthly Rent *</label>
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Price *</label>
                   <input
                     type="number"
-                    name="monthly_rent"
+                    name="purchase_price"
                     placeholder="LKR"
-                    value={rentalForm.monthly_rent}
+                    value={rentalForm.purchase_price}
                     onChange={handleRentalChange}
                     step="0.01"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
+                    required
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Occupancy Status *</label>
-                  <select
-                    name="occupancy_status"
-                    value={rentalForm.occupancy_status}
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
+                  <input
+                    type="date"
+                    name="purchase_date"
+                    value={rentalForm.purchase_date}
                     onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="occupied">Occupied</option>
-                    <option value="vacant">Vacant</option>
-                  </select>
+                    className="property-form-input"
+                    required
+                  />
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Lease Start Date *</label>
-                    <input
-                      type="date"
-                      name="lease_start_date"
-                      value={rentalForm.lease_start_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Lease End Date *</label>
-                    <input
-                      type="date"
-                      name="lease_end_date"
-                      value={rentalForm.lease_end_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Tenant Type *</label>
-                  <select
-                    name="tenant_type"
-                    value={rentalForm.tenant_type}
-                    onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="family">Family</option>
-                    <option value="office">Office</option>
-                    <option value="commercial">Commercial</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
               </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Monthly Rent *</label>
+                <input
+                  type="number"
+                  name="monthly_rent"
+                  placeholder="LKR"
+                  value={rentalForm.monthly_rent}
+                  onChange={handleRentalChange}
+                  step="0.01"
+                  className="property-form-input"
+                  required
+                />
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Occupancy Status *</label>
+                <select
+                  name="occupancy_status"
+                  value={rentalForm.occupancy_status}
+                  onChange={handleRentalChange}
+                  className="property-form-select"
+                  required
+                >
+                  <option value="occupied">Occupied</option>
+                  <option value="vacant">Vacant</option>
+                </select>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Lease Start Date *</label>
+                  <input
+                    type="date"
+                    name="lease_start_date"
+                    value={rentalForm.lease_start_date}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                    required
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">Lease End Date *</label>
+                  <input
+                    type="date"
+                    name="lease_end_date"
+                    value={rentalForm.lease_end_date}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Tenant Type *</label>
+                <select
+                  name="tenant_type"
+                  value={rentalForm.tenant_type}
+                  onChange={handleRentalChange}
+                  className="property-form-select"
+                  required
+                >
+                  <option value="family">Family</option>
+                  <option value="office">Office</option>
+                  <option value="commercial">Commercial</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>{isEditMode ? 'Saving...' : 'Adding...'}</span>
+                  </>
+                ) : (
+                  <span>{isEditMode ? 'Save Changes' : 'Add Property'}</span>
+                )}
+              </button>
             </form>
           )}
 
           {/* Land Form */}
           {activeTab === 'land' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitLand(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={landForm.location}
-                    onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitLand(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={landForm.location}
+                  onChange={handleLandChange}
+                  className="property-form-input"
+                  required
+                />
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR"
-                      value={landForm.purchase_price}
-                      onChange={handleLandChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={landForm.purchase_date}
-                      onChange={handleLandChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Land Size *</label>
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Price *</label>
                   <input
                     type="number"
-                    name="land_size"
-                    placeholder="Size"
-                    value={landForm.land_size}
+                    name="purchase_price"
+                    placeholder="LKR"
+                    value={landForm.purchase_price}
                     onChange={handleLandChange}
                     step="0.01"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
+                    required
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Zoning Type *</label>
-                  <select
-                    name="zoning_type"
-                    value={landForm.zoning_type}
-                    onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="agricultural">Agricultural</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Road Access *</label>
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
                   <input
-                    type="text"
-                    name="road_access"
-                    placeholder="Road access details"
-                    value={landForm.road_access}
+                    type="date"
+                    name="purchase_date"
+                    value={landForm.purchase_date}
                     onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
+                    required
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
               </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Land Size (Perches) *</label>
+                <input
+                  type="number"
+                  name="land_size"
+                  placeholder="Size in perches"
+                  value={landForm.land_size}
+                  onChange={handleLandChange}
+                  step="0.01"
+                  className="property-form-input"
+                  required
+                />
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Zoning Type *</label>
+                <select
+                  name="zoning_type"
+                  value={landForm.zoning_type}
+                  onChange={handleLandChange}
+                  className="property-form-select"
+                  required
+                >
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="agricultural">Agricultural</option>
+                </select>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Road Access *</label>
+                <input
+                  type="text"
+                  name="road_access"
+                  placeholder="Road access details"
+                  value={landForm.road_access}
+                  onChange={handleLandChange}
+                  className="property-form-input"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>{isEditMode ? 'Saving...' : 'Adding...'}</span>
+                  </>
+                ) : (
+                  <span>{isEditMode ? 'Save Changes' : 'Add Property'}</span>
+                )}
+              </button>
             </form>
           )}
         </div>

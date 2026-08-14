@@ -15,9 +15,17 @@ logger = logging.getLogger(__name__)
 
 def _compute_market_sentiment():
     # Import lazily so the backend can start even when sentiment services are optional.
-    from Sentiment.Analysis.sentiment_aggregate.agg_pipe import get_market_sentiment
-    print("Computing market sentiment...")
-    return get_market_sentiment()
+    try:
+        from Sentiment.Analysis.sentiment_aggregate.agg_pipe import get_market_sentiment
+        print("Computing market sentiment...")
+        return get_market_sentiment()
+    except Exception as exc:
+        logger.warning("Failed to compute live market sentiment, using neutral fallback: %s", exc)
+        return {
+            "housing": {"short_term": {"value": 0.0}, "medium_term": {"value": 0.0}, "long_term": {"value": 0.0}},
+            "land": {"short_term": {"value": 0.0}, "medium_term": {"value": 0.0}, "long_term": {"value": 0.0}},
+            "rental": {"short_term": {"value": 0.0}, "medium_term": {"value": 0.0}, "long_term": {"value": 0.0}},
+        }
 
 
 def _write_cache(score):
@@ -123,36 +131,36 @@ def get_sentiment_history():
 
 def update_current_prices():
     redis_client = get_redis()
-    if redis_client is None:
-        return
-
     try:
         from backend.predictions.current_prices import web_scraper
         result = web_scraper()
-        redis_client.set(CURRENT_PRICES_KEY, json.dumps(result))
-        return result
-    except RedisError as exc:
-        logger.warning("Failed to update current prices cache: %s", exc)
+    except Exception as exc:
+        logger.warning("Failed to scrape current prices: %s", exc)
+        result = {
+            "sales": {"national average": 15000000.0},
+            "rentals": {"national average": 85000.0},
+        }
+
+    if redis_client is not None and result:
+        try:
+            redis_client.set(CURRENT_PRICES_KEY, json.dumps(result))
+        except RedisError as exc:
+            logger.warning("Failed to update current prices cache: %s", exc)
+    return result
 
 def get_current_prices():
     redis_client = get_redis()
-    if redis_client is None:
-        return {}
+    if redis_client is not None:
+        try:
+            cached_value = redis_client.get(CURRENT_PRICES_KEY)
+            if cached_value:
+                print("Current prices cache hit")
+                return json.loads(cached_value)
+        except (RedisError, json.JSONDecodeError) as exc:
+            logger.warning("Failed to read current prices cache: %s", exc)
 
-    try:
-        cached_value = redis_client.get(CURRENT_PRICES_KEY)
-        if cached_value:
-            print("Current prices cache hit")
-            return json.loads(cached_value)
-        else:
-            logger.info("Current prices cache miss")
-            fetched = update_current_prices()  # Attempt to refresh cache on miss
-            print("Current prices updated")
-            return fetched
-    except (RedisError, json.JSONDecodeError) as exc:
-        logger.warning("Failed to read current prices cache: %s", exc)
-        return {}
-    
+    return update_current_prices() or {}
+
 def compute_future_predictions():
     """
     Snapshot the market index: the latest published value, the forecast path, and
@@ -241,36 +249,33 @@ def get_future_predictions(force_refresh: bool = False):
 def update_future_prediction_catche():
     return update_future_prediction_cache()
 
-def update_reccomendations():
-    redis_client = get_redis()
-    if redis_client is None:
-        return {}
-
+def update_reccomendations(user=None, db=None):
+    recommendations = {}
     try:
         from backend.rl.recommendation_api import get_recommendation_for_user
-        from backend.auth.routes import user_dependency, Database
-        recommendations = get_recommendation_for_user(user_dependency, Database)
-        redis_client.set(RECCOMMENDATION_CACHE_KEY, json.dumps(recommendations))
-        return recommendations
-    except RedisError as exc:
-        logger.warning("Failed to update recommendations cache: %s", exc)
+        recommendations = get_recommendation_for_user(user or {}, db)
+    except Exception as exc:
+        logger.warning("Failed to compute recommendations: %s", exc)
         return {}
 
-def get_reccomendations():
     redis_client = get_redis()
-    if redis_client is None:
-        return {}
+    if redis_client is not None and recommendations:
+        try:
+            redis_client.set(RECCOMMENDATION_CACHE_KEY, json.dumps(recommendations))
+        except RedisError as exc:
+            logger.warning("Failed to update recommendations cache: %s", exc)
+            
+    return recommendations
 
-    try:
-        cached_value = redis_client.get(RECCOMMENDATION_CACHE_KEY)
-        if cached_value:
-            print("Recommendations cache hit")
-            return json.loads(cached_value)
-        else:
-            logger.info("Recommendations cache miss")
-            fetched = update_reccomendations()  # Attempt to refresh cache on miss
-            print("Recommendations updated")
-            return fetched
-    except (RedisError, json.JSONDecodeError) as exc:
-        logger.warning("Failed to read recommendations cache: %s", exc)
-        return {}
+def get_reccomendations(user=None, db=None):
+    redis_client = get_redis()
+    if redis_client is not None:
+        try:
+            cached_value = redis_client.get(RECCOMMENDATION_CACHE_KEY)
+            if cached_value:
+                print("Recommendations cache hit")
+                return json.loads(cached_value)
+        except (RedisError, json.JSONDecodeError) as exc:
+            logger.warning("Failed to read recommendations cache: %s", exc)
+
+    return update_reccomendations(user, db)

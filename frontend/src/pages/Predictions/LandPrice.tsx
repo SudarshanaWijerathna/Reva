@@ -158,6 +158,16 @@ const LandPrice: React.FC = () => {
         </div>
 
         <main className="main-content">
+          {/* Mobile-only Top Hero Section */}
+          <div className="mobile-prediction-hero">
+            <div className="hero-image">
+              <img src="/img/lands.png" alt="Land" />
+            </div>
+            <h1 className="hero-title">Reva Land</h1>
+            <p className="hero-desc">
+              Estimate land prices using location, plot size, and nearby facilities.
+            </p>
+          </div>
 
           {/* INPUT FORM SECTION */}
           <div className="top-section">

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import '../../assets/css/navbar.css';
 import { useAuth } from '../../context/AuthContext';
+import ThemeIcon from '../common/ThemeIcon';
 import {
   clearAuthStorage,
   getStoredDisplayName,
@@ -48,7 +49,11 @@ const DesktopNavbar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme !== null) {
+      return savedTheme === 'dark';
+    }
+    return true; // Default to dark theme
   });
 
   useEffect(() => {
@@ -173,7 +178,7 @@ const DesktopNavbar: React.FC = () => {
             aria-label="Toggle dark mode"
             title="Toggle theme"
           >
-            <i className={`fa-solid ${darkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+            <ThemeIcon darkMode={darkMode} size={18} />
           </button>
           {user ? (
             <div className="header-profile profile-hover-container">

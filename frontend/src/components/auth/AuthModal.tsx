@@ -22,6 +22,15 @@ export default function AuthModal() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="login-container modal-version">
+          <button 
+            type="button"
+            onClick={closeAuthModal} 
+            className="auth-close-btn"
+            aria-label="Close modal"
+            title="Close"
+          >
+            <i className="fa-solid fa-xmark"></i>
+          </button>
           
           <LoginHero />
 

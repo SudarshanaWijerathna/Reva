@@ -222,6 +222,7 @@ const MapExplorer: React.FC<MapExplorerProps> = ({ pageType = 'land' }) => {
   const mapInst    = useRef<L.Map | null>(null);
   const markerRef  = useRef<L.Marker | null>(null);
   const recordsRef = useRef<AnyRec[]>([]);
+  const detailsRef = useRef<HTMLDivElement>(null);
 
   const [data,     setData]     = useState<DisplayData>(EMPTY[pageType]);
   const [loading,  setLoading]  = useState(false);
@@ -252,7 +253,7 @@ const MapExplorer: React.FC<MapExplorerProps> = ({ pageType = 'land' }) => {
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
 
-    const map = L.map(mapRef.current, { zoomControl: false })
+    const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false })
       .setView([7.8731, 80.7718], 8);
     mapInst.current = map;
 
@@ -261,7 +262,18 @@ const MapExplorer: React.FC<MapExplorerProps> = ({ pageType = 'land' }) => {
     }).addTo(map);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    return () => { mapInst.current?.remove(); mapInst.current = null; };
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    if (mapRef.current) {
+      resizeObserver.observe(mapRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+      mapInst.current?.remove();
+      mapInst.current = null;
+    };
   }, []);
 
   // ── click handler — re-registers whenever dbStatus or pageType changes ──────
@@ -297,6 +309,13 @@ const MapExplorer: React.FC<MapExplorerProps> = ({ pageType = 'land' }) => {
 
         setData(display);
         setLoading(false);
+
+        // Auto-scroll all the way down to market data visualizer on mobile
+        if (window.innerWidth < 768) {
+          setTimeout(() => {
+            detailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 120);
+        }
       }, 0);
     };
 
@@ -349,7 +368,8 @@ const MapExplorer: React.FC<MapExplorerProps> = ({ pageType = 'land' }) => {
 
       {/* ── Sidebar ── */}
       <div
-        className="details-card"
+        ref={detailsRef}
+        className={`details-card ${!data.isLoaded ? 'mobile-hidden-until-selected' : ''}`}
         style={{ opacity: loading ? 0.6 : 1, transition: 'opacity 0.25s ease' }}
       >
         <div className="detail-header">

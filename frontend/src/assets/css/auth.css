@@ -233,6 +233,19 @@ body {
 
 .btn-google:hover { background: var(--input-disabled-bg); }
 
+.google-auth-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.google-auth-section .btn-google {
+  order: 1;
+}
+
+.google-auth-section .divider {
+  order: 2;
+}
+
 .divider {
   display: flex;
   align-items: center;
@@ -258,13 +271,38 @@ body {
   font-weight: 600;
 }
 
+.auth-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.auth-field-icon {
+  display: none;
+}
+
+.auth-pwd-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
 .reva-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 15px;
   outline: none;
+  background: var(--input-bg);
+  color: var(--primary-dark);
   transition: border-color .3s;
 }
 
@@ -336,112 +374,355 @@ body {
   100% { transform: translateY(0) rotate(0deg); }
 }
 
+.auth-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 120;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.auth-close-btn:hover {
+  background: rgba(0, 0, 0, 0.12);
+  transform: scale(1.05);
+}
+
 /* ======================
-   MOBILE REDESIGN
+   MOBILE REDESIGN (SINGLE UNIFIED CARD)
 ====================== */
 @media (max-width: 992px) {
   .mobile-only { display: flex !important; }
   .desktop-only { display: none !important; }
 
-  .login-container {
-    grid-template-columns: 1fr !important;
-    display: flex !important;
-    flex-direction: column !important;
-    margin: 0 !important;
-    height: 100svh !important; 
-    min-height: 100svh !important; 
-    border-radius: 0 !important;
-    background: var(--white) !important;
-    box-shadow: none !important;
+  /* Hide the entire split hero section and floating shapes on mobile */
+  .login-hero,
+  .hero-shape,
+  .mobile-hero-logo,
+  .hero-mobile-titles {
+    display: none !important;
   }
 
-  /* FORCING THE HERO TO SHRINK WRAP */
-  .login-hero {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
-    
-    /* These 3 lines forbid stretching and force it to hug the text */
+  /* Single unified auth card */
+  .login-container {
+    display: block !important;
+    width: 92% !important;
+    max-width: 400px !important;
     height: auto !important;
-    min-height: 25vh !important;
-    flex: 0 0 auto !important; 
-    
-    /* Tight, controlled padding */
-    padding: 70px 50px 50px 50px !important; 
-    background: linear-gradient(90deg, var(--auth-gradient-start) 0%, var(--primary-bg) 100%) !important;
-    text-align: left !important;
+    min-height: auto !important;
+    max-height: 94vh !important;
+    margin: auto !important;
+    border-radius: 24px !important;
     position: relative !important;
     overflow: hidden !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3) !important;
   }
 
-  .hero-top-bar {
+  .login-form-wrapper {
     width: 100% !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    margin: 0 0 15px 0 !important; /* Explicit 15px gap below top bar, 0 above */
-    z-index: 10 !important;
+    height: auto !important;
+    padding: 22px 20px 20px 20px !important;
+    overflow-y: visible !important;
   }
 
-  /* Override the desktop absolute positioning */
-  .hero-back-btn { 
-    position: static !important; 
-    margin: 0 !important; 
-  }
-
-  .mobile-hero-logo {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    color: var(--blue-medium) !important;
-    font-weight: 800 !important;
-    font-size: 20px !important;
-  }
-
-  /* Override the desktop hero-content flex settings */
-  .hero-content {
-    width: 100% !important;
+  .auth-form-inner {
     display: flex !important;
     flex-direction: column !important;
-    align-items: flex-start !important; 
-    margin: 0 !important;
-    padding: 0 !important;
   }
 
-  .hero-mobile-titles {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    margin: 30px 0 0 0 !important;
-    padding: 0 !important;
-    z-index: 5 !important;
+  .form-header {
+    order: 1 !important;
+    margin-bottom: 16px !important;
+    padding-right: 32px !important;
   }
 
-  .hero-mobile-titles h1 {
-    font-size: 24px !important;
-    margin: 0 0 4px 0 !important;
-    color: var(--primary-dark) !important;
-    font-weight: 700 !important;
+  .form-header h2 {
+    font-size: 21px !important;
+    margin-bottom: 3px !important;
     line-height: 1.2 !important;
   }
 
-  .hero-mobile-titles p {
-    font-size: 13px !important;
-    color: var(--text-gray) !important;
+  .form-header p {
+    font-size: 12.5px !important;
     margin: 0 !important;
-    line-height: 1.4 !important;
+    line-height: 1.35 !important;
   }
 
-  /* Halved Floating Icons */
-  .shape-1 { font-size: 20px !important; bottom: 10px !important; left: -10px !important; } 
-  .shape-2 { font-size: 30px !important; top: 10px !important; right: -20px !important; }   
-  .shape-3 { font-size: 15px !important; top: 40px !important; left: -20px !important; }    
+  .auth-form-inner form {
+    order: 2 !important;
+  }
 
-  .login-form-wrapper {
-    flex: 1 1 auto !important; /* Tells the white form to take all remaining height */
-    padding: -100px 25px 30px 25px !important;
-    background: var(--white) !important; 
-    overflow-y: auto !important;
+  .input-group {
+    margin-bottom: 18px !important;
+  }
+
+  .input-group label {
+    margin-bottom: 3px !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.6px !important;
+    color: #737373 !important;
+    display: block !important;
+    opacity: 0.85;
+  }
+
+  .auth-input-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    width: 100% !important;
+    border-bottom: 1px solid #333333 !important;
+    padding: 2px 0 6px 0 !important;
+    transition: border-color 0.2s ease !important;
+  }
+
+  .auth-input-wrapper:focus-within {
+    border-bottom-color: var(--blue-medium) !important;
+  }
+
+  .auth-field-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    color: #666666 !important;
+    margin-right: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .auth-input-wrapper .reva-input {
+    flex: 1 !important;
+    width: 100% !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+    font-size: 14.5px !important;
+    font-weight: 500 !important;
+    color: var(--primary-dark) !important;
+  }
+
+  .auth-input-wrapper .reva-input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .auth-input-wrapper .reva-input::placeholder {
+    color: #555555 !important;
+    font-weight: 400 !important;
+  }
+
+  .auth-pwd-toggle {
+    position: static !important;
+    transform: none !important;
+    background: none !important;
+    border: none !important;
+    color: #737373 !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    margin-left: 8px !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .form-actions {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    font-size: 12px !important;
+  }
+
+  .form-actions .check-group {
+    width: 100% !important;
+  }
+
+  .form-actions .forgot-link {
+    align-self: flex-start !important;
+  }
+
+  .btn-login {
+    padding: 10px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+  }
+
+  .google-auth-section {
+    order: 3 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-top: 14px !important;
+  }
+
+  .google-auth-section .divider {
+    order: 1 !important;
+    margin-bottom: 12px !important;
+    font-size: 12px !important;
+  }
+
+  .google-auth-section .btn-google {
+    order: 2 !important;
+    margin-bottom: 0 !important;
+    padding: 9px !important;
+    font-size: 13.5px !important;
+  }
+
+  .form-footer {
+    order: 4 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 3px !important;
+    margin-top: 14px !important;
+    font-size: 12.5px !important;
+  }
+
+  .form-footer a {
+    display: inline-block !important;
   }
 }
+
+/* ======================
+   DARK MODE OVERRIDES
+====================== */
+[data-theme="dark"] .login-container {
+  background: #151515;
+  border: 1px solid #2f2f2f;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .login-hero {
+  background: #111111 !important;
+  border-right: 1px solid #2f2f2f;
+}
+
+[data-theme="dark"] .login-form-wrapper {
+  background: #151515 !important;
+}
+
+[data-theme="dark"] .reva-input {
+  background: #1a1a1a !important;
+  border-color: #2f2f2f !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .reva-input::placeholder {
+  color: #737373 !important;
+}
+
+[data-theme="dark"] .reva-input:focus {
+  background: #202020 !important;
+  border-color: var(--blue-medium) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .btn-google {
+  background: #1a1a1a;
+  border-color: #2f2f2f;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-google:hover {
+  background: #222222;
+}
+
+[data-theme="dark"] .btn-login {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .btn-login:hover {
+  background: #e5e5e5 !important;
+  opacity: 1;
+}
+
+[data-theme="dark"] .input-group label {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-header h2 {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-header p {
+  color: #a3a3a3;
+}
+
+[data-theme="dark"] .divider {
+  color: #888888;
+}
+
+[data-theme="dark"] .divider::before,
+[data-theme="dark"] .divider::after {
+  border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .check-group {
+  color: #a3a3a3;
+}
+
+[data-theme="dark"] .forgot-link {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .form-footer {
+  color: #a3a3a3;
+}
+
+[data-theme="dark"] .form-footer a {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .hero-back-btn {
+  color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  [data-theme="dark"] .input-group label {
+    color: #737373 !important;
+  }
+
+  [data-theme="dark"] .auth-input-wrapper {
+    border-bottom: 1px solid #2f2f2f !important;
+  }
+
+  [data-theme="dark"] .auth-input-wrapper:focus-within {
+    border-bottom-color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .auth-field-icon {
+    color: #737373 !important;
+  }
+
+  [data-theme="dark"] .auth-input-wrapper .reva-input {
+    background: transparent !important;
+    color: #ffffff !important;
+  }
+
+  [data-theme="dark"] .auth-pwd-toggle {
+    color: #737373 !important;
+  }
+
+  [data-theme="dark"] .auth-pwd-toggle:hover {
+    color: #ffffff !important;
+  }
+}

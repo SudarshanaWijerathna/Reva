@@ -84,7 +84,7 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     // Added position: relative here so the terms overlay stays locked inside the form
-    <div className="fade-in" style={{ position: 'relative' }}>
+    <div className="auth-form-inner fade-in" style={{ position: 'relative' }}>
       
       {/* --- NEW: The Terms and Privacy Overlay --- */}
       {showTerms && (
@@ -136,67 +136,68 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
       )}
       {/* ------------------------------------------- */}
 
-      <div className="form-header desktop-only">
+      <div className="form-header">
         <h2>Create Account</h2>
-        <p>Join Reva for intelligent real estate predictions</p>
+        <p>Join Rēva for intelligent real estate predictions</p>
       </div>
 
-      <GoogleButton text="Sign up with Google" />
-      <div className="divider">or Sign up with Email</div>
+      <div className="google-auth-section">
+        <GoogleButton text="Sign up with Google" />
+        <div className="divider">
+          <span className="desktop-only">or Sign up with Email</span>
+          <span className="mobile-only">or Sign up with Google</span>
+        </div>
+      </div>
 
       <form onSubmit={handleSignup}>
         <div className="input-group">
           <label>Full Name</label>
-          <input
-            type="text"
-            className={`reva-input ${errors.fullName ? "input-error" : ""}`}
-            placeholder="John Doe"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
+          <div className="auth-input-wrapper">
+            <i className="fa-regular fa-user auth-field-icon"></i>
+            <input
+              type="text"
+              className={`reva-input ${errors.fullName ? "input-error" : ""}`}
+              placeholder="Type your full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
           {errors.fullName && <span className="error-text">{errors.fullName}</span>}
         </div>
 
         <div className="input-group">
           <label>Email</label>
-          <input
-            type="email"
-            className={`reva-input ${errors.email ? "input-error" : ""}`}
-            placeholder="mail@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div className="auth-input-wrapper">
+            <i className="fa-regular fa-envelope auth-field-icon"></i>
+            <input
+              type="email"
+              className={`reva-input ${errors.email ? "input-error" : ""}`}
+              placeholder="Type your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
           {errors.email && <span className="error-text">{errors.email}</span>}
         </div>
 
         <div className="input-group">
           <label>Password</label>
-          <div style={{ position: 'relative' }}>
+          <div className="auth-input-wrapper">
+            <i className="fa-solid fa-lock auth-field-icon"></i>
             <input
               type={showPassword ? "text" : "password"}
               className={`reva-input ${errors.password ? "input-error" : ""}`}
-              placeholder="••••••••••••"
+              placeholder="Type your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ width: '100%', paddingRight: '40px' }}
             />
             <button
               type="button"
+              className="auth-pwd-toggle"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                color: '#6b7280',
-                cursor: 'pointer',
-                padding: 0
-              }}
               title={showPassword ? "Hide password" : "Show password"}
             >
-              <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+              <i className={`fa-regular ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
             </button>
           </div>
           {errors.password && <span className="error-text">{errors.password}</span>}
@@ -204,32 +205,22 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
 
         <div className="input-group">
           <label>Re-enter Password</label>
-          <div style={{ position: 'relative' }}>
+          <div className="auth-input-wrapper">
+            <i className="fa-solid fa-lock auth-field-icon"></i>
             <input
               type={showConfirmPassword ? "text" : "password"}
               className={`reva-input ${errors.confirmPassword ? "input-error" : ""}`}
-              placeholder="••••••••••••"
+              placeholder="Re-enter your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{ width: '100%', paddingRight: '40px' }}
             />
             <button
               type="button"
+              className="auth-pwd-toggle"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                color: '#6b7280',
-                cursor: 'pointer',
-                padding: 0
-              }}
               title={showConfirmPassword ? "Hide password" : "Show password"}
             >
-              <i className={`fa-solid ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+              <i className={`fa-regular ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
             </button>
           </div>
           {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
@@ -275,7 +266,8 @@ export default function SignupForm({ onSwitch }: { onSwitch: () => void }) {
       </form>
 
       <div className="form-footer">
-        Already have an account? <a onClick={onSwitch} style={{ cursor: 'pointer' }}>Login here</a>
+        <span>Already have an account?</span>
+        <a onClick={onSwitch} style={{ cursor: 'pointer' }}>Login here</a>
       </div>
     </div>
   );

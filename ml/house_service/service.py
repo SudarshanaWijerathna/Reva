@@ -92,8 +92,12 @@ if ENHANCED_MODEL_PATH.exists() and METADATA_PATH.exists():
     CATEGORICAL_COLUMNS = metadata.get("categorical_columns", BASELINE_CATEGORICAL_COLUMNS)
     model_variant = metadata.get("model_variant", "enhanced")
 
-model = CatBoostRegressor()
-model.load_model(str(MODEL_PATH))
+try:
+    model = CatBoostRegressor()
+    model.load_model(str(MODEL_PATH))
+except Exception as _house_model_load_error:
+    model = None
+    _house_model_load_error_msg = str(_house_model_load_error)
 gnn_predictor = load_optional_gnn_predictor(BASE_DIR)
 
 
@@ -201,6 +205,11 @@ def _predict_price_per_sqft_from_features(features: Dict[str, Any]) -> float:
 
 
 def predict_house_price(payload: Dict[str, Any]) -> Dict[str, Any]:
+    if model is None:
+        raise RuntimeError(
+            f"House CatBoost model failed to load: {globals().get('_house_model_load_error_msg', 'unknown error')}. "
+            "Ensure ml/house_service/catboost_house_price_*.cbm is present in the Docker image."
+        )
     normalized, missing_fields = _normalize_feature_dict(payload, allow_missing=gnn_predictor is not None)
     gnn_metadata: Dict[str, Any] = {}
     fallback_reason = ""

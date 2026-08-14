@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-load_dotenv(ROOT_DIR / ".env")
+load_dotenv(ROOT_DIR / ".env", override=True)
 
 
 def _build_database_url() -> str:

@@ -54,6 +54,13 @@ def _build_database_url() -> str:
             separator = "&" if "?" in env_url else "?"
             env_url = f"{env_url}{separator}sslmode=require"
 
+        # Neon.tech generates URLs containing channel_binding=require, but
+        # psycopg2-binary < 3.0 raises "unsupported parameter name: channel_binding".
+        # Strip it unconditionally; SSL is already enforced via sslmode=require.
+        env_url = env_url.replace("&channel_binding=require", "").replace(
+            "?channel_binding=require&", "?"
+        ).replace("?channel_binding=require", "")
+
         return env_url
 
     base_dir = Path(__file__).resolve().parent

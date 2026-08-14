@@ -22,8 +22,9 @@ A district outside the published set previously raised and failed the request.
 It now returns a low-confidence estimate that says exactly why.
 """
 
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import joblib
 import pandas as pd
@@ -34,21 +35,35 @@ from ml.land_service.time_calibration import DEFAULT_LAND_TYPE, available_distri
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "model.joblib"
 
-bundle = joblib.load(MODEL_PATH)
-model = bundle["model"]
-FEATURES = bundle["features"]
-CAT_COLS = bundle["cat_cols"]
-CAT_MAPS = bundle["cat_maps"]
-
-# Districts the model was actually trained on.
-MODEL_DISTRICTS = {str(value).strip().lower() for value in CAT_MAPS.get("district", [])}
-
 SQFT_PER_PERCH = 272.25
 
 
+def is_model_ready() -> bool:
+    return MODEL_PATH.exists() and MODEL_PATH.stat().st_size > 0
+
+
+@lru_cache(maxsize=1)
+def _load_model_bundle() -> Tuple[Any, list, list, dict]:
+    """Lazy-load the land model bundle once and cache it for the process lifetime."""
+    if not is_model_ready():
+        raise RuntimeError(
+            "Land model artifact is missing. "
+            "Ensure ml/land_service/model.joblib is present in the Docker image."
+        )
+    bundle = joblib.load(MODEL_PATH)
+    return bundle["model"], bundle["features"], bundle["cat_cols"], bundle["cat_maps"]
+
+
+def _get_model_districts() -> set:
+    """Districts the model was trained on — resolved lazily."""
+    _, _, _, cat_maps = _load_model_bundle()
+    return {str(value).strip().lower() for value in cat_maps.get("district", [])}
+
+
 def _coverage(district: str, used_fallback_district: bool) -> Dict[str, Any]:
+    model_districts = _get_model_districts()
     requested = str(district or "").strip()
-    in_model = requested.lower() in MODEL_DISTRICTS
+    in_model = requested.lower() in model_districts
 
     if in_model and not used_fallback_district:
         confidence, note = "high", "District is in the model vocabulary and the LVI table."
@@ -56,7 +71,7 @@ def _coverage(district: str, used_fallback_district: bool) -> Dict[str, Any]:
         confidence = "medium"
         note = (
             f"'{requested}' is outside the model's trained districts "
-            f"({', '.join(sorted(MODEL_DISTRICTS))}), so it reaches the model as an unseen "
+            f"({', '.join(sorted(model_districts))}), so it reaches the model as an unseen "
             "category. Only the LVI time calibration is district-specific here."
         )
     else:
@@ -71,12 +86,14 @@ def _coverage(district: str, used_fallback_district: bool) -> Dict[str, Any]:
         "note": note,
         "district_in_model_vocabulary": in_model,
         "used_fallback_lvi_row": used_fallback_district,
-        "model_districts": sorted(MODEL_DISTRICTS),
+        "model_districts": sorted(model_districts),
         "lvi_districts": available_districts(DEFAULT_LAND_TYPE),
     }
 
 
 def predict_land_price(payload: Dict[str, Any]) -> Dict[str, Any]:
+    model, FEATURES, CAT_COLS, CAT_MAPS = _load_model_bundle()
+
     features = derive_features(payload)
     frame = pd.DataFrame([features])[FEATURES]
 

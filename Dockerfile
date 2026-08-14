@@ -7,12 +7,22 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install essential OS runtime dependencies (libgomp1 for LightGBM/PyTorch, wget for healthcheck)
+# Install essential OS runtime dependencies:
+#   libgomp1    — OpenMP runtime required by LightGBM and CatBoost
+#   libhdf5-dev — HDF5 library required by Keras to load .keras / .h5 models
+#   wget        — Used by the HEALTHCHECK CMD below
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libgomp1 wget && \
+    apt-get install -y --no-install-recommends \
+        libgomp1 \
+        libhdf5-dev \
+        wget && \
     rm -rf /var/lib/apt/lists/*
 
-# Install dependencies first (better Docker layer caching)
+# PYTHONPATH ensures that top-level packages (ml.*, backend.*, Sentiment.*)
+# are importable from /app without needing editable installs.
+ENV PYTHONPATH=/app
+
+# Install Python dependencies first (better Docker layer caching)
 COPY requirements-backend.txt /app/requirements-backend.txt
 RUN pip install --upgrade pip && \
     pip install --retries 20 --timeout 120 -r /app/requirements-backend.txt

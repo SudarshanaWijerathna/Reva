@@ -181,15 +181,16 @@ const HousePredictionFormCard: React.FC<{ data: ExtraData; onSubmit: (prompt: st
     quality_tier: ex.quality_tier || 'normal',
     road_width_ft: ex.road_width_ft || '15',
     parking_spaces: '2',
-    water: (ex.facilities || '').includes('water'),
-    electricity: (ex.facilities || '').includes('electricity') || true,
-    main_road: (ex.facilities || '').includes('main_road'),
-    air_conditioned: (ex.facilities || '').includes('air_conditioned'),
-    cctv: (ex.facilities || '').includes('cctv'),
-    garden: (ex.facilities || '').includes('garden'),
-    fully_furnished: (ex.facilities || '').includes('fully_furnished'),
-    hot_water: (ex.facilities || '').includes('hot_water'),
+    water: Boolean((ex.facilities || '').includes('water')),
+    electricity: ex.facilities ? Boolean(ex.facilities.includes('electricity')) : true,
+    main_road: Boolean((ex.facilities || '').includes('main_road')),
+    air_conditioned: Boolean((ex.facilities || '').includes('air_conditioned')),
+    cctv: Boolean((ex.facilities || '').includes('cctv')),
+    garden: Boolean((ex.facilities || '').includes('garden')),
+    fully_furnished: Boolean((ex.facilities || '').includes('fully_furnished')),
+    hot_water: Boolean((ex.facilities || '').includes('hot_water')),
   });
+
 
   const locationOptions = LOCATION_OPTIONS.filter(l => l.district === form.district);
   const selectedLocation = locationOptions.find(l => l.label.toLowerCase() === form.sub_location.toLowerCase()) || locationOptions[0] || LOCATION_OPTIONS[0];
@@ -355,14 +356,15 @@ const LandPredictionFormCard: React.FC<{ data: ExtraData; onSubmit: (prompt: str
     district: ex.district && ['Colombo', 'Gampaha', 'Kandy', 'Galle'].includes(ex.district) ? ex.district : 'Colombo',
     location_text: ex.location_text || ex.area || 'Maharagama',
     distance_to_town_m: ex.distance_to_town_m || '400',
-    main_road: (ex.utilities || '').includes('Main road'),
-    electricity: (ex.utilities || '').includes('Electricity') || true,
-    clear_deed: (ex.utilities || '').includes('Clear deed') || true,
-    water: (ex.utilities || '').includes('Water') || true,
-    bank_loan: (ex.utilities || '').includes('Bank loan'),
-    near_town: (ex.utilities || '').includes('Near town') || true,
+    main_road: Boolean((ex.utilities || '').includes('Main road')),
+    electricity: ex.utilities ? Boolean(ex.utilities.includes('Electricity')) : true,
+    clear_deed: ex.utilities ? Boolean(ex.utilities.includes('Clear deed')) : true,
+    water: ex.utilities ? Boolean(ex.utilities.includes('Water')) : true,
+    bank_loan: Boolean((ex.utilities || '').includes('Bank loan')),
+    near_town: ex.utilities ? Boolean(ex.utilities.includes('Near town')) : true,
     period: '2025 H2',
   });
+
 
   const handleSubmit = () => {
     setIsSubmitted(true);
@@ -991,19 +993,30 @@ const AddRentalFormCard: React.FC<{ data: ExtraData; onSubmit: (prompt: string) 
                 />
               </div>
               <div className="form-row">
-                <label className="form-label">Monthly Rent (LKR)</label>
+                <label className="form-label">Purchase Date</label>
                 <input
-                  type="number"
+                  type="date"
                   className="form-input"
-                  value={monthlyRent}
-                  onChange={(e) => setMonthlyRent(e.target.value)}
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
                   required
                 />
               </div>
             </div>
+            <div className="form-row">
+              <label className="form-label">Monthly Rent (LKR)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={monthlyRent}
+                onChange={(e) => setMonthlyRent(e.target.value)}
+                required
+              />
+            </div>
             <button type="button" className="btn-primary form-submit-btn" onClick={() => setStep(2)}>
               Next Step <i className="fa-solid fa-arrow-right" style={{ marginLeft: '6px' }}></i>
             </button>
+
           </>
         )}
 

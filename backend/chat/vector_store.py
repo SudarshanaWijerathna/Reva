@@ -5,7 +5,16 @@ import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-DB_PATH = Path(__file__).resolve().parent / "chat_memory.sqlite"
+# Cloud Run containers have a read-only filesystem except /tmp.
+# Use /tmp for the chat memory DB when running in production.
+_SOURCE_DIR = Path(__file__).resolve().parent
+_CANDIDATE_PATH = _SOURCE_DIR / "chat_memory.sqlite"
+try:
+    # Test if the source directory is writable (local dev)
+    _CANDIDATE_PATH.touch(exist_ok=True)
+    DB_PATH = _CANDIDATE_PATH
+except OSError:
+    DB_PATH = Path("/tmp/chat_memory.sqlite")
 
 
 def _init_db():

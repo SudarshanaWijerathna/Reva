@@ -9,8 +9,6 @@ load_dotenv(override=True)
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 

@@ -9,6 +9,8 @@ __pycache__
 .pytest_cache
 .mypy_cache
 .ruff_cache
+# Chat memory DB lives in /tmp at runtime - don't bake into image
+backend/chat/*.sqlite
 
 # Frontend — not needed in the backend container
 frontend/

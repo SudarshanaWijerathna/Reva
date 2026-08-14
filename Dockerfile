@@ -7,6 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install essential OS runtime dependencies (libgomp1 for LightGBM/PyTorch, wget for healthcheck)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libgomp1 wget && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install dependencies first (better Docker layer caching)
 COPY requirements-backend.txt /app/requirements-backend.txt
 RUN pip install --upgrade pip && \

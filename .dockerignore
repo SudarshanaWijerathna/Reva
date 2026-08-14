@@ -17,10 +17,6 @@ node_modules
 catboost_info
 reports
 
-# Raw datasets — model artifacts are in ml/ and are already included.
-# Excluding data/ saves significant Cloud Build context upload time.
-data/
-
 *.log
 .env
 .env.*

@@ -31,7 +31,6 @@ RUN pip install --upgrade pip && \
 COPY backend /app/backend
 COPY ml /app/ml
 COPY Sentiment /app/Sentiment
-COPY data /app/data
 COPY scripts /app/scripts
 COPY init_admin.py /app/init_admin.py
 

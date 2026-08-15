@@ -13,6 +13,23 @@ RECCOMMENDATION_CACHE_KEY = "recommendation_cache"
 logger = logging.getLogger(__name__)
 
 
+def _user_id_of(user) -> int | None:
+    if isinstance(user, dict):
+        return user.get("id")
+    return getattr(user, "id", None)
+
+
+def _recommendation_key(user_id) -> str:
+    """
+    Per-user cache key.
+
+    The RL state vector includes the caller's held-property counts, so a single
+    global entry is wrong by construction - it serves one user's recommendation to
+    everyone, and a value cached before a signal fix outlives that fix.
+    """
+    return f"{RECCOMMENDATION_CACHE_KEY}:{user_id}"
+
+
 def _compute_market_sentiment():
     # Import lazily so the backend can start even when sentiment services are optional.
     try:
@@ -250,30 +267,44 @@ def update_future_prediction_catche():
     return update_future_prediction_cache()
 
 def update_reccomendations(user=None, db=None):
+    """Recompute and cache one user's recommendation."""
+    user_id = _user_id_of(user)
+    if user_id is None or db is None:
+        # Falling back to an empty user produced a recommendation for a phantom
+        # portfolio and cached it for everyone. There is no user-independent
+        # recommendation to compute, so decline rather than invent one.
+        logger.warning("update_reccomendations() requires a user with an id and a db session.")
+        return {}
+
     recommendations = {}
     try:
         from backend.rl.recommendation_api import get_recommendation_for_user
-        recommendations = get_recommendation_for_user(user or {}, db)
+        recommendations = get_recommendation_for_user({"id": user_id}, db)
     except Exception as exc:
-        logger.warning("Failed to compute recommendations: %s", exc)
+        logger.warning("Failed to compute recommendations for user %s: %s", user_id, exc)
         return {}
 
     redis_client = get_redis()
     if redis_client is not None and recommendations:
         try:
-            redis_client.set(RECCOMMENDATION_CACHE_KEY, json.dumps(recommendations))
+            redis_client.set(_recommendation_key(user_id), json.dumps(recommendations))
         except RedisError as exc:
             logger.warning("Failed to update recommendations cache: %s", exc)
-            
+
     return recommendations
 
 def get_reccomendations(user=None, db=None):
+    """Read one user's cached recommendation, recomputing it on a miss."""
+    user_id = _user_id_of(user)
+    if user_id is None:
+        logger.debug("get_reccomendations() called without a user; nothing to return.")
+        return {}
+
     redis_client = get_redis()
     if redis_client is not None:
         try:
-            cached_value = redis_client.get(RECCOMMENDATION_CACHE_KEY)
+            cached_value = redis_client.get(_recommendation_key(user_id))
             if cached_value:
-                print("Recommendations cache hit")
                 return json.loads(cached_value)
         except (RedisError, json.JSONDecodeError) as exc:
             logger.warning("Failed to read recommendations cache: %s", exc)

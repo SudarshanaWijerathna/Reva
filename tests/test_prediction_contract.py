@@ -10,7 +10,6 @@ omit ``location_text`` so ``derive_features`` never calls Nominatim.
 """
 
 import json
-import os
 import unittest
 from pathlib import Path
 
@@ -235,12 +234,6 @@ class ForwardPricePathTests(unittest.TestCase):
         from backend.dynamic import services
 
         self.services = services
-        original = os.environ.get("LAND_LSTM_INDEX_ENABLED")
-        os.environ["LAND_LSTM_INDEX_ENABLED"] = "true"
-        if original is None:
-            self.addCleanup(os.environ.pop, "LAND_LSTM_INDEX_ENABLED", None)
-        else:
-            self.addCleanup(os.environ.__setitem__, "LAND_LSTM_INDEX_ENABLED", original)
 
     def _with_index(self, series: dict):
         """Patch get_future_predictions inside the services module."""
@@ -248,8 +241,31 @@ class ForwardPricePathTests(unittest.TestCase):
         self.services.get_future_predictions = lambda *args, **kwargs: series
         self.addCleanup(setattr, self.services, "get_future_predictions", original)
 
+    def _forecasts_enabled(self):
+        """
+        Turn the forecast path on for tests that exercise it.
+
+        LSTM_INDEX_ENABLED defaults to false, because the walk-forward backtest in
+        ml/market_index_training_report.json shows the LSTM losing to naive at every
+        horizon. Tests of the ratio machinery must enable it explicitly rather than
+        depend on a default that is deliberately off.
+        """
+        import os
+
+        original = os.environ.get("LSTM_INDEX_ENABLED")
+        os.environ["LSTM_INDEX_ENABLED"] = "true"
+
+        def restore():
+            if original is None:
+                os.environ.pop("LSTM_INDEX_ENABLED", None)
+            else:
+                os.environ["LSTM_INDEX_ENABLED"] = original
+
+        self.addCleanup(restore)
+
     def test_ratio_is_applied_to_the_model_price_not_the_index_level(self):
         """Growth is taken against the last published index value, not the first forecast."""
+        self._forecasts_enabled()
         self._with_index(
             {
                 "land": {
@@ -271,6 +287,7 @@ class ForwardPricePathTests(unittest.TestCase):
         its largest error there. Anchoring on the forecast would normalise that
         jump away; anchoring on the actual keeps it visible to the guards.
         """
+        self._forecasts_enabled()
         self._with_index(
             {
                 "land": {

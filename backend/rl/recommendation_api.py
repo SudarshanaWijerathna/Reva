@@ -18,7 +18,15 @@ def create_state_vector(user, db):
     # for the full portfolio here would run valuations and ledgers on every
     # recommendation, and any failure in that chain would return zero counts, which
     # is indistinguishable from "this user owns nothing".
-    counts = get_property_counts(db, user["id"])
+    try:
+        user_id = user["id"] if isinstance(user, dict) else getattr(user, "id")
+        counts = get_property_counts(db, user_id)
+    except Exception as exc:
+        # A malformed caller must not be silently read as an empty portfolio, so
+        # this is logged rather than swallowed - but the state vector still has to
+        # be well-formed for the agent to be callable at all.
+        print(f"create_state_vector: could not read property counts: {exc}")
+        counts = {"housing": 0, "rental": 0, "land": 0}
 
     signals = generate_state_price_signals(get_price_inputs())
 

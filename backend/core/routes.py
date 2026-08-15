@@ -1,7 +1,9 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from backend.auth.routes import Database, user_dependency
 
 from backend.core.cache_service import (
 	get_cached_sentiment,
@@ -104,18 +106,26 @@ def update_future_predictions_route():
 
 
 @router.get("/recommendations", response_model=Dict[str, Any])
-def fetch_recommendations():
+def fetch_recommendations(user: user_dependency, db: Database):
+	"""
+	Recommendations are per-user: the RL state includes the caller's held-property
+	counts, so this route requires an authenticated user rather than serving a
+	shared entry to everyone.
+	"""
 	try:
-		return get_reccomendations()
+		from backend.core.cache_service import update_reccomendations
+
+		cached = get_reccomendations(user.get("id"))
+		return cached or update_reccomendations(user, db)
 	except Exception as exc:
-		logger.exception("Failed to fetch recommendations cache")
-		raise HTTPException(status_code=500, detail="Failed to fetch recommendations cache") from exc
+		logger.exception("Failed to fetch recommendations")
+		raise HTTPException(status_code=500, detail="Failed to fetch recommendations") from exc
 
 
 @router.post("/recommendations", response_model=Dict[str, Any])
-def update_recommendations_route():
+def update_recommendations_route(user: user_dependency, db: Database):
 	try:
-		return update_reccomendations()
+		return update_reccomendations(user, db)
 	except Exception as exc:
 		logger.exception("Failed to update recommendations cache")
 		raise HTTPException(status_code=500, detail="Failed to update recommendations cache") from exc

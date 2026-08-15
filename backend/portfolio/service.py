@@ -36,6 +36,50 @@ def _empty_summary(sentiment: str = "unknown") -> dict:
     }
 
 
+def _is_sold(prop: Property, sale_price: float | None) -> bool:
+    """
+    Single definition of "sold", used by both the full valuation and the cheap
+    count below. A sold property is not held, so it must not count toward the RL
+    agent's units_owned either - keeping one predicate keeps the two in step.
+    """
+    return bool(sale_price or str(getattr(prop, "status", "") or "").lower() == "sold")
+
+
+def get_property_counts(db: Session, user_id: int) -> dict[str, int]:
+    """
+    Held-property counts by type.
+
+    This is the only portfolio figure the RL state vector consumes. Running the
+    whole of ``calculate_portfolio`` for three integers would pull in valuations,
+    geocoding, lease ledgers and snapshots on every recommendation request - and
+    any failure in that chain would silently yield zero counts, which the agent
+    cannot distinguish from an empty portfolio.
+    """
+    counts = {"housing": 0, "rental": 0, "land": 0}
+    try:
+        properties = db.query(Property).filter(Property.user_id == user_id).all()
+        if not properties:
+            return counts
+
+        sold_ids = {
+            row[0]
+            for row in db.query(PropertyTransaction.property_id)
+            .filter(
+                PropertyTransaction.property_id.in_([prop.id for prop in properties]),
+                PropertyTransaction.transaction_type == "sale_proceeds",
+            )
+            .all()
+        }
+
+        for prop in properties:
+            sale_price = float(prop.sale_price or 0.0) or (1.0 if prop.id in sold_ids else 0.0)
+            if prop.property_type in counts and not _is_sold(prop, sale_price):
+                counts[prop.property_type] += 1
+    except Exception as exc:
+        print(f"Error in get_property_counts: {exc}")
+    return counts
+
+
 def _transactions_by_property(db: Session, properties: list[Property]) -> dict[int, list[PropertyTransaction]]:
     ids = [prop.id for prop in properties]
     if not ids:
@@ -172,7 +216,7 @@ def calculate_portfolio(db: Session, user_id: int, valuation_date: datetime.date
                 valuation = value_property(prop, engine=engine, db=db, valuation_date=valuation_date)
                 financial = _financials(prop, transactions.get(prop.id, []), db=db, as_of=valuation_date)
                 current_value = valuation.capital_value
-                is_sold = bool(financial["sale_price"] or str(prop.status or "").lower() == "sold")
+                is_sold = _is_sold(prop, financial["sale_price"])
 
                 unrealized_gain = (
                     current_value - financial["cost_basis"]

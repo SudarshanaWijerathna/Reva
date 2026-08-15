@@ -27,10 +27,18 @@ class PayloadBuild:
     payload: dict[str, Any] | None
     missing: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    # How the coordinates were obtained. The house model is dominated by location,
+    # so a district-wide stand-in must not be presented as a property-specific
+    # valuation - see geo_is_district_level below.
+    geo_precision: str | None = None
 
     @property
     def complete(self) -> bool:
         return self.payload is not None and not self.missing
+
+    @property
+    def geo_is_district_level(self) -> bool:
+        return self.geo_precision in ("district_median", "district_capital", "fallback")
 
 
 def property_district(prop) -> str | None:
@@ -142,6 +150,7 @@ def build_house_payload(prop) -> PayloadBuild:
             "description": ". ".join(part for part in description_parts if part),
         },
         notes=[f"Coordinates resolved with {precision} precision."],
+        geo_precision=precision,
     )
 
 

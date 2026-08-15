@@ -211,9 +211,22 @@ def value_house(valuation_cls, prop, db, valuation_date: date):
     anchor = float(prediction["predicted_value"])
     factor = _observed_factor("house", prop, None, valuation_date)
     value = anchor * factor.value
+
     confidence = "medium" if factor.confidence != market_index.Confidence.DEGRADED else "low"
+    if build.geo_is_district_level:
+        # Location dominates this model: the same house priced at Colombo's district
+        # point versus a named suburb differs by more than 2x. A district-wide
+        # coordinate produces a district-wide answer, and must be labelled as one.
+        confidence = "low"
     notes = list(build.notes)
     notes.append(f"House AVM total at anchor x observed index factor {factor.value:.4f}.")
+    if build.geo_is_district_level:
+        notes.append(
+            f"'{build.payload.get('sub_location')}' is not in the gazetteer, so the "
+            f"{build.geo_precision.replace('_', ' ')} coordinate was used. This is a "
+            "district-level estimate; store the property's latitude and longitude for a "
+            "location-specific one."
+        )
     notes.extend(factor.reasons)
     return _result(
         valuation_cls, value=value, monthly_income=None, market_rent=None, noi=None,

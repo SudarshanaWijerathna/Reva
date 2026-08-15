@@ -18,7 +18,12 @@ Resolution order:
    the gazetteer covers the districts the land model was trained on, and a
    silently-degrading network dependency in the request path is worse than a
    slightly coarser coordinate.
-4. **District centroid**, which is what the old code fell back to anyway.
+4. **District fallback.** Where listings exist this is the *median* observed
+   location in that district, not the district capital. That distinction matters:
+   Colombo's capital is Colombo Fort, the most expensive point in the country, so
+   falling back to it valued an unknown Colombo locality at 36,127 LKR/sqft
+   against 14,841 at the median of 43,775 observed listings - a 2.4x overstatement
+   produced entirely by the choice of fallback point.
 
 Every result reports how it was obtained, so a coordinate derived from a district
 centroid is never mistaken for a street-level match.
@@ -54,13 +59,20 @@ _cache_lock = threading.Lock()
 class GeoResult:
     lat: float
     lon: float
-    precision: str   # locality | cached | online | district_centroid | fallback
+    # locality | cached | online | district_median | district_capital | fallback
+    precision: str
     source: str
     matched: str
 
     @property
     def is_precise(self) -> bool:
+        """True when the coordinate identifies a place, not a district-wide stand-in."""
         return self.precision in ("locality", "cached", "online")
+
+    @property
+    def is_district_level(self) -> bool:
+        """True when the coordinate stands for a whole district, not this property."""
+        return self.precision in ("district_median", "district_capital", "fallback")
 
     def as_dict(self) -> dict:
         return {
@@ -86,7 +98,7 @@ def _gazetteer() -> tuple[dict[tuple[str, str], tuple[float, float]], dict[str, 
     import csv
 
     localities: dict[tuple[str, str], tuple[float, float]] = {}
-    centroids: dict[str, tuple[float, float]] = {}
+    centroids: dict[str, tuple[float, float, str]] = {}
 
     if not GAZETTEER_PATH.exists():
         logger.warning("Gazetteer missing at %s; falling back to district centroids only.", GAZETTEER_PATH)
@@ -99,8 +111,9 @@ def _gazetteer() -> tuple[dict[tuple[str, str], tuple[float, float]], dict[str, 
             except (TypeError, ValueError):
                 continue
             district, location = _normalise(row.get("district")), _normalise(row.get("location"))
-            if row.get("precision") == "district_centroid" or not location:
-                centroids[district] = point
+            precision = (row.get("precision") or "").strip() or "district_capital"
+            if precision.startswith("district") or not location:
+                centroids[district] = (point[0], point[1], precision)
             else:
                 localities[(district, location)] = point
 
@@ -224,6 +237,7 @@ def resolve(location_text: str | None, district: str | None) -> GeoResult:
 
     centroid = centroids.get(district_key)
     if centroid:
-        return GeoResult(centroid[0], centroid[1], "district_centroid", "gazetteer", district_key)
+        lat, lon, precision = centroid
+        return GeoResult(lat, lon, precision, "gazetteer", district_key)
 
     return GeoResult(COLOMBO[0], COLOMBO[1], "fallback", "colombo_default", district_key or "unknown")

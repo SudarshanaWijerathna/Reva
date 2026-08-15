@@ -1,24 +1,24 @@
 import sys
 from pathlib import Path
-from backend.portfolio.service import calculate_portfolio
+from backend.portfolio.service import get_property_counts
 from backend.rl.agent_services import get_recommendation
 
 from backend.core.cache_service import get_cached_sentiment, update_sentiment_cache, get_sentiment_history, update_sentiment_history, get_current_prices, update_current_prices
 from backend.rl.prediction_prices import get_price_inputs, generate_state_price_signals
 from backend.rl.sentiment_agg import aggregate_sentiment_features
+from backend.rl.state_health import assess as assess_state
 
 
 PROPERTY_ORDER = ("land", "rental", "housing")
 
 
 def create_state_vector(user, db):
-    try:
-        data = calculate_portfolio(db, user["id"])
-        summary = data.get("summary", {})
-        counts = summary.get("property_mix", {"housing": 0, "rental": 0, "land": 0})
-    except Exception as e:
-        print(f"Error in get_property_count: {str(e)}")
-        counts = {"housing": 0, "rental": 0, "land": 0}
+    # Counts only. The agent's units_owned slot is the sole portfolio figure in the
+    # state - current value, cost basis and profit reach it through nothing. Asking
+    # for the full portfolio here would run valuations and ledgers on every
+    # recommendation, and any failure in that chain would return zero counts, which
+    # is indistinguishable from "this user owns nothing".
+    counts = get_property_counts(db, user["id"])
 
     signals = generate_state_price_signals(get_price_inputs())
 
@@ -51,15 +51,20 @@ def create_state_vector(user, db):
 
 def get_recommendation_for_user(user, db):
     state_vector = create_state_vector(user, db)
-    idx, vec, labels,_,_ = get_recommendation(state_vector)
-    action_index = int(idx)
-    action_vector = [int(action) for action in vec]
-    action_labels = [str(label) for label in labels]
+    idx, vec, labels, _, _ = get_recommendation(state_vector)
+
+    # Additive only: the state size, feature layout and action space are unchanged.
+    # A DQN queried outside its training distribution returns an arbitrary argmax
+    # rather than degrading, so the caller is told when that has happened.
+    health = assess_state(state_vector)
+
     return {
-        "action_index": action_index,
-        "action_vector": action_vector,
-        "action_labels": action_labels,  # order is land, rental, housing
+        "action_index": int(idx),
+        "action_vector": [int(action) for action in vec],
+        "action_labels": [str(label) for label in labels],  # order is land, rental, housing
         "state_vector": [float(value) for value in state_vector],
+        "state_health": health,
+        "reliable": bool(health["in_distribution"]),
     }
 
 

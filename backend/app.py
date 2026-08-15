@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from backend.auth.authentication import get_current_user, get_optional_current_user
 from backend.database.database import Base, engine, get_db
+from backend.database.migrations import ensure_additive_schema
 from backend.database.schemas import ChatMessageModel, ChatSessionModel, ReviewModel, UserModel
 
 # Routes
@@ -77,6 +78,7 @@ app.add_middleware(
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+ensure_additive_schema(engine)
 
 # Include routers
 app.include_router(authentication_router)

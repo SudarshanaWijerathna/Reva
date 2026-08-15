@@ -52,6 +52,9 @@ logger = logging.getLogger(__name__)
 DATASET_PATH = (
     Path(__file__).resolve().parent / "LSTM" / "datasets" / "cbsl_market_index.csv"
 )
+OBSERVED_UPDATES_PATH = (
+    Path(__file__).resolve().parent / "datasets" / "cbsl_market_index_observed_updates.csv"
+)
 
 # Served asset -> the index column that describes its market.
 ASSET_COLUMN = {"land": "lands", "house": "houses", "rental": "houses"}
@@ -137,6 +140,12 @@ def half_year_to_month(period: str) -> str:
 @lru_cache(maxsize=4)
 def _load_frame(path: str | None = None) -> pd.DataFrame:
     frame = pd.read_csv(Path(path) if path else DATASET_PATH)
+    if path is None and OBSERVED_UPDATES_PATH.exists():
+        # Keep the frozen LSTM training dataset unchanged. Published observations
+        # belong to the valuation index and must not mutate an old scaler's domain.
+        updates = pd.read_csv(OBSERVED_UPDATES_PATH)
+        frame = pd.concat([frame, updates], ignore_index=True)
+        frame = frame.drop_duplicates(subset=["month"], keep="last")
     return frame.sort_values("month").reset_index(drop=True)
 
 

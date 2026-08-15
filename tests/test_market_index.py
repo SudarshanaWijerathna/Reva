@@ -41,9 +41,9 @@ class SeriesTests(unittest.TestCase):
 
 
 class GrowthFactorTests(unittest.TestCase):
-    """The index is monthly and ends 2025-03, so tests pin ``today`` explicitly."""
+    """The observed index is monthly and ends 2026-03."""
 
-    FRESH = date(2025, 4, 15)  # one month after the last published value
+    FRESH = date(2026, 4, 15)  # one month after the last published value
 
     def test_factor_is_a_ratio_within_one_series(self):
         factor = mi.growth_factor("land", anchor_period="2022 H1", target_month="2025-03")
@@ -56,7 +56,7 @@ class GrowthFactorTests(unittest.TestCase):
         self.assertAlmostEqual(factor.value, 1.0, places=9)
 
     def test_a_stale_index_degrades_to_exactly_one_rather_than_guessing(self):
-        factor = mi.growth_factor("house", today=date(2026, 8, 1))
+        factor = mi.growth_factor("house", today=date(2027, 8, 1))
         self.assertEqual(factor.confidence, mi.Confidence.DEGRADED)
         self.assertEqual(factor.value, 1.0)
         self.assertFalse(factor.is_usable)
@@ -69,10 +69,10 @@ class GrowthFactorTests(unittest.TestCase):
         self.assertTrue(any("No anchor" in reason for reason in factor.reasons))
 
     def test_a_month_just_past_the_series_end_is_approximated_not_refused(self):
-        factor = mi.growth_factor("land", anchor_period="2022 H1", target_month="2025-05")
+        factor = mi.growth_factor("land", anchor_period="2022 H1", target_month="2026-05")
         self.assertEqual(factor.confidence, mi.Confidence.MEDIUM)
         self.assertTrue(factor.is_usable)
-        self.assertEqual(factor.target_month, "2025-03")
+        self.assertEqual(factor.target_month, "2026-03")
 
     def test_a_month_before_the_series_start_uses_the_first_value(self):
         factor = mi.growth_factor("land", anchor_period="2015-01", target_month="2025-03")
@@ -84,7 +84,7 @@ class GrowthFactorTests(unittest.TestCase):
     def test_every_degraded_factor_is_exactly_one(self):
         """A degraded factor must never carry an estimate; 1.0 leaves the price alone."""
         cases = [
-            mi.growth_factor("house", today=date(2026, 8, 1)),
+            mi.growth_factor("house", today=date(2027, 8, 1)),
             mi.growth_factor("rental", today=self.FRESH),
             mi.growth_factor("nonsense", today=self.FRESH),
         ]

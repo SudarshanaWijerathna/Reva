@@ -32,21 +32,25 @@ class GazetteerTests(unittest.TestCase):
                 self.assertEqual(result.precision, "locality")
                 self.assertTrue(result.is_precise)
 
-    def test_every_district_has_a_centroid(self):
+    def test_every_district_has_a_fallback(self):
         _, centroids = self.geocoding._gazetteer()
-        self.assertGreaterEqual(len(centroids), 25, "All 25 districts need a centroid fallback.")
+        self.assertGreaterEqual(len(centroids), 25, "All 25 districts need a fallback point.")
 
     def test_coordinates_lie_inside_sri_lanka(self):
         localities, centroids = self.geocoding._gazetteer()
-        for name, (lat, lon) in list(localities.items()) + list(centroids.items()):
+        points = [(name, point[0], point[1]) for name, point in localities.items()]
+        # District entries also carry their precision, so unpack positionally.
+        points += [(name, entry[0], entry[1]) for name, entry in centroids.items()]
+        for name, lat, lon in points:
             with self.subTest(place=name):
                 self.assertTrue(5.8 <= lat <= 10.0, f"{name} latitude {lat} is outside Sri Lanka.")
                 self.assertTrue(79.5 <= lon <= 82.0, f"{name} longitude {lon} is outside Sri Lanka.")
 
-    def test_an_unknown_locality_falls_back_to_its_district_centroid(self):
+    def test_an_unknown_locality_falls_back_to_its_district(self):
         result = self.geocoding.resolve("Nowhere In Particular", "Kandy")
-        self.assertEqual(result.precision, "district_centroid")
+        self.assertIn(result.precision, ("district_median", "district_capital"))
         self.assertFalse(result.is_precise)
+        self.assertTrue(result.is_district_level)
 
     def test_an_unknown_district_still_returns_usable_coordinates(self):
         result = self.geocoding.resolve("", "Atlantis")

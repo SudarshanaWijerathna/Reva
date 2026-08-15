@@ -2,10 +2,12 @@ import datetime
 import json
 import os
 import uuid
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 load_dotenv(override=True)
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware

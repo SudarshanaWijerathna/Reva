@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+load_dotenv() # This forces Python to read the .env file
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

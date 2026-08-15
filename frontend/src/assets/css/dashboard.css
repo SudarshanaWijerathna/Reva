@@ -1066,10 +1066,10 @@ table.desktop-only-view {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 1000;
+    z-index: 99990;
 }
 
 .property-modal-card {
@@ -1079,27 +1079,35 @@ table.desktop-only-view {
     transform: translate(-50%, -50%);
     background: var(--white);
     border: 1px solid var(--border-color);
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    z-index: 1001;
+    border-radius: 20px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    z-index: 99999;
     max-width: 520px;
     width: 92%;
-    max-height: 88vh;
+    max-height: calc(88vh - 20px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.property-modal-card::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .property-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 22px 24px 18px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: 0;
     background: var(--white);
-    z-index: 5;
+    z-index: 10;
 }
 
 .property-modal-header h2 {
@@ -1112,20 +1120,21 @@ table.desktop-only-view {
 .property-modal-close-btn {
     background: transparent;
     border: none;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     color: var(--text-gray);
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .property-modal-close-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(0, 0, 0, 0.08);
     color: var(--primary-dark);
 }
 
@@ -1135,6 +1144,9 @@ table.desktop-only-view {
     padding: 0 24px;
     gap: 8px;
     background: var(--white);
+    position: sticky;
+    top: 73px;
+    z-index: 9;
 }
 
 .property-modal-tab {
@@ -1229,11 +1241,11 @@ table.desktop-only-view {
 .property-form-input,
 .property-form-select {
     width: 100%;
-    padding: 11px 14px;
+    padding: 10px 14px;
     border: 1px solid var(--border-color);
     background: var(--input-bg);
     color: var(--text-dark);
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     font-family: inherit;
     box-sizing: border-box;
@@ -1243,22 +1255,50 @@ table.desktop-only-view {
 
 .property-form-input:focus,
 .property-form-select:focus {
-    border-color: var(--blue-medium);
-    box-shadow: 0 0 0 3px rgba(68, 69, 255, 0.15);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.property-form-help {
+    font-size: 12px;
+    color: var(--text-gray);
+    margin-top: 2px;
+}
+
+.property-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-dark);
+    cursor: pointer;
 }
 
 .property-submit-btn {
     width: 100%;
-    padding: 13px 20px;
+    padding: 12px 20px;
     font-size: 15px;
     font-weight: 600;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     margin-top: 8px;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.property-submit-btn:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+.property-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 /* =========================================
@@ -1268,7 +1308,7 @@ table.desktop-only-view {
 [data-theme="dark"] .property-modal-card {
     background: #141414;
     border: 1px solid #282828;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
 }
 
 [data-theme="dark"] .property-modal-header {
@@ -1285,7 +1325,7 @@ table.desktop-only-view {
 }
 
 [data-theme="dark"] .property-modal-close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
 }
 
@@ -1303,8 +1343,8 @@ table.desktop-only-view {
 }
 
 [data-theme="dark"] .property-modal-tab.active {
-    color: #ffffff;
-    border-bottom-color: var(--blue-medium);
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
 }
 
 [data-theme="dark"] .property-tab-svg {
@@ -1312,25 +1352,41 @@ table.desktop-only-view {
 }
 
 [data-theme="dark"] .property-form-label {
-    color: #d4d4d4;
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .property-checkbox-label {
+    color: #e5e7eb;
+}
+
+[data-theme="dark"] .property-form-help {
+    color: #9ca3af;
 }
 
 [data-theme="dark"] .property-form-input,
 [data-theme="dark"] .property-form-select {
-    background: #1a1a1a;
-    border-color: #2e2e2e;
+    background: #1e1e1e;
+    border-color: #333333;
     color: #ffffff;
+}
+
+[data-theme="dark"] .property-form-input::placeholder {
+    color: #6b7280;
 }
 
 [data-theme="dark"] .property-form-input:focus,
 [data-theme="dark"] .property-form-select:focus {
-    border-color: var(--blue-medium);
-    box-shadow: 0 0 0 3px rgba(68, 69, 255, 0.25);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
 [data-theme="dark"] .property-form-select option {
-    background: #1a1a1a;
+    background: #1e1e1e;
     color: #ffffff;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
 }
 
 @media (max-width: 600px) {

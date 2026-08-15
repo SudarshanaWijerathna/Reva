@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { portfolioService, type PropertyDetailData } from '../services/portfolioService';
+import '../assets/css/dashboard.css';
 
 type PropertyType = 'housing' | 'rental' | 'land';
 
@@ -464,147 +466,67 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     setSuccess("");
   };
 
-  const valuationInputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 12px', border: '1px solid #ddd',
-    borderRadius: '6px', fontSize: '14px', boxSizing: 'border-box',
-  };
-  const valuationLabelStyle: React.CSSProperties = {
-    display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333',
-  };
-
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
-      {/* Blur overlay */}
+      {/* Backdrop Overlay */}
       <div 
-        className="modal-overlay"
+        className="property-modal-overlay"
         onClick={onClose}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 1000,
-        }}
       />
 
-      {/* Modal */}
-      <div
-        className="property-modal"
-        style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-          zIndex: 1001,
-          maxWidth: '500px',
-          width: '90%',
-          maxHeight: '85vh',
-          overflow: 'auto',
-        }}
-      >
+      {/* Modal Card */}
+      <div className="property-modal-card">
         {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px',
-          borderBottom: '1px solid #e8e8e8',
-          position: 'sticky',
-          top: 0,
-          backgroundColor: '#fff',
-        }}>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '600' }}>{isEditMode ? 'Edit Property' : 'Add New Property'}</h2>
+        <div className="property-modal-header">
+          <h2>{isEditMode ? 'Edit Property' : 'Add New Property'}</h2>
           <button
+            type="button"
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '24px',
-              cursor: 'pointer',
-              color: '#666',
-            }}
+            className="property-modal-close-btn"
+            aria-label="Close modal"
           >
             ✕
           </button>
         </div>
 
         {/* Tabs */}
-        <div style={{
-          display: 'flex',
-          borderBottom: '1px solid #e8e8e8',
-          padding: '0 20px',
-          gap: '10px',
-        }}>
+        <div className="property-modal-tabs">
           {(['housing', 'rental', 'land'] as PropertyType[]).map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
               disabled={isEditMode && initialProperty?.property_type !== tab}
+              className={`property-modal-tab ${activeTab === tab ? 'active' : ''}`}
               style={{
-                padding: '12px 16px',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: activeTab === tab ? '#2563eb' : '#666',
                 opacity: isEditMode && initialProperty?.property_type !== tab ? 0.5 : 1,
-                borderBottom: activeTab === tab ? '2px solid #2563eb' : 'none',
-                borderRadius: '0',
-                transition: 'all 0.3s ease',
               }}
             >
               <i className={`fa-solid ${
                 tab === 'housing' ? 'fa-house' :
                 tab === 'rental' ? 'fa-building' :
                 'fa-tree'
-              }`} style={{ marginRight: '6px' }}></i>
+              }`}></i>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '24px' }}>
-          {/* Error Message */}
+        {/* Content Body */}
+        <div className="property-modal-body">
+          {/* Error Alert */}
           {error && (
-            <div style={{
-              padding: '12px 16px',
-              backgroundColor: '#fce8e6',
-              color: '#d93025',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-            }}>
+            <div className="property-modal-alert error">
               <i className="fa-solid fa-exclamation-circle"></i>
               <span>{error}</span>
             </div>
           )}
 
-          {/* Success Message */}
+          {/* Success Alert */}
           {success && (
-            <div style={{
-              padding: '12px 16px',
-              backgroundColor: '#e8f5e9',
-              color: '#1b5e20',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
-            }}>
+            <div className="property-modal-alert success">
               <i className="fa-solid fa-check-circle"></i>
               <span>{success}</span>
             </div>
@@ -612,655 +534,627 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
           {/* Housing Form */}
           {activeTab === 'housing' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitHousing(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={housingForm.location}
-                    onChange={handleHousingChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                <div>
-                  <label style={valuationLabelStyle}>District *</label>
-                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
-                    value={housingForm.district} onChange={handleHousingChange} style={valuationInputStyle} />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR"
-                      value={housingForm.purchase_price}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={housingForm.purchase_date}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={valuationLabelStyle}>Acquisition Costs</label>
-                    <input type="number" name="acquisition_costs" placeholder="Legal, stamp and registration costs"
-                      value={housingForm.acquisition_costs} onChange={handleHousingChange} style={valuationInputStyle} />
-                  </div>
-                  <div>
-                    <label style={valuationLabelStyle}>Capital Improvements</label>
-                    <input type="number" name="capital_improvements" placeholder="Major improvements"
-                      value={housingForm.capital_improvements} onChange={handleHousingChange} style={valuationInputStyle} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Land Size (Perches) *</label>
-                    <input
-                      type="number"
-                      name="land_size_perches"
-                      placeholder="Perches"
-                      value={housingForm.land_size_perches}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>House Size (Sqft) *</label>
-                    <input
-                      type="number"
-                      name="house_size_sqft"
-                      placeholder="Sqft"
-                      value={housingForm.house_size_sqft}
-                      onChange={handleHousingChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Floors *</label>
-                    <input
-                      type="number"
-                      name="floors"
-                      placeholder="Number of floors"
-                      value={housingForm.floors}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Built Year *</label>
-                    <input
-                      type="number"
-                      name="built_year"
-                      placeholder="YYYY"
-                      value={housingForm.built_year}
-                      onChange={handleHousingChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={valuationLabelStyle}>Bedrooms *</label>
-                    <input type="number" name="bedrooms" min="0" value={housingForm.bedrooms}
-                      onChange={handleHousingChange} style={valuationInputStyle} />
-                  </div>
-                  <div>
-                    <label style={valuationLabelStyle}>Bathrooms *</label>
-                    <input type="number" name="bathrooms" min="0" value={housingForm.bathrooms}
-                      onChange={handleHousingChange} style={valuationInputStyle} />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Property Condition *</label>
-                  <select
-                    name="property_condition"
-                    value={housingForm.property_condition}
-                    onChange={handleHousingChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="new">New</option>
-                    <option value="good">Good</option>
-                    <option value="need renovation">Need Renovation</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitHousing(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={housingForm.location}
+                  onChange={handleHousingChange}
+                  className="property-form-input"
+                />
               </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">District *</label>
+                <input
+                  type="text"
+                  name="district"
+                  placeholder="e.g. Colombo, Gampaha, Kalutara"
+                  value={housingForm.district}
+                  onChange={handleHousingChange}
+                  className="property-form-input"
+                />
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Price *</label>
+                  <input
+                    type="number"
+                    name="purchase_price"
+                    placeholder="LKR"
+                    value={housingForm.purchase_price}
+                    onChange={handleHousingChange}
+                    step="0.01"
+                    className="property-form-input"
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
+                  <input
+                    type="date"
+                    name="purchase_date"
+                    value={housingForm.purchase_date}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Acquisition Costs</label>
+                  <input
+                    type="number"
+                    name="acquisition_costs"
+                    placeholder="Legal, stamp and registration costs"
+                    value={housingForm.acquisition_costs}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Capital Improvements</label>
+                  <input
+                    type="number"
+                    name="capital_improvements"
+                    placeholder="Major improvements"
+                    value={housingForm.capital_improvements}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Land Size (Perches) *</label>
+                  <input
+                    type="number"
+                    name="land_size_perches"
+                    placeholder="Perches"
+                    value={housingForm.land_size_perches}
+                    onChange={handleHousingChange}
+                    step="0.01"
+                    className="property-form-input"
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">House Size (Sqft) *</label>
+                  <input
+                    type="number"
+                    name="house_size_sqft"
+                    placeholder="Sqft"
+                    value={housingForm.house_size_sqft}
+                    onChange={handleHousingChange}
+                    step="0.01"
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Floors *</label>
+                  <input
+                    type="number"
+                    name="floors"
+                    placeholder="Number of floors"
+                    value={housingForm.floors}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">Built Year *</label>
+                  <input
+                    type="number"
+                    name="built_year"
+                    placeholder="YYYY"
+                    value={housingForm.built_year}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Bedrooms *</label>
+                  <input
+                    type="number"
+                    name="bedrooms"
+                    min="0"
+                    value={housingForm.bedrooms}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Bathrooms *</label>
+                  <input
+                    type="number"
+                    name="bathrooms"
+                    min="0"
+                    value={housingForm.bathrooms}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Property Condition *</label>
+                <select
+                  name="property_condition"
+                  value={housingForm.property_condition}
+                  onChange={handleHousingChange}
+                  className="property-form-select"
+                >
+                  <option value="new">New</option>
+                  <option value="good">Good</option>
+                  <option value="need renovation">Need Renovation</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    {isEditMode ? 'Saving...' : 'Adding...'}
+                  </>
+                ) : (
+                  isEditMode ? 'Save Changes' : 'Add Property'
+                )}
+              </button>
             </form>
           )}
 
           {/* Rental Form */}
           {activeTab === 'rental' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitRental(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={rentalForm.location}
-                    onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitRental(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={rentalForm.location}
+                  onChange={handleRentalChange}
+                  className="property-form-input"
+                />
+              </div>
 
-                <div>
-                  <label style={valuationLabelStyle}>District *</label>
-                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
-                    value={rentalForm.district} onChange={handleRentalChange} style={valuationInputStyle} />
-                </div>
+              <div className="property-form-group">
+                <label className="property-form-label">District *</label>
+                <input
+                  type="text"
+                  name="district"
+                  placeholder="e.g. Colombo, Gampaha, Kalutara"
+                  value={rentalForm.district}
+                  onChange={handleRentalChange}
+                  className="property-form-input"
+                />
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Price *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR"
-                      value={rentalForm.purchase_price}
-                      onChange={handleRentalChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={rentalForm.purchase_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={valuationLabelStyle}>Acquisition Costs</label>
-                    <input type="number" name="acquisition_costs" value={rentalForm.acquisition_costs}
-                      onChange={handleRentalChange} style={valuationInputStyle} />
-                  </div>
-                  <div>
-                    <label style={valuationLabelStyle}>Capital Improvements</label>
-                    <input type="number" name="capital_improvements" value={rentalForm.capital_improvements}
-                      onChange={handleRentalChange} style={valuationInputStyle} />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={valuationLabelStyle}>Property Type *</label>
-                    <select name="property_subtype" value={rentalForm.property_subtype}
-                      onChange={handleRentalChange} style={valuationInputStyle}>
-                      <option value="House">House</option><option value="Apartment">Apartment</option>
-                      <option value="Annex">Annex</option><option value="Office space">Office space</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={valuationLabelStyle}>Furnishing</label>
-                    <select name="furnishing_status" value={rentalForm.furnishing_status}
-                      onChange={handleRentalChange} style={valuationInputStyle}>
-                      <option value="unknown">Unknown</option><option value="furnished">Furnished</option>
-                      <option value="semi-furnished">Semi-furnished</option><option value="unfurnished">Unfurnished</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div><label style={valuationLabelStyle}>Bedrooms *</label>
-                    <input type="number" name="bedrooms" min="0" value={rentalForm.bedrooms} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                  <div><label style={valuationLabelStyle}>Bathrooms *</label>
-                    <input type="number" name="bathrooms" min="0" value={rentalForm.bathrooms} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div><label style={valuationLabelStyle}>Floor Area (sqft) *</label>
-                    <input type="number" name="floor_area_sqft" value={rentalForm.floor_area_sqft} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                  <div><label style={valuationLabelStyle}>Land Size (perches) *</label>
-                    <input type="number" name="land_size_perches" value={rentalForm.land_size_perches} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Monthly Rent *</label>
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Price *</label>
                   <input
                     type="number"
-                    name="monthly_rent"
+                    name="purchase_price"
                     placeholder="LKR"
-                    value={rentalForm.monthly_rent}
+                    value={rentalForm.purchase_price}
                     onChange={handleRentalChange}
                     step="0.01"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div><label style={valuationLabelStyle}>Expected Vacancy Rate</label>
-                    <input type="number" name="vacancy_rate" min="0" max="1" step="0.01" value={rentalForm.vacancy_rate} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                  <div><label style={valuationLabelStyle}>Monthly Maintenance</label>
-                    <input type="number" name="monthly_maintenance" min="0" value={rentalForm.monthly_maintenance} onChange={handleRentalChange} style={valuationInputStyle} /></div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Occupancy Status *</label>
-                  <select
-                    name="occupancy_status"
-                    value={rentalForm.occupancy_status}
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
+                  <input
+                    type="date"
+                    name="purchase_date"
+                    value={rentalForm.purchase_date}
                     onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="occupied">Occupied</option>
-                    <option value="vacant">Vacant</option>
-                  </select>
+                    className="property-form-input"
+                  />
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Current Rent Starts *</label>
-                    <input
-                      type="date"
-                      name="lease_start_date"
-                      value={rentalForm.lease_start_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Rent Change Date *</label>
-                    <input
-                      type="date"
-                      name="lease_end_date"
-                      value={rentalForm.lease_end_date}
-                      onChange={handleRentalChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-                <small style={{ color: '#6b7280' }}>
-                  Rent income is counted by calendar month from the start date through today. When the agreed rent changes, edit this property with the new rent and its new start date; the previous period is retained.
-                </small>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Tenant Type *</label>
-                  <select
-                    name="tenant_type"
-                    value={rentalForm.tenant_type}
-                    onChange={handleRentalChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="family">Family</option>
-                    <option value="office">Office</option>
-                    <option value="commercial">Commercial</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
               </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Acquisition Costs</label>
+                  <input
+                    type="number"
+                    name="acquisition_costs"
+                    value={rentalForm.acquisition_costs}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Capital Improvements</label>
+                  <input
+                    type="number"
+                    name="capital_improvements"
+                    value={rentalForm.capital_improvements}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Property Type *</label>
+                  <select
+                    name="property_subtype"
+                    value={rentalForm.property_subtype}
+                    onChange={handleRentalChange}
+                    className="property-form-select"
+                  >
+                    <option value="House">House</option>
+                    <option value="Apartment">Apartment</option>
+                    <option value="Annex">Annex</option>
+                    <option value="Office space">Office space</option>
+                  </select>
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Furnishing</label>
+                  <select
+                    name="furnishing_status"
+                    value={rentalForm.furnishing_status}
+                    onChange={handleRentalChange}
+                    className="property-form-select"
+                  >
+                    <option value="unknown">Unknown</option>
+                    <option value="furnished">Furnished</option>
+                    <option value="semi-furnished">Semi-furnished</option>
+                    <option value="unfurnished">Unfurnished</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Bedrooms *</label>
+                  <input
+                    type="number"
+                    name="bedrooms"
+                    min="0"
+                    value={rentalForm.bedrooms}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Bathrooms *</label>
+                  <input
+                    type="number"
+                    name="bathrooms"
+                    min="0"
+                    value={rentalForm.bathrooms}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Floor Area (sqft) *</label>
+                  <input
+                    type="number"
+                    name="floor_area_sqft"
+                    value={rentalForm.floor_area_sqft}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Land Size (perches) *</label>
+                  <input
+                    type="number"
+                    name="land_size_perches"
+                    value={rentalForm.land_size_perches}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Monthly Rent *</label>
+                <input
+                  type="number"
+                  name="monthly_rent"
+                  placeholder="LKR"
+                  value={rentalForm.monthly_rent}
+                  onChange={handleRentalChange}
+                  step="0.01"
+                  className="property-form-input"
+                />
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Expected Vacancy Rate</label>
+                  <input
+                    type="number"
+                    name="vacancy_rate"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={rentalForm.vacancy_rate}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Monthly Maintenance</label>
+                  <input
+                    type="number"
+                    name="monthly_maintenance"
+                    min="0"
+                    value={rentalForm.monthly_maintenance}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Occupancy Status *</label>
+                <select
+                  name="occupancy_status"
+                  value={rentalForm.occupancy_status}
+                  onChange={handleRentalChange}
+                  className="property-form-select"
+                >
+                  <option value="occupied">Occupied</option>
+                  <option value="vacant">Vacant</option>
+                </select>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Current Rent Starts *</label>
+                  <input
+                    type="date"
+                    name="lease_start_date"
+                    value={rentalForm.lease_start_date}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+
+                <div className="property-form-group">
+                  <label className="property-form-label">Rent Change Date *</label>
+                  <input
+                    type="date"
+                    name="lease_end_date"
+                    value={rentalForm.lease_end_date}
+                    onChange={handleRentalChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+              <small className="property-form-help">
+                Rent income is counted by calendar month from the start date through today. When the agreed rent changes, edit this property with the new rent and its new start date; the previous period is retained.
+              </small>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Tenant Type *</label>
+                <select
+                  name="tenant_type"
+                  value={rentalForm.tenant_type}
+                  onChange={handleRentalChange}
+                  className="property-form-select"
+                >
+                  <option value="family">Family</option>
+                  <option value="office">Office</option>
+                  <option value="commercial">Commercial</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    {isEditMode ? 'Saving...' : 'Adding...'}
+                  </>
+                ) : (
+                  isEditMode ? 'Save Changes' : 'Add Property'
+                )}
+              </button>
             </form>
           )}
 
           {/* Land Form */}
           {activeTab === 'land' && (
-            <form onSubmit={(e) => { e.preventDefault(); handleSubmitLand(); }}>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Property location"
-                    value={landForm.location}
-                    onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmitLand(); }} className="property-modal-form">
+              <div className="property-form-group">
+                <label className="property-form-label">Location *</label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Property location"
+                  value={landForm.location}
+                  onChange={handleLandChange}
+                  className="property-form-input"
+                />
+              </div>
 
-                <div>
-                  <label style={valuationLabelStyle}>District *</label>
-                  <input type="text" name="district" placeholder="e.g. Colombo, Gampaha, Kalutara"
-                    value={landForm.district} onChange={handleLandChange} style={valuationInputStyle} />
-                </div>
+              <div className="property-form-group">
+                <label className="property-form-label">District *</label>
+                <input
+                  type="text"
+                  name="district"
+                  placeholder="e.g. Colombo, Gampaha, Kalutara"
+                  value={landForm.district}
+                  onChange={handleLandChange}
+                  className="property-form-input"
+                />
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Price per perch *</label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      placeholder="LKR / perch"
-                      value={landForm.purchase_price}
-                      onChange={handleLandChange}
-                      step="0.01"
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                    <small style={{ display: 'block', marginTop: '4px', color: '#6b7280' }}>
-                      Total land cost: {landForm.purchase_price && landForm.land_size
-                        ? `LKR ${(parseFloat(landForm.purchase_price) * parseFloat(landForm.land_size)).toLocaleString()}`
-                        : 'enter price and land size'}
-                    </small>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Purchase Date *</label>
-                    <input
-                      type="date"
-                      name="purchase_date"
-                      value={landForm.purchase_date}
-                      onChange={handleLandChange}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div><label style={valuationLabelStyle}>Acquisition Costs</label>
-                    <input type="number" name="acquisition_costs" value={landForm.acquisition_costs} onChange={handleLandChange} style={valuationInputStyle} /></div>
-                  <div><label style={valuationLabelStyle}>Capital Improvements</label>
-                    <input type="number" name="capital_improvements" value={landForm.capital_improvements} onChange={handleLandChange} style={valuationInputStyle} /></div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Land Size *</label>
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Price per perch *</label>
                   <input
                     type="number"
-                    name="land_size"
-                    placeholder="Size"
-                    value={landForm.land_size}
+                    name="purchase_price"
+                    placeholder="LKR / perch"
+                    value={landForm.purchase_price}
                     onChange={handleLandChange}
                     step="0.01"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
                   />
+                  <small className="property-form-help">
+                    Total land cost: {landForm.purchase_price && landForm.land_size
+                      ? `LKR ${(parseFloat(landForm.purchase_price) * parseFloat(landForm.land_size)).toLocaleString()}`
+                      : 'enter price and land size'}
+                  </small>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Zoning Type *</label>
-                  <select
-                    name="zoning_type"
-                    value={landForm.zoning_type}
-                    onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="residential">Residential</option>
-                    <option value="commercial">Commercial</option>
-                    <option value="agricultural">Agricultural</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px', color: '#333' }}>Road Access *</label>
+                <div className="property-form-group">
+                  <label className="property-form-label">Purchase Date *</label>
                   <input
-                    type="text"
-                    name="road_access"
-                    placeholder="Road access details"
-                    value={landForm.road_access}
+                    type="date"
+                    name="purchase_date"
+                    value={landForm.purchase_date}
                     onChange={handleLandChange}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
+                    className="property-form-input"
                   />
                 </div>
-
-                <div>
-                  <label style={valuationLabelStyle}>Known Land Features</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                    {[
-                      ['electricity', 'Electricity'], ['water', 'Water'], ['clear_deed', 'Clear deed'],
-                      ['bank_loan', 'Bank loan eligible'], ['near_town', 'Near town'],
-                    ].map(([name, label]) => (
-                      <label key={name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
-                        <input type="checkbox" name={name} checked={Boolean(landForm[name as keyof LandFormData])} onChange={handleLandChange} />
-                        {label}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {landForm.near_town && (
-                  <div><label style={valuationLabelStyle}>Distance to Town (metres)</label>
-                    <input type="number" name="distance_to_town_m" min="0" value={landForm.distance_to_town_m} onChange={handleLandChange} style={valuationInputStyle} /></div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#2563eb',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
-                    marginTop: '8px',
-                  }}
-                >
-                  {loading ? <><i className="fa-solid fa-spinner fa-spin" style={{ marginRight: '6px' }}></i>{isEditMode ? 'Saving...' : 'Adding...'}</> : (isEditMode ? 'Save Changes' : 'Add Property')}
-                </button>
               </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Acquisition Costs</label>
+                  <input
+                    type="number"
+                    name="acquisition_costs"
+                    value={landForm.acquisition_costs}
+                    onChange={handleLandChange}
+                    className="property-form-input"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Capital Improvements</label>
+                  <input
+                    type="number"
+                    name="capital_improvements"
+                    value={landForm.capital_improvements}
+                    onChange={handleLandChange}
+                    className="property-form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Land Size *</label>
+                <input
+                  type="number"
+                  name="land_size"
+                  placeholder="Size"
+                  value={landForm.land_size}
+                  onChange={handleLandChange}
+                  step="0.01"
+                  className="property-form-input"
+                />
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Zoning Type *</label>
+                <select
+                  name="zoning_type"
+                  value={landForm.zoning_type}
+                  onChange={handleLandChange}
+                  className="property-form-select"
+                >
+                  <option value="residential">Residential</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="agricultural">Agricultural</option>
+                </select>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Road Access *</label>
+                <input
+                  type="text"
+                  name="road_access"
+                  placeholder="Road access details"
+                  value={landForm.road_access}
+                  onChange={handleLandChange}
+                  className="property-form-input"
+                />
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Known Land Features</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
+                  {[
+                    ['electricity', 'Electricity'], ['water', 'Water'], ['clear_deed', 'Clear deed'],
+                    ['bank_loan', 'Bank loan eligible'], ['near_town', 'Near town'],
+                  ].map(([name, label]) => (
+                    <label key={name} className="property-checkbox-label">
+                      <input type="checkbox" name={name} checked={Boolean(landForm[name as keyof LandFormData])} onChange={handleLandChange} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {landForm.near_town && (
+                <div className="property-form-group">
+                  <label className="property-form-label">Distance to Town (metres)</label>
+                  <input
+                    type="number"
+                    name="distance_to_town_m"
+                    min="0"
+                    value={landForm.distance_to_town_m}
+                    onChange={handleLandChange}
+                    className="property-form-input"
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="property-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    {isEditMode ? 'Saving...' : 'Adding...'}
+                  </>
+                ) : (
+                  isEditMode ? 'Save Changes' : 'Add Property'
+                )}
+              </button>
             </form>
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
 

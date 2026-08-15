@@ -257,14 +257,29 @@ const HousePrice: React.FC = () => {
     const sequence = Array.isArray(result.predicted_sequence) ? result.predicted_sequence : [];
     const cleaned = sequence.map(parseNumber).filter(value => Number.isFinite(value));
     if (cleaned.length === 5) return cleaned;
-    if (basePrice > 0) {
-      return Array.from({ length: 5 }, (_, idx) => basePrice * (1 + (idx + 1) * 0.015));
-    }
+    // No invented trend: an absent sequence means no forecast, not 1.5% a step.
     return [];
   };
 
   const forecastSeries = getForecastSeries();
-  const forecastLabels = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'];
+  // One step is one month - see step_unit in backend/predictions/LSTM/*/manifest.json.
+  // These were labelled Q1..Q5, which claimed quarters ("Q5" is not even a quarter).
+  const forecastLabels = ['+1m', '+2m', '+3m', '+4m', '+5m'];
+
+  // The backend reports how the path was produced. "flat_no_index" means no usable
+  // forecast, so the line sits at today's estimate; without this the flat line reads
+  // as "we predict no change", which is a far stronger claim than the data supports.
+  // Read straight off result: `details` is declared further down, and referencing
+  // it here would hit the temporal dead zone.
+  const forecastDetails = (result?.details || {}) as Record<string, any>;
+  const sequenceSource = String(forecastDetails.sequence_source || '');
+  const isFlatForecast = sequenceSource === 'flat_no_index';
+  const marketIndex = (forecastDetails.market_index || {}) as Record<string, any>;
+  const forecastNote = isFlatForecast
+    ? `No forward market forecast is available${
+        marketIndex.series_end ? ` (index ends ${marketIndex.series_end})` : ''
+      }; the line holds at today's estimate.`
+    : 'Projected from the observed market index.';
   const forecastMin = forecastSeries.length ? Math.min(...forecastSeries) : 0;
   const forecastMax = forecastSeries.length ? Math.max(...forecastSeries) : 1;
   const forecastRange = forecastMax - forecastMin || 1;
@@ -301,17 +316,6 @@ const HousePrice: React.FC = () => {
         </div>
 
         <main className="main-content">
-          {/* Mobile-only Top Hero Section */}
-          <div className="mobile-prediction-hero">
-            <div className="hero-image">
-              <img src="/img/housing.png" alt="Houses" />
-            </div>
-            <h1 className="hero-title">Reva Housing</h1>
-            <p className="hero-desc">
-              Estimate house prices using location, property details, and nearby amenities.
-            </p>
-          </div>
-
           <div className="top-section">
             <div className="card">
               <div className="form-container">
@@ -592,6 +596,9 @@ const HousePrice: React.FC = () => {
                 </div>
               </div>
 
+              {forecastSeries.length > 0 && forecastNote && (
+                <p className="forecast-note">{forecastNote}</p>
+              )}
               {forecastSeries.length > 0 && (
                 <div className="forecast-row">
                   <div className="chart-container forecast-container">
@@ -673,7 +680,7 @@ const HousePrice: React.FC = () => {
               <h2>Market Data Explorer</h2>
               <p>Click anywhere on the map to find nearby records from our database.</p>
             </div>
-            <MapExplorer pageType="house" />
+            <MapExplorer />
           </section>
         </main>
       </div>

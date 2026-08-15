@@ -553,6 +553,13 @@ def get_property_recommendation(
         "model_type": normalized_type,
         "recommendation": label,
         "action_index": recommendations.get("action_index"),
+        # A portfolio-level action for this asset class, not advice about the
+        # property being priced: the agent never sees that property. Surfaced so the
+        # UI can say whose decision this is, and whether the agent was in
+        # distribution when it made it.
+        "scope": "portfolio_asset_class",
+        "reliable": recommendations.get("reliable"),
+        "state_health": recommendations.get("state_health"),
     }
     
    

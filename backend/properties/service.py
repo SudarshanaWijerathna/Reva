@@ -1,8 +1,13 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
 import datetime
+import logging
+
+from fastapi import HTTPException
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.orm import Session
 
 from backend.database.schemas import Property, HousingProperty, RentalProperty, LandProperty, RentalLeasePeriod
+
+logger = logging.getLogger(__name__)
 
 
 SHARED_FIELDS = (
@@ -11,15 +16,75 @@ SHARED_FIELDS = (
 )
 
 
-def _copy_fields(target, data, fields):
+def _mapped_columns(target) -> set[str]:
+    """Attribute names SQLAlchemy will actually persist for this row."""
+    return {attr.key for attr in sa_inspect(type(target)).mapper.column_attrs}
+
+
+def _fields_the_client_sent(data) -> set[str] | None:
+    """Names present in the request body, or None if the payload cannot say."""
+    sent = getattr(data, "model_fields_set", None)      # pydantic v2
+    if sent is None:
+        sent = getattr(data, "__fields_set__", None)    # pydantic v1
+    return set(sent) if sent is not None else None
+
+
+def _copy_fields(target, data, fields, *, preserve_unsent: bool = False):
+    """
+    Copy request fields onto an ORM row.
+
+    Guards two failure modes that both used to return HTTP 200 while losing the
+    value, which is the worst possible outcome - the user is told it saved:
+
+    * A name that is not a mapped column. ``setattr`` succeeds on the instance
+      and SQLAlchemy silently drops it at flush, so a column the model has not
+      caught up with disappears without a trace. Now it raises immediately.
+    * An optional field the client never sent. Pydantic fills the gap with
+      ``None``, and writing that over a stored value erases it. With
+      ``preserve_unsent`` (used by the update paths) an unsent field is left
+      alone rather than blanked.
+    """
+    mapped = _mapped_columns(target)
+    unmapped = sorted(name for name in fields if name not in mapped)
+    if unmapped:
+        raise RuntimeError(
+            f"{type(target).__name__} has no mapped column(s): {', '.join(unmapped)}. "
+            "Assigning them would be discarded at flush without raising, so the "
+            "request would report success and store nothing."
+        )
+
+    sent = _fields_the_client_sent(data) if preserve_unsent else None
+
     for field in fields:
-        if hasattr(data, field):
-            setattr(target, field, getattr(data, field))
+        if not hasattr(data, field):
+            continue
+        value = getattr(data, field)
+        if sent is not None and field not in sent and value is None:
+            continue
+        setattr(target, field, value)
 
 
 def _touch_property(prop: Property) -> None:
     prop.feature_snapshot_version = "portfolio_v2"
     prop.features_updated_at = datetime.datetime.utcnow()
+    _warn_if_unvaluable(prop)
+
+
+def _warn_if_unvaluable(prop: Property) -> None:
+    """
+    Name the reason up front when a saved property cannot be valued.
+
+    ``build_land_payload`` and ``build_house_payload`` refuse to run without a
+    district, and the portfolio then renders the estimate as "-". Without this
+    line the only visible symptom is that dash, several screens away from the
+    save that caused it.
+    """
+    if not str(prop.district or "").strip():
+        logger.warning(
+            "Property %s (%s at %r) is being saved without a district. The valuation "
+            "models require one, so its estimated value will render as '-'.",
+            prop.id, prop.property_type, prop.location,
+        )
 
 
 def _get_property_or_404(db: Session, user_id: int, property_id: int) -> Property:
@@ -120,7 +185,7 @@ def update_housing_property(db: Session, user_id: int, property_id: int, data):
     if not housing:
         raise HTTPException(status_code=404, detail="Housing details not found")
 
-    _copy_fields(prop, data, SHARED_FIELDS)
+    _copy_fields(prop, data, SHARED_FIELDS, preserve_unsent=True)
     _touch_property(prop)
 
     housing.land_size_perches = data.land_size_perches
@@ -131,7 +196,7 @@ def update_housing_property(db: Session, user_id: int, property_id: int, data):
     _copy_fields(housing, data, (
         "bedrooms", "bathrooms", "parking_spaces", "road_width_ft",
         "water_available", "electricity_available", "description",
-    ))
+    ), preserve_unsent=True)
 
     db.commit()
     db.refresh(prop)
@@ -170,7 +235,7 @@ def update_rental_property(db: Session, user_id: int, property_id: int, data):
         # day before it, and the new monthly amount starts on that date.
         existing.lease_end_date = data.lease_start_date - datetime.timedelta(days=1)
 
-    _copy_fields(prop, data, SHARED_FIELDS)
+    _copy_fields(prop, data, SHARED_FIELDS, preserve_unsent=True)
     _touch_property(prop)
 
     rental.monthly_rent = data.monthly_rent
@@ -183,7 +248,7 @@ def update_rental_property(db: Session, user_id: int, property_id: int, data):
         "land_size_perches", "furnishing_status", "parking_spaces", "vacancy_rate",
         "monthly_maintenance", "monthly_management_fees", "annual_rates_taxes",
         "annual_insurance", "annual_other_expenses",
-    ))
+    ), preserve_unsent=True)
 
     current_period = db.query(RentalLeasePeriod).filter(
         RentalLeasePeriod.property_id == prop.id,
@@ -214,7 +279,7 @@ def update_land_property(db: Session, user_id: int, property_id: int, data):
     if not land:
         raise HTTPException(status_code=404, detail="Land details not found")
 
-    _copy_fields(prop, data, SHARED_FIELDS)
+    _copy_fields(prop, data, SHARED_FIELDS, preserve_unsent=True)
     _touch_property(prop)
 
     land.land_size = data.land_size
@@ -223,7 +288,7 @@ def update_land_property(db: Session, user_id: int, property_id: int, data):
     _copy_fields(land, data, (
         "electricity", "water", "clear_deed", "bank_loan", "near_town",
         "distance_to_town_m",
-    ))
+    ), preserve_unsent=True)
 
     db.commit()
     db.refresh(prop)

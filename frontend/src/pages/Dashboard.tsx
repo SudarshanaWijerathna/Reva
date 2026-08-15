@@ -616,7 +616,7 @@ const Dashboard: React.FC = () => {
                               <div>{formatCurrency(property.estimated_current_value ?? property.current_value)}</div>
                               <small style={{ display: "block", color: "#6b7280", marginTop: 4 }}>
                                 {property.valuation_status === "unavailable"
-                                  ? "Needs more property details"
+                                  ? "Estimate unavailable - hover for the reason"
                                   : `As of ${formatValuationDate(property.valuation_as_of)} · ${property.valuation_confidence}`}
                               </small>
                             </td>
@@ -688,7 +688,7 @@ const Dashboard: React.FC = () => {
                             <strong className="price-value current-val-text">{formatCurrency(property.estimated_current_value ?? property.current_value)}</strong>
                             <small style={{ display: "block", color: "#6b7280" }}>
                               {property.valuation_status === "unavailable"
-                                ? "Needs more details"
+                                ? (property.valuation_notes?.[0] ?? "Estimate unavailable")
                                 : `As of ${formatValuationDate(property.valuation_as_of)} · ${property.valuation_confidence}`}
                             </small>
                           </div>

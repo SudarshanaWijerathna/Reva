@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import logging
 from collections import defaultdict
 
 from sqlalchemy.orm import Session
@@ -8,6 +9,8 @@ from sqlalchemy.orm import Session
 from backend.database.schemas import Property, PropertyTransaction, PropertyValuationSnapshot, RentalLeasePeriod
 from backend.portfolio.valuation import active_engine, value_property
 from backend.sentiment.sentiment_api import fetch_market_sentiment, get_overall_sentiment, get_sentiment
+
+logger = logging.getLogger(__name__)
 
 CAPITAL_COST_TYPES = {"acquisition_cost", "capital_improvement"}
 RENTAL_INCOME_TYPES = {"rental_income"}
@@ -265,8 +268,10 @@ def calculate_portfolio(db: Session, user_id: int, valuation_date: datetime.date
                     **financial,
                     **valuation.as_dict(),
                 })
-            except Exception as exc:
-                print(f"Error processing property {prop.id}: {exc}")
+            except Exception:
+                # A traceback here is the difference between "the estimate is a
+                # dash" and knowing which model call failed and why.
+                logger.exception("Error processing property %s; it is omitted from the totals.", prop.id)
 
         growth = (
             totals["unrealized_gain"] / totals["cost_basis"] * 100.0
@@ -288,8 +293,8 @@ def calculate_portfolio(db: Session, user_id: int, valuation_date: datetime.date
             "requested_valuation_date": valuation_date.isoformat(),
         }
         return {"summary": summary, "properties": detailed}
-    except Exception as exc:
-        print(f"Error in calculate_portfolio: {exc}")
+    except Exception:
+        logger.exception("calculate_portfolio failed for user %s; returning an empty portfolio.", user_id)
         return {"summary": _empty_summary(overall_sentiment), "properties": []}
 
 

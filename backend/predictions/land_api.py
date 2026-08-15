@@ -4,8 +4,8 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-from backend.ml.land_service.feature_engineering import derive_features
-from backend.ml.land_service.time_calibration import adjust_price
+from ml.land_service.feature_engineering import derive_features
+from ml.land_service.time_calibration import adjust_price
 
 # ✅ FastAPI router (NOT Flask Blueprint)
 land_bp = APIRouter(prefix="/predict", tags=["Land Prediction"])
@@ -13,15 +13,17 @@ land_bp = APIRouter(prefix="/predict", tags=["Land Prediction"])
 # ---------------------------
 # Load model once (startup)
 # ---------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "ml" / "land" / "model.joblib"
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_PATH = BASE_DIR / "ml" / "land_service" / "model.joblib"
 
-bundle = joblib.load(MODEL_PATH)
-
-model = bundle["model"]
-FEATURES = bundle["features"]
-CAT_COLS = bundle["cat_cols"]
-CAT_MAPS = bundle["cat_maps"]
+try:
+    bundle = joblib.load(MODEL_PATH)
+    model = bundle["model"]
+    FEATURES = bundle["features"]
+    CAT_COLS = bundle["cat_cols"]
+    CAT_MAPS = bundle["cat_maps"]
+except Exception:
+    bundle = model = FEATURES = CAT_COLS = CAT_MAPS = None
 
 
 '''

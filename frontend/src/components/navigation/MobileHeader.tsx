@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext'; 
+import ThemeIcon from '../common/ThemeIcon'; 
 import {
   clearAuthStorage,
   getStoredDisplayName,
@@ -48,7 +49,11 @@ const MobileHeader: React.FC = () => {
   const [showLogout, setShowLogout] = useState<boolean>(false);
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('theme') === 'dark' || document.documentElement.getAttribute('data-theme') === 'dark';
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme !== null) {
+      return savedTheme === 'dark';
+    }
+    return true; // Default to dark theme
   });
 
   useEffect(() => {
@@ -128,9 +133,6 @@ const MobileHeader: React.FC = () => {
   }, [showLogout]);
 
   const renderAuthSection = () => {
-    const iconClass = darkMode ? "fa-solid fa-sun" : "fa-solid fa-moon";
-    const iconColor = darkMode ? "#fbbf24" : "var(--primary-dark)";
-
     const themeToggleButton = (
       <button
         type="button"
@@ -139,7 +141,7 @@ const MobileHeader: React.FC = () => {
         aria-label="Toggle theme"
         title="Toggle Light/Dark Theme"
       >
-        <i className={iconClass} style={{ color: iconColor }}></i>
+        <ThemeIcon darkMode={darkMode} size={18} />
       </button>
     );
 
@@ -195,7 +197,20 @@ const MobileHeader: React.FC = () => {
               zIndex: 999 
             }}
           >
-            <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--primary-dark)' }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '14px',
+                color: 'var(--primary-dark)',
+                maxWidth: '90px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+              }}
+              title={user.name}
+            >
               {user.name.split(' ')[0]} 
             </span>
             <img 

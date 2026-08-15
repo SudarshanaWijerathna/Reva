@@ -301,6 +301,17 @@ const HousePrice: React.FC = () => {
         </div>
 
         <main className="main-content">
+          {/* Mobile-only Top Hero Section */}
+          <div className="mobile-prediction-hero">
+            <div className="hero-image">
+              <img src="/img/housing.png" alt="Houses" />
+            </div>
+            <h1 className="hero-title">Reva Housing</h1>
+            <p className="hero-desc">
+              Estimate house prices using location, property details, and nearby amenities.
+            </p>
+          </div>
+
           <div className="top-section">
             <div className="card">
               <div className="form-container">

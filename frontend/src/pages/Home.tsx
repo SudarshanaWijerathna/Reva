@@ -281,8 +281,10 @@ const Home: React.FC = () => {
                             className="m-roadmap-arrow" 
                             style={{ left: `calc(14.5% + ${activeRoadmapStep * 23.5}%)` }}
                         ></div>
-                        <h3>{roadmapSteps[activeRoadmapStep].title}</h3>
-                        <p>{roadmapSteps[activeRoadmapStep].text}</p>
+                        <div key={activeRoadmapStep} className="m-roadmap-text-wrapper fade-in">
+                          <h3>{roadmapSteps[activeRoadmapStep].title}</h3>
+                          <p>{roadmapSteps[activeRoadmapStep].text}</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -321,15 +323,51 @@ const Home: React.FC = () => {
               </div>
 
               <div className="m-feedback-grid">
+                <div className="m-reviews-list">
+                  {reviews.length === 0 ? (
+                    <div style={{ padding: '15px', color: 'var(--text-gray)', fontSize: '13px', textAlign: 'center' }}>
+                      No reviews yet. Be the first to leave a review!
+                    </div>
+                  ) : (
+                    reviews.map((review, idx) => (
+                      <div
+                        key={review.id}
+                        className={`m-review-card ${activeReviewIdx === idx ? 'active' : ''}`}
+                      >
+                        <div className="m-review-avatar">
+                          <img
+                            src={review.avatar_url || generateInitialsAvatar(review.name)}
+                            alt={review.name}
+                          />
+                        </div>
+                        <div className="m-review-content">
+                          <div className="m-review-header">
+                            <h4>{review.name}</h4>
+                            <div className="m-review-stars">
+                              {[...Array(5)].map((_, starIdx) => (
+                                <i
+                                  key={starIdx}
+                                  className={starIdx < review.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'}
+                                ></i>
+                              ))}
+                            </div>
+                          </div>
+                          <p>{review.comment}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
                 <div className="m-feedback-form-card">
                   <h4>Leave a Review</h4>
                   <form onSubmit={handleReviewSubmit}>
                     {!isLoggedIn && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px' }}>
                         <input
                           type="text"
                           className="m-reva-input"
-                          style={{ height: '36px', padding: '0 12px' }}
+                          style={{ height: '44px', padding: '0 14px' }}
                           placeholder="Your Name"
                           value={guestName}
                           onChange={(e) => setGuestName(e.target.value)}
@@ -338,7 +376,7 @@ const Home: React.FC = () => {
                         <input
                           type="email"
                           className="m-reva-input"
-                          style={{ height: '36px', padding: '0 12px' }}
+                          style={{ height: '44px', padding: '0 14px' }}
                           placeholder="Your Email"
                           value={guestEmail}
                           onChange={(e) => setGuestEmail(e.target.value)}
@@ -374,42 +412,6 @@ const Home: React.FC = () => {
                       </button>
                     </div>
                   </form>
-                </div>
-
-                <div className="m-reviews-list">
-                  {reviews.length === 0 ? (
-                    <div style={{ padding: '15px', color: 'var(--text-gray)', fontSize: '13px' }}>
-                      No reviews yet. Be the first to leave a review!
-                    </div>
-                  ) : (
-                    reviews.map((review, idx) => (
-                      <div
-                        key={review.id}
-                        className={`m-review-card ${activeReviewIdx === idx ? 'active' : ''}`}
-                      >
-                        <div className="m-review-avatar">
-                          <img
-                            src={review.avatar_url || generateInitialsAvatar(review.name)}
-                            alt={review.name}
-                          />
-                        </div>
-                        <div className="m-review-content">
-                          <div className="m-review-header">
-                            <h4>{review.name}</h4>
-                            <div className="m-review-stars">
-                              {[...Array(5)].map((_, starIdx) => (
-                                <i
-                                  key={starIdx}
-                                  className={starIdx < review.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'}
-                                ></i>
-                              ))}
-                            </div>
-                          </div>
-                          <p>{review.comment}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
                 </div>
               </div>
             </section>

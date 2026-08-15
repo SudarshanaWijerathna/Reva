@@ -125,58 +125,56 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   };
 
   return (
-    <div className="fade-in">
+    <div className="auth-form-inner fade-in">
 
-       <div className="form-header desktop-only">
+       <div className="form-header">
         <h2>Login to your Account</h2>
         <p>See what is going on with your property portfolio</p>
       </div>
 
-      <GoogleButton text="Continue with Google" />
-      <div className="divider">or Sign in with Email</div>
+      <div className="google-auth-section">
+        <GoogleButton text="Continue with Google" />
+        <div className="divider">
+          <span className="desktop-only">or Sign in with Email</span>
+          <span className="mobile-only">or Sign in with Google</span>
+        </div>
+      </div>
 
       <form onSubmit={handleLogin}>
         <div className="input-group">
           <label>Email</label>
-          <input
-            type="email"
-            className={`reva-input ${errors.email ? "input-error" : ""}`}
-            placeholder="mail@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div className="auth-input-wrapper">
+            <i className="fa-regular fa-envelope auth-field-icon"></i>
+            <input
+              type="email"
+              className={`reva-input ${errors.email ? "input-error" : ""}`}
+              placeholder="Type your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
           {errors.email && <span className="error-text">{errors.email}</span>}
         </div>
 
         {/* --- Password field with visibility toggle --- */}
         <div className="input-group">
           <label>Password</label>
-          <div style={{ position: 'relative' }}>
+          <div className="auth-input-wrapper">
+            <i className="fa-solid fa-lock auth-field-icon"></i>
             <input
               type={showPassword ? "text" : "password"}
               className={`reva-input ${errors.password ? "input-error" : ""}`}
-              placeholder="••••••••••••"
+              placeholder="Type your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ width: '100%', paddingRight: '40px' }} 
             />
             <button
               type="button"
+              className="auth-pwd-toggle"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                color: '#6b7280',
-                cursor: 'pointer',
-                padding: 0
-              }}
               title={showPassword ? "Hide password" : "Show password"}
             >
-              <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+              <i className={`fa-regular ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
             </button>
           </div>
           {errors.password && <span className="error-text">{errors.password}</span>}
@@ -202,7 +200,8 @@ export default function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       </form>
 
       <div className="form-footer">
-        Not Registered Yet? <a onClick={onSwitch} style={{ cursor: 'pointer' }}>Create an account</a>
+        <span>Not Registered Yet?</span>
+        <a onClick={onSwitch} style={{ cursor: 'pointer' }}>Create an account</a>
       </div>
     </div>
   );

@@ -258,6 +258,16 @@ const RentalPrice: React.FC = () => {
         </div>
 
         <main className="main-content">
+          {/* Mobile-only Top Hero Section */}
+          <div className="mobile-prediction-hero">
+            <div className="hero-image">
+              <img src="/img/rentals.png" alt="Rentals" />
+            </div>
+            <h1 className="hero-title">Reva Rentals</h1>
+            <p className="hero-desc">
+              Ask Reva to estimate rental prices using real-time market intelligence.
+            </p>
+          </div>
 
           {/* INPUT FORM SECTION */}
           <div className="top-section">

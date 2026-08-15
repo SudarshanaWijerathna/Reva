@@ -12,16 +12,18 @@
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 30px;
-  padding: 100px 20px 40px 20px;
-  max-width: 1400px;
+  padding: 150px 0 40px 0;
+  width: 92%;
+  max-width: 1300px;
   margin: 0 auto;
   min-height: calc(100vh - 100px);
+  box-sizing: border-box;
 }
 
 .admin-nav {
   height: fit-content;
   position: sticky;
-  top: 100px;
+  top: 110px;
 }
 
 .admin-nav-card {
@@ -80,6 +82,21 @@
   border-color: var(--blue-medium);
 }
 
+[data-theme="dark"] .admin-tab {
+  color: #a3a3a3;
+}
+
+[data-theme="dark"] .admin-tab:hover {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .admin-tab.active {
+  background: #252525;
+  color: #ffffff;
+  border-color: #404040;
+}
+
 .tab-icon {
   font-size: 20px;
   display: flex;
@@ -91,11 +108,24 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, filter 0.25s ease, opacity 0.25s ease;
 }
 
 .admin-tab:hover .tab-svg-icon {
   transform: scale(1.08);
+}
+
+/* Dark mode icon styling matching "Your Data Stays With You" */
+[data-theme="dark"] .tab-svg-icon {
+  filter: grayscale(100%) brightness(0.9) opacity(0.7);
+}
+
+[data-theme="dark"] .admin-tab:hover .tab-svg-icon {
+  filter: grayscale(100%) brightness(1.2) opacity(0.9);
+}
+
+[data-theme="dark"] .admin-tab.active .tab-svg-icon {
+  filter: grayscale(100%) brightness(1.4) contrast(1.2) opacity(1);
 }
 
 .tab-label {
@@ -167,24 +197,29 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, var(--blue-lightest) 0%, var(--white) 100%);
+  background: var(--primary-bg);
   border-radius: 12px;
   padding: 24px;
   display: flex;
   gap: 16px;
   align-items: center;
-  border: 2px solid var(--blue-lighter);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(68, 69, 255, 0.1);
+  transform: translateY(-3px);
+  border-color: var(--blue-medium);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
-  font-size: 40px;
+  font-size: 32px;
   line-height: 1;
+  color: var(--blue-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stat-content {
@@ -200,7 +235,7 @@
 
 .stat-value {
   font-size: 28px;
-  color: var(--blue-medium);
+  color: var(--primary-dark);
   margin: 0;
   font-weight: 700;
 }
@@ -701,6 +736,8 @@
   border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
+  background: var(--input-bg);
+  color: var(--text-dark);
   transition: all 0.3s ease;
 }
 
@@ -731,9 +768,9 @@
 @media (max-width: 1024px) {
   .admin-panel {
     grid-template-columns: 1fr;
-    padding: 20px 15px 30px 15px;
+    padding: 120px 0 30px 0;
     gap: 20px;
-    width: 100%;
+    width: 95%;
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -790,6 +827,22 @@
     box-shadow: 0 6px 18px rgba(68, 69, 255, 0.12);
   }
 
+  [data-theme="dark"] .admin-tab {
+    background: #181818;
+    color: #a3a3a3;
+  }
+
+  [data-theme="dark"] .admin-tab:hover {
+    background: #222222;
+    color: #ffffff;
+  }
+
+  [data-theme="dark"] .admin-tab.active {
+    background: #252525;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  }
+
   .tab-icon {
     font-size: 26px;
     margin-bottom: 2px;
@@ -826,9 +879,9 @@
 
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 15px 10px 20px 10px;
+    padding: 20px 0 90px 0;
     gap: 15px;
-    width: 100%;
+    width: 95%;
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -897,8 +950,8 @@
   }
 
   .stat-card {
-    background: var(--white) !important;
-    border: none !important;
+    background: var(--primary-bg) !important;
+    border: 1px solid var(--border-color) !important;
     padding: 12px 6px;
     flex-direction: column;
     align-items: center;

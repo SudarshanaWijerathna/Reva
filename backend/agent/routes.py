@@ -1,8 +1,7 @@
-from backend.agent.graph import graph
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
 from backend.auth.routes import user_dependency, Database
-from langchain_core.messages import HumanMessage
+
 
 
 class ChatMessage(BaseModel):
@@ -16,6 +15,8 @@ router = APIRouter(
 async def ask(chat_request: ChatMessage,
               user: user_dependency,
               db: Database):
+    from backend.agent.graph import graph
+    from langchain_core.messages import HumanMessage
     try:
         config = {"configurable": {"thread_id": user["id"]}}
         input_state = {

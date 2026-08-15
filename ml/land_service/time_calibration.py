@@ -21,11 +21,23 @@ from pathlib import Path
 
 import pandas as pd
 
+from functools import lru_cache
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 LVI_PATH = BASE_DIR / "data" / "land" / "land_valuation_indicator_values.csv"
 
-lvi_df = pd.read_csv(LVI_PATH)
-lvi_df.columns = lvi_df.columns.str.strip()
+
+@lru_cache(maxsize=1)
+def _load_lvi() -> "pd.DataFrame":
+    """Load the Land Valuation Indicator table once and cache it."""
+    if not LVI_PATH.exists():
+        raise RuntimeError(
+            f"LVI calibration table missing at {LVI_PATH}. "
+            "Ensure data/land/land_valuation_indicator_values.csv is in the container."
+        )
+    df = pd.read_csv(LVI_PATH)
+    df.columns = df.columns.str.strip()
+    return df
 
 PERIOD_COLUMNS = [
     "2022 H1", "2022 H2",
@@ -48,7 +60,7 @@ def _normalise(value: str) -> str:
 
 def available_districts(land_type: str = DEFAULT_LAND_TYPE) -> list[str]:
     """Districts the LVI table names for a land type, excluding the catch-all."""
-    rows = lvi_df[lvi_df["Type"].astype(str).str.strip() == land_type]
+    rows = _load_lvi()[_load_lvi()["Type"].astype(str).str.strip() == land_type]
     return [
         str(name).strip()
         for name in rows["District"].tolist()
@@ -63,6 +75,7 @@ def _select_row(district: str, land_type: str):
     Falls back to the table's "All Others*" row rather than raising, so a district
     outside the published set yields a lower-confidence estimate instead of an error.
     """
+    lvi_df = _load_lvi()
     typed = lvi_df[lvi_df["Type"].astype(str).str.strip() == land_type]
     if typed.empty:
         raise ValueError(f"LVI table has no rows for land type: {land_type}")

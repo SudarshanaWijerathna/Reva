@@ -76,6 +76,42 @@ predictions_router = APIRouter(
 )
 
 
+@predictions_router.get("/history", response_model=list[PredictionRecordOut])
+def get_prediction_history(
+    db: Database,
+    current_user: CurrentUser,
+    model_type: str = None
+):
+    # return list of prediction records for the user, optionally filtered by model type
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user token"
+        )
+    
+    predictions = get_user_predictions(db, user_id, model_type)
+    return predictions
+
+
+@predictions_router.get("/recommendation/{model_type}")
+def get_recommendation(
+    db: Database,
+    model_type: str,
+    current_user: OptionalCurrentUser = None,
+):
+    user_id = current_user.get("id") if current_user else None
+    
+    try:
+        recommendation = get_property_recommendation(db, user_id, model_type) # example with land model, can be parameterized
+        return recommendation
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
 @predictions_router.post("/{model_type}", response_model=PredictionResponse)
 def predict_value(
     model_type: str,
@@ -117,38 +153,3 @@ def predict_value(
             detail=f"Prediction failed: {str(e)}"
         )
 
-
-
-@predictions_router.get("/history", response_model=list[PredictionRecordOut])
-def get_prediction_history(
-    db: Database,
-    current_user: CurrentUser,
-    model_type: str = None
-):
-    # return list of prediction records for the user, optionally filtered by model type
-    user_id = current_user.get("id")
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid user token"
-        )
-    
-    predictions = get_user_predictions(db, user_id, model_type)
-    return predictions
-
-@predictions_router.get("/recommendation/{model_type}")
-def get_recommendation(
-    db: Database,
-    model_type: str,
-    current_user: OptionalCurrentUser = None,
-):
-    user_id = current_user.get("id") if current_user else None
-    
-    try:
-        recommendation = get_property_recommendation(db, user_id, model_type) # example with land model, can be parameterized
-        return recommendation
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )

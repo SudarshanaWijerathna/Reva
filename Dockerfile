@@ -1,3 +1,4 @@
+# Standard slim Python 3.10 image for Google Cloud Run & standard cloud containers
 FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -6,12 +7,42 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install essential OS runtime dependencies:
+#   libgomp1           — OpenMP runtime required by LightGBM and CatBoost
+#   libhdf5-serial-dev — HDF5 library for Keras model loading (Debian package name)
+#   wget               — Used by the HEALTHCHECK CMD below
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libgomp1 \
+        wget && \
+    apt-get install -y --no-install-recommends libhdf5-serial-dev || true && \
+    rm -rf /var/lib/apt/lists/*
+
+# PYTHONPATH ensures that top-level packages (ml.*, backend.*, Sentiment.*)
+# are importable from /app without needing editable installs.
+ENV PYTHONPATH=/app
+
+# Install Python dependencies first (better Docker layer caching)
 COPY requirements-backend.txt /app/requirements-backend.txt
 RUN pip install --upgrade pip && \
     pip install --retries 20 --timeout 120 -r /app/requirements-backend.txt
 
-COPY . /app
+# Copy application source
+COPY backend /app/backend
+COPY ml /app/ml
+COPY Sentiment /app/Sentiment
+COPY data /app/data
+COPY scripts /app/scripts
+COPY init_admin.py /app/init_admin.py
 
 EXPOSE 8000
+
+# Healthcheck — lets Docker / Cloud Run know the app is ready.
+# Tries /health every 30s; marks unhealthy after 3 consecutive failures.
+# start-period=90s accounts for TensorFlow + PyTorch model loading (~45-60s).
+# Uses wget so that the $PORT shell variable is correctly expanded at runtime
+# (Cloud Run sets $PORT dynamically, usually to 8080).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:${PORT:-8000}/health || exit 1
 
 CMD ["sh", "-c", "uvicorn backend.app:app --host 0.0.0.0 --port ${PORT:-8000}"]

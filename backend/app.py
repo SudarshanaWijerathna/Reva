@@ -5,12 +5,10 @@ import uuid
 from typing import Optional
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -42,41 +40,14 @@ ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").strip().lower() == "tr
 if ENABLE_SCHEDULER:
     from backend.core.scheduler import start_scheduler
 
-SYSTEM_PROMPT = """
-You are Reva, an Intelligent Real Estate Virtual Assistant for the Sri Lankan market.
-Your goal is to assist users with property trends, prices, and estimations.
-
-STRICT AGENTIC RULES:
-1. IF the user asks for a price prediction, estimation, or valuation initially (e.g., "house price prediction", "predict a price of a house near moratuwa with 200m to the main road and electricity..."):
-   YOU MUST extract available information and identify what is explicitly missing.
-   Reply EXACTLY in this single-line format:
-   [TRIGGER_PREDICTION_FORM] | <District> | <Area> | <Land Size> | <Road Access / Distance> | <Utilities> | <Missing Fields>
-
-   - District options: Colombo, Kaluthara, Gampaha. If not mentioned, put "None".
-   - Road Access / Distance: Extract any mentioned road access width or distance (e.g., "15ft", "200m"). If not mentioned, put "None".
-   - Utilities options: Main road, Electricity, Clear deed, Water, Bank loan, Near town. (comma separated).
-   - Missing Fields: A natural language list of what is missing, e.g., "District and Land size".
-   - Put "None" for any unmentioned field.
-
-2. IF the user provides a fully completed estimation prompt (e.g., "Please estimate the price for a 20 perch land in Maharagama..."):
-   YOU MUST formulate a realistic prediction and reply EXACTLY in this format:
-   [PREDICTION_RESULT] | <Estimated Price, e.g. LKR 2,450,000> | <Price Range, e.g. 2.3M - 2.6M per perch> | <Provide a 1-sentence reasoning for why this price makes sense>
-
-3. IF the user asks to see a graph, chart, or visualization of trends:
-   YOU MUST REPLY WITH EXACTLY THIS KEYWORD AND NOTHING ELSE: [TRIGGER_GRAPH]
-
-4. For any other real estate question, reply normally and professionally. If they ask about unrelated topics, politely decline.
-"""
-
-GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or "").strip()
-chat_session = None
-if GEMINI_API_KEY:
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    config = types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
-    chat_session = client.chats.create(
-        model="gemini-2.5-flash",
-        config=config,
-    )
+from backend.chat.gemini_service import generate_chat_reply
+from backend.chat.prediction_caller import run_full_property_analysis
+from backend.chat.vector_store import add_prediction_memory, search_memory, get_last_prediction
+from backend.chat.portfolio_caller import (
+    get_user_portfolio_full,
+    format_portfolio_context_for_llm,
+    handle_add_property_from_chat,
+)
 
 
 class ChatMessage(BaseModel):
@@ -85,16 +56,21 @@ class ChatMessage(BaseModel):
 
 
 # CORS settings
-origins = [
+# Set CORS_ORIGINS in .env as a comma-separated list to override defaults.
+# Example: CORS_ORIGINS=https://reva-front.vercel.app,http://localhost:3000
+_default_origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://reva-front.vercel.app",
     "https://reva-front-nmsdcw7w8-sudarshana-wijerathnas-projects.vercel.app",
 ]
+_cors_env = os.getenv("CORS_ORIGINS", "").strip()
+origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else _default_origins
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -118,6 +94,13 @@ app.include_router(rl_router)
 app.include_router(agent_router)
 app.include_router(lstm_router)
 app.include_router(cache_router)
+
+
+@app.get("/health", tags=["Health"])
+def health_check():
+    """Lightweight liveness probe used by Docker HEALTHCHECK, Oracle load
+    balancers, and uptime monitors.  Always returns 200 when the app is up."""
+    return {"status": "ok"}
 
 
 @app.on_event("startup")
@@ -309,7 +292,9 @@ async def ask_reva_endpoint(
     if not chat_request.message:
         raise HTTPException(status_code=400, detail="No message provided")
 
+    user_id = user["id"] if user else None
     active_session = None
+
     if user:
         if chat_request.session_id:
             active_session = (
@@ -322,6 +307,11 @@ async def ask_reva_endpoint(
             )
         if not active_session:
             raw_title = chat_request.message.strip()
+            # If message is structured like [RUN_ESTIMATE] | house | ..., make title cleaner
+            if raw_title.startswith("[RUN_ESTIMATE]"):
+                parts = raw_title.split("|")
+                m_type = parts[1].strip().title() if len(parts) > 1 else "Property"
+                raw_title = f"{m_type} Valuation"
             title = (raw_title[:32] + "...") if len(raw_title) > 32 else raw_title
             active_session = ChatSessionModel(
                 id=str(uuid.uuid4()),
@@ -342,76 +332,335 @@ async def ask_reva_endpoint(
         active_session.updated_at = datetime.datetime.utcnow()
         db.commit()
 
-    if chat_session is None:
-        response_payload = {
-            "reply": "Ask Reva is not configured yet. Please set GEMINI_API_KEY in the backend environment.",
-            "type": "text",
-        }
-    else:
+    # 1. Check if the message is a direct execution from the interactive forms or actions
+    msg_clean = chat_request.message.strip()
+    if msg_clean.startswith("[RUN_ESTIMATE]"):
         try:
-            response = chat_session.send_message(chat_request.message)
-            reply_text = (response.text or "").strip()
+            parts = [p.strip() for p in msg_clean.split("|", 2)]
+            model_type = parts[1].lower() if len(parts) > 1 else "house"
+            features = json.loads(parts[2]) if len(parts) > 2 else {}
 
-            if "[TRIGGER_PREDICTION_FORM]" in reply_text:
-                parts = [p.strip() for p in reply_text.split("|")]
-                district = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
-                area = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
-                size = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
-                road = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
-                utilities = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
-                missing = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
+            analysis = run_full_property_analysis(
+                db=db,
+                model_type=model_type,
+                input_features=features,
+                user_id=user_id,
+            )
 
-                intro_msg = (
-                    "I can certainly help with that! To give you a precise market estimation, I need just a few more details about the property."
-                    if missing and missing != "None"
-                    else "I have extracted all the details! Please review the form below and click estimate."
-                )
+            # Store in semantic memory
+            add_prediction_memory(
+                user_id=user_id,
+                session_id=active_session.id if active_session else None,
+                analysis_data=analysis,
+            )
 
-                response_payload = {
-                    "reply": intro_msg,
-                    "type": "prediction_form",
-                    "extracted": {
-                        "district": district,
-                        "area": area,
-                        "size": size,
-                        "road": road,
-                        "utilities": utilities,
-                    },
-                }
-            elif "[PREDICTION_RESULT]" in reply_text:
-                try:
-                    parts = [p.strip() for p in reply_text.split("|")]
-                    response_payload = {
-                        "reply": "Based on current market trends, here is your intelligent prediction:",
-                        "type": "prediction_result",
-                        "price": parts[1],
-                        "range": parts[2],
-                        "reasoning": parts[3],
-                    }
-                except Exception:
-                    response_payload = {
-                        "reply": "Based on current market trends, here is your intelligent prediction:",
-                        "type": "prediction_result",
-                        "price": "LKR 2,500,000",
-                        "range": "2.2M - 2.8M",
-                        "reasoning": "Prices in this zone are seeing steady growth due to high demand and recent infrastructure developments.",
-                    }
-            elif "[TRIGGER_GRAPH]" in reply_text:
-                response_payload = {
-                    "reply": "Here is the historical price trend for this area. As you can see, there has been a steady incline over the last few years.",
-                    "type": "graph",
-                }
-            else:
-                response_payload = {
-                    "reply": reply_text,
-                    "type": "text",
-                }
-        except Exception as e:
-            print(f"Error connecting to Gemini: {e}")
             response_payload = {
-                "reply": "I'm having trouble connecting to my brain right now. Please try again later.",
+                "reply": f"Based on our trained machine learning models, LSTM market index forecasts, and RL recommendation signals, here is your complete analysis for {analysis['location']}:",
+                "type": "full_analysis",
+                "model_type": analysis["model_type"],
+                "price": analysis["price"],
+                "range": analysis["range"],
+                "unit": analysis["unit"],
+                "total_value": analysis["total_value"],
+                "confidence": analysis["confidence"],
+                "lstm_sequence": analysis["lstm_sequence"],
+                "lstm_labels": analysis["lstm_labels"],
+                "rl_recommendation": analysis["rl_recommendation"],
+                "reasoning": analysis["reasoning"],
+                "location": analysis["location"],
+                "features": analysis["features"],
+            }
+        except Exception as e:
+            print(f"Error in direct prediction execution: {e}")
+            response_payload = {
+                "reply": f"Sorry, could not complete estimation: {str(e)}",
                 "type": "text",
             }
+
+    elif msg_clean.startswith("[ADD_PROPERTY]"):
+        try:
+            parts = [p.strip() for p in msg_clean.split("|", 2)]
+            prop_type = parts[1].lower() if len(parts) > 1 else "housing"
+            payload = json.loads(parts[2]) if len(parts) > 2 else {}
+
+            if not user_id:
+                response_payload = {
+                    "reply": "Please log in to add and manage properties in your portfolio.",
+                    "type": "text",
+                }
+            else:
+                add_res = handle_add_property_from_chat(
+                    db=db,
+                    user_id=user_id,
+                    property_type=prop_type,
+                    payload=payload,
+                )
+
+                if add_res.get("success"):
+                    response_payload = {
+                        "reply": add_res.get("message", "Property added to your portfolio!"),
+                        "type": "add_property_success",
+                        "property_id": add_res.get("property_id"),
+                        "property_type": add_res.get("property_type"),
+                        "location": add_res.get("location"),
+                        "purchase_price": add_res.get("purchase_price"),
+                        "summary": add_res.get("summary", {}),
+                    }
+                else:
+                    response_payload = {
+                        "reply": f"Could not add property: {add_res.get('error', 'Unknown error')}",
+                        "type": "text",
+                    }
+        except Exception as e:
+            print(f"Error adding property from chat: {e}")
+            response_payload = {
+                "reply": f"Failed to add property: {str(e)}",
+                "type": "text",
+            }
+
+    elif msg_clean.startswith("[GET_PORTFOLIO]"):
+        if not user_id:
+            response_payload = {
+                "reply": "Please log in to your account to view your saved real estate portfolio.",
+                "type": "text",
+            }
+        else:
+            p_data = get_user_portfolio_full(db, user_id)
+            response_payload = {
+                "reply": "Here is an overview of your real estate portfolio:",
+                "type": "portfolio_overview",
+                "summary": p_data.get("summary", {}),
+                "properties": p_data.get("properties", []),
+            }
+
+    else:
+        # 2. Regular message -> Query vector memory, portfolio context, and LLM
+        session_messages = []
+        if active_session:
+            for m in active_session.messages[-6:]:
+                session_messages.append({"sender": m.sender, "text": m.content})
+
+        # Retrieve user portfolio context if logged in
+        portfolio_context = None
+        user_portfolio_data = None
+        if user_id:
+            user_portfolio_data = get_user_portfolio_full(db, user_id)
+            portfolio_context = format_portfolio_context_for_llm(user_portfolio_data)
+
+        # Retrieve semantic memory relevant to the user query
+        memories = search_memory(user_id=user_id, query_text=msg_clean, top_k=3)
+        memory_snippets = [m["text"] for m in memories]
+
+        # Retrieve last prediction in session
+        last_pred = get_last_prediction(
+            user_id=user_id,
+            session_id=active_session.id if active_session else None,
+        )
+        last_pred_context = last_pred["text"] if last_pred else None
+
+        # Call Gemini service
+        reply_text = generate_chat_reply(
+            user_message=msg_clean,
+            conversation_history=session_messages,
+            memory_context=memory_snippets,
+            last_prediction_context=last_pred_context,
+            portfolio_context=portfolio_context,
+        )
+
+        if "[TRIGGER_VIEW_PORTFOLIO]" in reply_text:
+            if not user_id:
+                response_payload = {
+                    "reply": "Please log in to view and manage your real estate portfolio!",
+                    "type": "text",
+                }
+            else:
+                p_data = user_portfolio_data or get_user_portfolio_full(db, user_id)
+                response_payload = {
+                    "reply": "Here is an overview of your real estate portfolio and tracked assets:",
+                    "type": "portfolio_overview",
+                    "summary": p_data.get("summary", {}),
+                    "properties": p_data.get("properties", []),
+                }
+
+        elif "[TRIGGER_ADD_HOUSING_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            loc = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            price = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            p_date = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+            land_sz = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            house_sz = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
+            floors = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
+            built_yr = parts[7] if len(parts) > 7 and parts[7] != "None" else ""
+            cond = parts[8] if len(parts) > 8 and parts[8] != "None" else "good"
+
+            response_payload = {
+                "reply": "Let's add this housing property to your portfolio! Please review the details below:",
+                "type": "add_property_form",
+                "property_type": "housing",
+                "extracted": {
+                    "location": loc,
+                    "purchase_price": price,
+                    "purchase_date": p_date,
+                    "land_size_perches": land_sz,
+                    "house_size_sqft": house_sz,
+                    "floors": floors,
+                    "built_year": built_yr,
+                    "property_condition": cond,
+                },
+            }
+
+        elif "[TRIGGER_ADD_RENTAL_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            loc = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            price = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            p_date = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+            rent = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            occ = parts[5] if len(parts) > 5 and parts[5] != "None" else "occupied"
+            l_start = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
+            l_end = parts[7] if len(parts) > 7 and parts[7] != "None" else ""
+            tenant = parts[8] if len(parts) > 8 and parts[8] != "None" else "family"
+
+            response_payload = {
+                "reply": "Let's add this rental property to your portfolio! Please review the details below:",
+                "type": "add_property_form",
+                "property_type": "rental",
+                "extracted": {
+                    "location": loc,
+                    "purchase_price": price,
+                    "purchase_date": p_date,
+                    "monthly_rent": rent,
+                    "occupancy_status": occ,
+                    "lease_start_date": l_start,
+                    "lease_end_date": l_end,
+                    "tenant_type": tenant,
+                },
+            }
+
+        elif "[TRIGGER_ADD_LAND_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            loc = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            price = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            p_date = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+            sz = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            zoning = parts[5] if len(parts) > 5 and parts[5] != "None" else "residential"
+            road = parts[6] if len(parts) > 6 and parts[6] != "None" else "Carpeted Road"
+
+            response_payload = {
+                "reply": "Let's add this land plot to your portfolio! Please review the details below:",
+                "type": "add_property_form",
+                "property_type": "land",
+                "extracted": {
+                    "location": loc,
+                    "purchase_price": price,
+                    "purchase_date": p_date,
+                    "land_size": sz,
+                    "zoning_type": zoning,
+                    "road_access": road,
+                },
+            }
+
+        elif "[TRIGGER_HOUSE_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            district = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            sub_loc = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            sqft = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+            perches = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            beds = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
+            baths = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
+            tier = parts[7] if len(parts) > 7 and parts[7] != "None" else "normal"
+            road = parts[8] if len(parts) > 8 and parts[8] != "None" else ""
+            facilities = parts[9] if len(parts) > 9 and parts[9] != "None" else ""
+            missing = parts[10] if len(parts) > 10 and parts[10] != "None" else ""
+
+            intro = (
+                "I can help you estimate this house price! I've pre-filled what you provided. Please complete any remaining fields:"
+                if missing and missing != "None"
+                else "I've extracted your house specifications! Please review the form below and click estimate."
+            )
+
+            response_payload = {
+                "reply": intro,
+                "type": "prediction_form",
+                "model_type": "house",
+                "extracted": {
+                    "district": district,
+                    "sub_location": sub_loc,
+                    "house_sqft": sqft,
+                    "land_perches": perches,
+                    "bedrooms": beds,
+                    "bathrooms": baths,
+                    "quality_tier": tier,
+                    "road_width_ft": road,
+                    "facilities": facilities,
+                },
+            }
+        elif "[TRIGGER_LAND_FORM]" in reply_text or "[TRIGGER_PREDICTION_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            district = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            loc_text = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            size = parts[3] if len(parts) > 3 and parts[3] != "None" else ""
+            dist_town = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            utils = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
+            missing = parts[6] if len(parts) > 6 and parts[6] != "None" else ""
+
+            intro = (
+                "I'm ready to estimate land valuation! Please review or provide the remaining plot details:"
+                if missing and missing != "None"
+                else "I've extracted your land specifications. Please review and click estimate."
+            )
+
+            response_payload = {
+                "reply": intro,
+                "type": "prediction_form",
+                "model_type": "land",
+                "extracted": {
+                    "district": district,
+                    "location_text": loc_text,
+                    "land_size": size,
+                    "distance_to_town_m": dist_town,
+                    "utilities": utils,
+                },
+            }
+        elif "[TRIGGER_RENTAL_FORM]" in reply_text:
+            parts = [p.strip() for p in reply_text.split("|")]
+            location = parts[1] if len(parts) > 1 and parts[1] != "None" else ""
+            district = parts[2] if len(parts) > 2 and parts[2] != "None" else ""
+            p_type = parts[3] if len(parts) > 3 and parts[3] != "None" else "Apartment"
+            beds = parts[4] if len(parts) > 4 and parts[4] != "None" else ""
+            baths = parts[5] if len(parts) > 5 and parts[5] != "None" else ""
+            furn = parts[6] if len(parts) > 6 and parts[6] != "None" else "furnished"
+            missing = parts[7] if len(parts) > 7 and parts[7] != "None" else ""
+
+            intro = (
+                "I can estimate rental prices for you! Please review the rental parameters below:"
+                if missing and missing != "None"
+                else "I've captured your rental property preferences. Please review and click estimate."
+            )
+
+            response_payload = {
+                "reply": intro,
+                "type": "prediction_form",
+                "model_type": "rental",
+                "extracted": {
+                    "location": location,
+                    "district": district,
+                    "property_type": p_type,
+                    "bedrooms": beds,
+                    "bathrooms": baths,
+                    "furnishing_status": furn,
+                },
+            }
+        elif "[TRIGGER_GRAPH]" in reply_text:
+            response_payload = {
+                "reply": "Here is the price trend visualization across Sri Lankan real estate over recent periods:",
+                "type": "graph",
+            }
+        else:
+            response_payload = {
+                "reply": reply_text,
+                "type": "text",
+            }
+
 
     if user and active_session:
         extra = {k: v for k, v in response_payload.items() if k not in ("reply", "type")}
@@ -421,7 +670,7 @@ async def ask_reva_endpoint(
                 sender="reva",
                 msg_type=response_payload.get("type", "text"),
                 content=response_payload.get("reply", ""),
-                extra_data=json.dumps(extra) if extra else None,
+                extra_data=json.dumps(extra, default=str) if extra else None,
             )
         )
         active_session.updated_at = datetime.datetime.utcnow()
@@ -429,7 +678,9 @@ async def ask_reva_endpoint(
 
         response_payload["session_id"] = active_session.id
 
+
     return response_payload
+
 
 
 if __name__ == "__main__":

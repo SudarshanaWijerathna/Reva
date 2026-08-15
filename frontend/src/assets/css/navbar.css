@@ -78,25 +78,28 @@
 }
 
 .dark-mode-btn {
-    background: transparent;
-    border: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     cursor: pointer;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: auto;
+    height: auto;
+    border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--primary-dark);
     font-size: 18px;
-    transition: all 0.3s ease;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     outline: none;
+    padding: 6px;
 }
 
 .dark-mode-btn:hover {
-    background: var(--blue-lightest);
+    background: transparent !important;
     color: var(--blue-medium);
-    transform: rotate(20deg);
+    opacity: 0.8;
+    transform: scale(1.08);
 }
 
 .d-nav-item-container { position: relative; }
@@ -260,3 +263,80 @@
     .popup-icon-circle img { width: 24px; height: 24px; object-fit: contain; }
     .popup-label { background-color: var(--white); color: var(--black); padding: 10px 18px; border-radius: 20px; font-size: 9px; font-family: fontRegular, sans-serif; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); white-space: nowrap; }
 }
+
+/* =========================================
+   3. NAVBAR DARK MODE OVERRIDES
+   ========================================= */
+[data-theme="dark"] .navbar {
+    background: #151515;
+    border: 1px solid #2f2f2f;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .navbar.sticky {
+    background: #151515;
+    border-bottom: 1px solid #2f2f2f;
+}
+
+[data-theme="dark"] .nav-actions .btn-primary,
+[data-theme="dark"] .auth-buttons .btn-primary {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .nav-actions .btn-primary:hover,
+[data-theme="dark"] .auth-buttons .btn-primary:hover {
+    background: #e5e5e5 !important;
+    color: #000000 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .nav-actions .btn-outline,
+[data-theme="dark"] .auth-buttons .btn-outline {
+    border: 1px solid #333333 !important;
+    color: #f5f5f5 !important;
+    background: transparent !important;
+}
+
+[data-theme="dark"] .nav-actions .btn-outline:hover,
+[data-theme="dark"] .auth-buttons .btn-outline:hover {
+    border-color: #555555 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+}
+
+[data-theme="dark"] .mobile-theme-toggle-btn,
+[data-theme="dark"] .dark-mode-btn {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .mobile-theme-toggle-btn:hover,
+[data-theme="dark"] .dark-mode-btn:hover {
+    background: transparent !important;
+    color: #ffffff !important;
+    opacity: 0.8;
+}
+
+[data-theme="dark"] .d-prediction-popup {
+    background: #181818;
+    border: 1px solid #2f2f2f;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .d-prediction-popup a {
+    color: #d4d4d4;
+}
+
+[data-theme="dark"] .d-prediction-popup a:hover {
+    background: #262626;
+    color: #ffffff;
+}
+

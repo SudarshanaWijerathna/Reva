@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import AddPropertyModal from '../components/AddPropertyModal';
 import { portfolioService, type PortfolioSummary, type PropertyData } from '../services/portfolioService';
+import { API_BASE_URL } from '../config/api';
 import '../assets/css/dashboard.css';
 
 // --- HELPER FUNCTION: Auto-generate Initials Avatar ---
@@ -34,7 +35,7 @@ const generateInitialsAvatar = (name: string): string => {
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { openAuthModal } = useAuth();
+  const { openAuthModal, notifyAuthChange } = useAuth();
 
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [properties, setProperties] = useState<PropertyData[]>([]);
@@ -46,6 +47,96 @@ const Dashboard: React.FC = () => {
   const [editingProperty, setEditingProperty] = useState<any>(null);
   const [userName, setUserName] = useState<string>("User");
   const [userProfileUrl, setUserProfileUrl] = useState<string | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+
+  // --- Downscale any uploaded image to 150x150 square avatar ---
+  const resizeImageToSquare = (file: File, size = 150): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+
+          // Center-crop to square before downscaling
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+          resolve(canvas.toDataURL('image/jpeg', 0.92));
+        };
+        img.onerror = () => {
+          resolve(e.target?.result as string);
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const resizedBase64 = await resizeImageToSquare(file, 150);
+      if (resizedBase64) {
+        localStorage.setItem("user_picture", resizedBase64);
+        sessionStorage.setItem("user_picture", resizedBase64);
+        setUserProfileUrl(resizedBase64);
+        notifyAuthChange();
+      }
+    } catch (err) {
+      console.error("Failed to process image:", err);
+    }
+  };
+
+  const handleSaveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = tempName.trim();
+    if (!trimmed) return;
+
+    localStorage.setItem("user_full_name", trimmed);
+    localStorage.setItem("user_name", trimmed);
+    sessionStorage.setItem("user_full_name", trimmed);
+    sessionStorage.setItem("user_name", trimmed);
+    setUserName(trimmed);
+    setIsEditingName(false);
+    notifyAuthChange();
+
+    try {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+      if (token) {
+        await fetch(`${API_BASE_URL}/users/profile`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            full_name: trimmed,
+            email: localStorage.getItem("user_email") || sessionStorage.getItem("user_email") || "",
+            phone: "",
+            address: "",
+            city: "",
+            country: "",
+          }),
+        });
+      }
+    } catch (err) {
+      console.warn("Backend profile sync error:", err);
+    }
+  };
 
   const refreshPortfolioData = async () => {
     const [summaryData, propertiesData, insightData] = await Promise.all([
@@ -209,41 +300,193 @@ const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className="portfolio-summary-section">
-          {/* HEADER */}
-          <div className="dash-header">
-            <div className="header-left-group">
+        {/* MOBILE ONLY: Top Profile & Name Header displayed between navigation bar and summary card */}
+        <div className="dash-mobile-user-header">
+          <div className="dash-mobile-top-row">
+            <div className="dash-avatar-container">
               <img
                 src={userProfileUrl || generateInitialsAvatar(userName)}
                 alt="User Profile"
                 className="dash-user-avatar"
               />
+              <label
+                htmlFor="mobile-profile-picture-upload"
+                className="dash-avatar-edit-btn"
+                title="Change profile picture"
+                aria-label="Change profile picture"
+              >
+                <i className="fa-solid fa-pencil"></i>
+              </label>
+              <input
+                id="mobile-profile-picture-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                style={{ display: 'none' }}
+              />
+            </div>
+
+            <div className="dash-mobile-name-wrapper">
+              {isEditingName ? (
+                <form onSubmit={handleSaveName} className="dash-name-edit-form">
+                  <input
+                    type="text"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="dash-name-edit-input"
+                    maxLength={40}
+                    autoFocus
+                  />
+                  <button type="submit" className="dash-name-save-btn" title="Save name">
+                    <i className="fa-solid fa-check"></i>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingName(false)}
+                    className="dash-name-cancel-btn"
+                    title="Cancel"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </form>
+              ) : (
+                <h1 className="dash-portfolio-title">
+                  <div className="dash-name-apostrophe-group">
+                    <span className="dash-user-name-truncated" title={`${userName}'s Portfolio`}>
+                      {userName}
+                    </span>
+                    <span className="dash-portfolio-apostrophe">'s</span>
+                  </div>
+                  <span className="dash-portfolio-suffix">Portfolio</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempName(userName);
+                      setIsEditingName(true);
+                    }}
+                    className="dash-edit-name-btn"
+                    title="Edit name"
+                    aria-label="Edit name"
+                  >
+                    <i className="fa-solid fa-pencil"></i>
+                  </button>
+                </h1>
+              )}
+            </div>
+          </div>
+
+          <p className="dash-mobile-subtitle">Track your real estate assets and monitor market value changes.</p>
+        </div>
+
+        <div className="portfolio-summary-section">
+          {/* HEADER */}
+          <div className="dash-header">
+            <div className="header-left-group">
+              <div className="dash-avatar-container">
+                <img
+                  src={userProfileUrl || generateInitialsAvatar(userName)}
+                  alt="User Profile"
+                  className="dash-user-avatar"
+                />
+                <label
+                  htmlFor="profile-picture-upload"
+                  className="dash-avatar-edit-btn"
+                  title="Change profile picture"
+                  aria-label="Change profile picture"
+                >
+                  <i className="fa-solid fa-pencil"></i>
+                </label>
+                <input
+                  id="profile-picture-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureChange}
+                  style={{ display: 'none' }}
+                />
+              </div>
+
               <div className="header-text-group">
-                <h1> <span>{userName}'s Portfolio</span> </h1>
+                {isEditingName ? (
+                  <form onSubmit={handleSaveName} className="dash-name-edit-form">
+                    <input
+                      type="text"
+                      value={tempName}
+                      onChange={(e) => setTempName(e.target.value)}
+                      className="dash-name-edit-input"
+                      maxLength={40}
+                      autoFocus
+                    />
+                    <button type="submit" className="dash-name-save-btn" title="Save name">
+                      <i className="fa-solid fa-check"></i>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingName(false)}
+                      className="dash-name-cancel-btn"
+                      title="Cancel"
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </form>
+                ) : (
+                  <h1 className="dash-portfolio-title">
+                    <div className="dash-name-apostrophe-group">
+                      <span className="dash-user-name-truncated" title={`${userName}'s Portfolio`}>
+                        {userName}
+                      </span>
+                      <span className="dash-portfolio-apostrophe">'s</span>
+                    </div>
+                    <span className="dash-portfolio-suffix">Portfolio</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempName(userName);
+                        setIsEditingName(true);
+                      }}
+                      className="dash-edit-name-btn"
+                      title="Edit name"
+                      aria-label="Edit name"
+                    >
+                      <i className="fa-solid fa-pencil"></i>
+                    </button>
+                  </h1>
+                )}
                 <p>Track your real estate assets and monitor market value changes.</p>
               </div>
             </div>
             <div className="header-actions-group">
               <div className="horizontal-mix-stats">
-                <div className="mix-stat-item">
-                  <i className="fa-solid fa-house"></i>
-                  <span>Housing:</span>
-                  <strong>{loading ? "..." : (summary?.property_mix.housing || 0) > 0 ? `${summary?.property_mix.housing} Units` : "-"}</strong>
+                <div className="mix-stat-card">
+                  <div className="mix-stat-icon-wrapper">
+                    <img src="/img/icons/house.svg" alt="Housing" className="mix-stat-svg-icon" />
+                  </div>
+                  <span className="mix-stat-label">Housing</span>
+                  <strong className="mix-stat-count">
+                    {loading ? "..." : (summary?.property_mix.housing || 0) > 0 ? `${summary?.property_mix.housing} Units` : "-"}
+                  </strong>
                 </div>
-                <div className="mix-stat-item">
-                  <i className="fa-solid fa-building"></i>
-                  <span>Rentals:</span>
-                  <strong>{loading ? "..." : (summary?.property_mix.rental || 0) > 0 ? `${summary?.property_mix.rental} Units` : "-"}</strong>
+                <div className="mix-stat-card">
+                  <div className="mix-stat-icon-wrapper">
+                    <img src="/img/icons/rental.svg" alt="Rentals" className="mix-stat-svg-icon" />
+                  </div>
+                  <span className="mix-stat-label">Rentals</span>
+                  <strong className="mix-stat-count">
+                    {loading ? "..." : (summary?.property_mix.rental || 0) > 0 ? `${summary?.property_mix.rental} Units` : "-"}
+                  </strong>
                 </div>
-                <div className="mix-stat-item">
-                  <i className="fa-solid fa-tree"></i>
-                  <span>Lands:</span>
-                  <strong>{loading ? "..." : (summary?.property_mix.land || 0) > 0 ? `${summary?.property_mix.land} Plots` : "-"}</strong>
+                <div className="mix-stat-card">
+                  <div className="mix-stat-icon-wrapper">
+                    <img src="/img/icons/land.svg" alt="Lands" className="mix-stat-svg-icon" />
+                  </div>
+                  <span className="mix-stat-label">Lands</span>
+                  <strong className="mix-stat-count">
+                    {loading ? "..." : (summary?.property_mix.land || 0) > 0 ? `${summary?.property_mix.land} Plots` : "-"}
+                  </strong>
                 </div>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="btn-primary"
+                className="btn-primary mobile-add-btn"
                 title="Add a new property to track and analyze"
               >
                 <i className="fa-solid fa-plus"></i> New Property
@@ -279,6 +522,17 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="fin-sub text-green">Market looks {summary?.sentiment?.toLowerCase() || "neutral"}</div>
             </div>
+          </div>
+
+          {/* DESKTOP ONLY: Add New Property button in bottom-right corner below sentiment card */}
+          <div className="dash-desktop-bottom-actions">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="btn-primary dash-desktop-add-btn"
+              title="Add a new property to track and analyze"
+            >
+              <i className="fa-solid fa-plus"></i> New Property
+            </button>
           </div>
         </div>
 

@@ -526,8 +526,9 @@ def get_property_recommendation(
     if normalized_type not in property_order:
         raise ValueError(f"Unknown model type: {model_type}")
 
+    user = {"id": user_id} if user_id else {}
     try:
-        recommendations = get_reccomendations()
+        recommendations = get_reccomendations(user, db)
     except Exception:
         return {
             "model_type": normalized_type,

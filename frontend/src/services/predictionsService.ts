@@ -47,7 +47,7 @@ const getAuthToken = (): string | null => {
 };
 
 // Helper to make requests (attaches auth token if user is logged in, but allows unauthenticated access)
-const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
+const fetchWithAuth = async (endpoint: string, options: RequestInit = {}, retries = 3) => {
   const token = getAuthToken();
   
   const headers: Record<string, string> = {
@@ -66,23 +66,39 @@ const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
   }
   const targetUrl = `${API_BASE_URL}${cleanEndpoint}`;
 
-  try {
-    const response = await fetch(targetUrl, {
-      ...options,
-      headers,
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(targetUrl, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`API Error: ${response.status} - ${error}`);
+      if (response.status === 502 || response.status === 503 || response.status === 504) {
+        if (attempt < retries) {
+          // Render free instance is waking up from sleep, wait 3 seconds and retry
+          await new Promise((res) => setTimeout(res, 3000));
+          continue;
+        }
+        throw new Error("Server is waking up from sleep mode (Render cold start). Please try again in 5 seconds.");
+      }
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API Error: ${response.status} - ${error}`);
+      }
+
+      return await response.json();
+    } catch (err) {
+      if (attempt < retries && (err instanceof TypeError || (err instanceof Error && (err.message.includes("502") || err.message.includes("Failed to fetch"))))) {
+        await new Promise((res) => setTimeout(res, 3000));
+        continue;
+      }
+      console.error("Fetch error:", err);
+      throw err;
     }
-
-    return response.json();
-  } catch (err) {
-    console.error("Fetch error:", err);
-    throw err;
   }
 };
+
 
 
 // Get features for a specific model type

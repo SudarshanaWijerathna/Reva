@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { portfolioService, type PropertyDetailData } from '../services/portfolioService';
 import '../assets/css/dashboard.css';
 
@@ -467,7 +468,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop Overlay */}
       <div 
@@ -1152,7 +1153,8 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 };
 

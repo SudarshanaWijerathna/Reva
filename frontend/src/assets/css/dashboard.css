@@ -1066,10 +1066,10 @@ table.desktop-only-view {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    z-index: 10000;
+    z-index: 99990;
 }
 
 .property-modal-card {
@@ -1080,11 +1080,11 @@ table.desktop-only-view {
     background: var(--white);
     border: 1px solid var(--border-color);
     border-radius: 20px;
-    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
-    z-index: 10001;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+    z-index: 99999;
     max-width: 520px;
     width: 92%;
-    max-height: calc(90vh - 20px);
+    max-height: calc(88vh - 20px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;

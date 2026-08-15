@@ -19,6 +19,12 @@ interface HousingFormData {
   property_condition: string;
   bedrooms: string;
   bathrooms: string;
+  // Optional fields that map to DB columns
+  parking_spaces: string;
+  road_width_ft: string;
+  water_available: string;       // '' | 'true' | 'false'
+  electricity_available: string; // '' | 'true' | 'false'
+  description: string;
 }
 
 interface RentalFormData {
@@ -89,6 +95,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
     property_condition: 'good',
     bedrooms: '',
     bathrooms: '',
+    parking_spaces: '',
+    road_width_ft: '',
+    water_available: '',
+    electricity_available: '',
+    description: '',
   });
 
   const [rentalForm, setRentalForm] = useState<RentalFormData>({
@@ -162,6 +173,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
           property_condition: initialProperty.property_condition || 'good',
           bedrooms: initialProperty.bedrooms?.toString() || '',
           bathrooms: initialProperty.bathrooms?.toString() || '',
+          parking_spaces: initialProperty.parking_spaces?.toString() || '',
+          road_width_ft: initialProperty.road_width_ft?.toString() || '',
+          water_available: initialProperty.water_available == null ? '' : String(initialProperty.water_available),
+          electricity_available: initialProperty.electricity_available == null ? '' : String(initialProperty.electricity_available),
+          description: initialProperty.description || '',
         });
       }
 
@@ -266,8 +282,15 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         floors: parseInt(housingForm.floors),
         built_year: parseInt(housingForm.built_year),
         property_condition: housingForm.property_condition,
-        bedrooms: parseInt(housingForm.bedrooms),
-        bathrooms: parseInt(housingForm.bathrooms),
+        // Bug fix: parseInt('') returns NaN which Pydantic coerces to null — use || null
+        bedrooms: parseInt(housingForm.bedrooms) || null,
+        bathrooms: parseInt(housingForm.bathrooms) || null,
+        // Include optional fields so they are persisted when the user provides them
+        parking_spaces: housingForm.parking_spaces ? (parseInt(housingForm.parking_spaces) || null) : null,
+        road_width_ft: housingForm.road_width_ft ? (parseFloat(housingForm.road_width_ft) || null) : null,
+        water_available: housingForm.water_available === '' ? null : housingForm.water_available === 'true',
+        electricity_available: housingForm.electricity_available === '' ? null : housingForm.electricity_available === 'true',
+        description: housingForm.description || null,
       };
 
       if (isEditMode && initialProperty) {
@@ -324,8 +347,9 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         lease_end_date: rentalForm.lease_end_date,
         tenant_type: rentalForm.tenant_type,
         property_subtype: rentalForm.property_subtype,
-        bedrooms: parseInt(rentalForm.bedrooms),
-        bathrooms: parseInt(rentalForm.bathrooms),
+        // Bug fix: parseInt('') returns NaN which Pydantic coerces to null — use || null
+        bedrooms: parseInt(rentalForm.bedrooms) || null,
+        bathrooms: parseInt(rentalForm.bathrooms) || null,
         floor_area_sqft: parseFloat(rentalForm.floor_area_sqft),
         land_size_perches: parseFloat(rentalForm.land_size_perches),
         furnishing_status: rentalForm.furnishing_status,
@@ -423,6 +447,11 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
       property_condition: 'good',
       bedrooms: '',
       bathrooms: '',
+      parking_spaces: '',
+      road_width_ft: '',
+      water_available: '',
+      electricity_available: '',
+      description: '',
     });
     setRentalForm({
       location: '',
@@ -703,6 +732,75 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
                 </select>
               </div>
 
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Parking Spaces</label>
+                  <input
+                    type="number"
+                    name="parking_spaces"
+                    min="0"
+                    value={housingForm.parking_spaces}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Road Width (ft)</label>
+                  <input
+                    type="number"
+                    name="road_width_ft"
+                    min="0"
+                    step="0.1"
+                    value={housingForm.road_width_ft}
+                    onChange={handleHousingChange}
+                    className="property-form-input"
+                    placeholder="Optional"
+                  />
+                </div>
+              </div>
+
+              <div className="property-form-grid-2">
+                <div className="property-form-group">
+                  <label className="property-form-label">Water Available</label>
+                  <select
+                    name="water_available"
+                    value={housingForm.water_available}
+                    onChange={handleHousingChange}
+                    className="property-form-select"
+                  >
+                    <option value="">Unknown</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                <div className="property-form-group">
+                  <label className="property-form-label">Electricity Available</label>
+                  <select
+                    name="electricity_available"
+                    value={housingForm.electricity_available}
+                    onChange={handleHousingChange}
+                    className="property-form-select"
+                  >
+                    <option value="">Unknown</option>
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="property-form-group">
+                <label className="property-form-label">Description</label>
+                <input
+                  type="text"
+                  name="description"
+                  value={housingForm.description}
+                  onChange={handleHousingChange}
+                  className="property-form-input"
+                  placeholder="Optional notes about the property"
+                />
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -890,7 +988,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
               <div className="property-form-grid-2">
                 <div className="property-form-group">
-                  <label className="property-form-label">Expected Vacancy Rate</label>
+                  <label className="property-form-label">Expected Vacancy Rate <small style={{color:'#888'}}>(0–1, e.g. 0.25 = 25%)</small></label>
                   <input
                     type="number"
                     name="vacancy_rate"

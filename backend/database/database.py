@@ -1,4 +1,6 @@
+import logging
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -9,8 +11,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
+logger = logging.getLogger(__name__)
+
 ROOT_DIR = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT_DIR / ".env", override=True)
+
+# True when DATABASE_URL was absent and the local SQLite file was substituted.
+# Read it before trusting anything you find in a database file on disk: a
+# developer inspecting backend/database/test.db while the process is talking to
+# a hosted Postgres is reading a different database from the one the API writes.
+USING_SQLITE_FALLBACK = False
 
 
 def _build_database_url() -> str:
@@ -65,10 +75,25 @@ def _build_database_url() -> str:
 
         return env_url
 
+    global USING_SQLITE_FALLBACK
+    USING_SQLITE_FALLBACK = True
+
     base_dir = Path(__file__).resolve().parent
     db_path = base_dir / "test.db"
     return f"sqlite:///{db_path}"
 
+
+def mask_database_url(url: str) -> str:
+    """The URL with any password removed, safe to log or print."""
+    return re.sub(r"://([^:/@]+):([^@]*)@", r"://\1:***@", url)
+
+
+def describe_database() -> str:
+    """One line naming the database this process actually reads and writes."""
+    target = mask_database_url(SQLALCHEMY_DATABASE_URL)
+    if USING_SQLITE_FALLBACK:
+        return f"{target}  (LOCAL FALLBACK - DATABASE_URL is not set)"
+    return f"{target}  (from DATABASE_URL)"
 
 
 SQLALCHEMY_DATABASE_URL = _build_database_url()
@@ -78,6 +103,18 @@ if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
+
+# Announce the target once, at import. Two databases that both contain a
+# `properties` table are indistinguishable from the application's behaviour, so
+# the only way to tell which one a save landed in is to say so out loud.
+if USING_SQLITE_FALLBACK:
+    logger.warning(
+        "DATABASE_URL is not set - falling back to the local SQLite file at %s. "
+        "Any data written now is invisible to a hosted database, and vice versa.",
+        SQLALCHEMY_DATABASE_URL.replace("sqlite:///", ""),
+    )
+else:
+    logger.info("Database: %s", describe_database())
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

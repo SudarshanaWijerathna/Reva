@@ -104,7 +104,12 @@ def build_land_payload(prop) -> PayloadBuild:
     notes = []
     if unknown:
         notes.append(f"Unknown optional land attributes default to neutral/absent in the model: {', '.join(unknown)}.")
-    return PayloadBuild(payload, unknown, notes)
+    # These attributes are optional by construction - the model has a defined
+    # behaviour for each one being absent. Reporting them in `missing`, which is
+    # reserved for fields the model cannot run without, downgraded every land
+    # valuation to low confidence purely for not recording whether the plot has
+    # mains water. The note above still records exactly what was unknown.
+    return PayloadBuild(payload, [], notes)
 
 
 def build_house_payload(prop) -> PayloadBuild:

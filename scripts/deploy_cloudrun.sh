@@ -103,7 +103,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --port "${PORT}" \
   --timeout 300 \
   --concurrency 10 \
-  --set-env-vars "ENABLE_SCHEDULER=false,MODEL_RUNTIME_MODE=embedded,PORTFOLIO_VALUATION_ENGINE=legacy,CORS_ORIGINS=${FRONTEND_URL}" \
+  --set-env-vars "ENABLE_SCHEDULER=false,MODEL_RUNTIME_MODE=embedded,PORTFOLIO_VALUATION_ENGINE=hybrid,CORS_ORIGINS=${FRONTEND_URL}" \
   --quiet
 
 # ── Step 5: Retrieve service URL ──────────────────────────────────────────────

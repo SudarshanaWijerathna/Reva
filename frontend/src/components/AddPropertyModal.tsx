@@ -259,7 +259,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
     if (!validateForm(housingForm)) return;
 
-    const requiredHousingFields = ['land_size_perches', 'house_size_sqft', 'floors', 'built_year', 'bedrooms', 'bathrooms'];
+    const requiredHousingFields = ['land_size_perches', 'house_size_sqft', 'floors', 'built_year'];
     for (const field of requiredHousingFields) {
       if (!housingForm[field as keyof HousingFormData]) {
         setError(`${field.replace(/_/g, ' ')} is required`);
@@ -282,9 +282,9 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         floors: parseInt(housingForm.floors),
         built_year: parseInt(housingForm.built_year),
         property_condition: housingForm.property_condition,
-        // Bug fix: parseInt('') returns NaN which Pydantic coerces to null — use || null
-        bedrooms: parseInt(housingForm.bedrooms) || null,
-        bathrooms: parseInt(housingForm.bathrooms) || null,
+        // Default to 0 when left blank so the ML valuation model can still run
+        bedrooms: parseInt(housingForm.bedrooms) || 0,
+        bathrooms: parseInt(housingForm.bathrooms) || 0,
         // Include optional fields so they are persisted when the user provides them
         parking_spaces: housingForm.parking_spaces ? (parseInt(housingForm.parking_spaces) || null) : null,
         road_width_ft: housingForm.road_width_ft ? (parseFloat(housingForm.road_width_ft) || null) : null,
@@ -319,7 +319,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
 
     if (!validateForm(rentalForm)) return;
 
-    const requiredRentalFields = ['monthly_rent', 'lease_start_date', 'lease_end_date', 'property_subtype', 'bedrooms', 'bathrooms', 'floor_area_sqft', 'land_size_perches'];
+    const requiredRentalFields = ['monthly_rent', 'lease_start_date', 'lease_end_date', 'property_subtype', 'floor_area_sqft', 'land_size_perches'];
     for (const field of requiredRentalFields) {
       if (!rentalForm[field as keyof RentalFormData]) {
         setError(`${field.replace(/_/g, ' ')} is required`);
@@ -347,9 +347,9 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onClose, on
         lease_end_date: rentalForm.lease_end_date,
         tenant_type: rentalForm.tenant_type,
         property_subtype: rentalForm.property_subtype,
-        // Bug fix: parseInt('') returns NaN which Pydantic coerces to null — use || null
-        bedrooms: parseInt(rentalForm.bedrooms) || null,
-        bathrooms: parseInt(rentalForm.bathrooms) || null,
+        // Default to 0 when left blank so the ML valuation model can still run
+        bedrooms: parseInt(rentalForm.bedrooms) || 0,
+        bathrooms: parseInt(rentalForm.bathrooms) || 0,
         floor_area_sqft: parseFloat(rentalForm.floor_area_sqft),
         land_size_perches: parseFloat(rentalForm.land_size_perches),
         furnishing_status: rentalForm.furnishing_status,

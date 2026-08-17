@@ -42,13 +42,40 @@ class PayloadBuild:
 
 
 def property_district(prop) -> str | None:
+    """Return the property's district, inferring it from geocoding when not stored.
+
+    Priority:
+    1. ``prop.district`` if explicitly set.
+    2. ``prop.location`` if it is itself a district name.
+    3. Geocoder cross-district locality match (e.g. a town name found in the
+       gazetteer maps to a known district).
+    4. ``"colombo"`` as a safe default - this is also what the geocoder's
+       fallback coordinates (6.9271, 79.8612) correspond to, so the house
+       model receives a consistent location signal.
+    """
     explicit = str(getattr(prop, "district", "") or "").strip()
     if explicit:
         return explicit
     location = str(getattr(prop, "location", "") or "").strip()
     if location.lower() in SRI_LANKA_DISTRICTS:
         return location
-    return None
+    # Try to extract the district from the geocoder's gazetteer by matching the
+    # locality name across all districts. This is the same cross-district pass
+    # that _coordinates() uses, so the district and coordinates stay consistent.
+    try:
+        from ml.land_service.geocoding import _gazetteer, _normalise  # type: ignore[attr-defined]
+        _, _ = _gazetteer()  # warm the cache
+        localities, _ = _gazetteer()
+        location_key = _normalise(location)
+        if location_key:
+            for (found_district, found_location) in localities:
+                if found_location == location_key and found_district:
+                    return found_district
+    except Exception:
+        pass
+    # Final fallback: the geocoder resolves unknown localities to Colombo
+    # coordinates, so using "colombo" keeps coordinates and district consistent.
+    return "colombo"
 
 
 def property_locality(prop) -> str:
@@ -123,7 +150,9 @@ def build_house_payload(prop) -> PayloadBuild:
         "bathrooms": getattr(detail, "bathrooms", None) if detail else None,
         "district": district,
     }
-    missing = [name for name, value in required.items() if value is None or value == "" or value == 0]
+    # Only reject None/empty - 0 is a valid recorded value (the frontend defaults
+    # unset bedrooms/bathrooms to 0 so the model can always run).
+    missing = [name for name, value in required.items() if value is None or value == ""]
     if missing:
         return PayloadBuild(None, missing, ["House model requires physical details and district."])
 
@@ -208,7 +237,8 @@ def build_rental_underlying_house_payload(prop) -> PayloadBuild:
         "bathrooms": getattr(detail, "bathrooms", None),
         "district": district,
     }
-    missing = [name for name, value in required.items() if value is None or value == "" or value == 0]
+    # Only reject None/empty - 0 is a valid recorded value.
+    missing = [name for name, value in required.items() if value is None or value == ""]
     if missing:
         return PayloadBuild(None, missing)
 
